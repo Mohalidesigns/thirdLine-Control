@@ -1,0 +1,217 @@
+{
+    "code": "PCI-DSS-4.0.1",
+    "name": "PCI DSS v4.0.1",
+    "version": "1.0.0",
+    "jurisdiction": "INTL",
+    "issuing_body": "PCI Security Standards Council",
+    "effective_from": "2024-06-11",
+    "source_url": "https://www.pcisecuritystandards.org/",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack. Six goals and twelve requirements at the top level; sub-requirements are not seeded. v4.0 future-dated requirements became effective 31 March 2025; v4.0.1 (June 2024) is clarification-only. Requirement titles must be reconciled against the published standard before this pack is marked verified. Scoping is annual, and six-monthly for service providers.",
+    "framework": {
+        "code": "PCI-DSS-4.0.1",
+        "name": "PCI DSS v4.0.1",
+        "issuing_body": "PCI Security Standards Council",
+        "jurisdiction": "INTL",
+        "version": "1.0.0",
+        "category": "security",
+        "effective_from": "2024-06-11",
+        "is_certifiable": true,
+        "source_url": "https://www.pcisecuritystandards.org/",
+        "verification_status": "unverified",
+        "description": "Payment card data security: twelve requirements across six goals, with a defined approach and a customised approach supported by targeted risk analyses."
+    },
+    "requirements": [
+        {
+            "ref_code": "G1",
+            "title": "Build and Maintain a Secure Network and Systems",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "domain",
+            "is_testable": false,
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "REQ.1",
+            "parent_ref": "G1",
+            "title": "Install and Maintain Network Security Controls",
+            "level": 2,
+            "sort_order": 1,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "REQ.2",
+            "parent_ref": "G1",
+            "title": "Apply Secure Configurations to All System Components",
+            "level": 2,
+            "sort_order": 2,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "G2",
+            "title": "Protect Account Data",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "domain",
+            "is_testable": false,
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "REQ.3",
+            "parent_ref": "G2",
+            "title": "Protect Stored Account Data",
+            "level": 2,
+            "sort_order": 3,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "REQ.4",
+            "parent_ref": "G2",
+            "title": "Protect Cardholder Data with Strong Cryptography During Transmission Over Open, Public Networks",
+            "level": 2,
+            "sort_order": 4,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "G3",
+            "title": "Maintain a Vulnerability Management Program",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "domain",
+            "is_testable": false,
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "REQ.5",
+            "parent_ref": "G3",
+            "title": "Protect All Systems and Networks from Malicious Software",
+            "level": 2,
+            "sort_order": 5,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "REQ.6",
+            "parent_ref": "G3",
+            "title": "Develop and Maintain Secure Systems and Software",
+            "level": 2,
+            "sort_order": 6,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "G4",
+            "title": "Implement Strong Access Control Measures",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "domain",
+            "is_testable": false,
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "REQ.7",
+            "parent_ref": "G4",
+            "title": "Restrict Access to System Components and Cardholder Data by Business Need to Know",
+            "level": 2,
+            "sort_order": 7,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "REQ.8",
+            "parent_ref": "G4",
+            "title": "Identify Users and Authenticate Access to System Components",
+            "level": 2,
+            "sort_order": 8,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "REQ.9",
+            "parent_ref": "G4",
+            "title": "Restrict Physical Access to Cardholder Data",
+            "level": 2,
+            "sort_order": 9,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "G5",
+            "title": "Regularly Monitor and Test Networks",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "domain",
+            "is_testable": false,
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "REQ.10",
+            "parent_ref": "G5",
+            "title": "Log and Monitor All Access to System Components and Cardholder Data",
+            "level": 2,
+            "sort_order": 10,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "REQ.11",
+            "parent_ref": "G5",
+            "title": "Test Security of Systems and Networks Regularly",
+            "level": 2,
+            "sort_order": 11,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "G6",
+            "title": "Maintain an Information Security Policy",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "domain",
+            "is_testable": false,
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "REQ.12",
+            "parent_ref": "G6",
+            "title": "Support Information Security with Organizational Policies and Programs",
+            "level": 2,
+            "sort_order": 12,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        }
+    ],
+    "obligations": [],
+    "controls": [],
+    "mappings": []
+}

@@ -1,0 +1,230 @@
+{
+    "code": "SEC-NG-CG-2020",
+    "name": "SEC Nigeria Corporate Governance Guideline 2020",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "Securities and Exchange Commission, Nigeria",
+    "effective_from": "2020-10-10",
+    "source_url": "https://sec.gov.ng",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack. Fourteen principles reported on Form 01, with a stated penalty of ₦500,000 plus ₦5,000 per day of default. Principle titles are working labels and must be reconciled against the guideline and Form 01 before this pack is marked verified. Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack ships unverified: records are usable internally but excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "SEC-NG",
+        "name": "Securities and Exchange Commission, Nigeria",
+        "jurisdiction": "NG",
+        "sector": [
+            "capital_markets"
+        ],
+        "website": "https://sec.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "SEC-NG-CG-2020",
+        "name": "SEC Nigeria Corporate Governance Guideline 2020",
+        "issuing_body": "Securities and Exchange Commission, Nigeria",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "governance",
+        "effective_from": "2020-10-10",
+        "is_certifiable": false,
+        "source_url": "https://sec.gov.ng",
+        "verification_status": "unverified",
+        "description": "Corporate governance guideline for public companies and capital market operators, reported annually on Form 01."
+    },
+    "requirements": [
+        {
+            "ref_code": "P1",
+            "title": "Board responsibilities",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "SEC Corporate Governance Guideline 2020 principle 1"
+        },
+        {
+            "ref_code": "P2",
+            "title": "Board composition and independence",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "SEC Corporate Governance Guideline 2020 principle 2"
+        },
+        {
+            "ref_code": "P3",
+            "title": "Chairman and chief executive separation",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "SEC Corporate Governance Guideline 2020 principle 3"
+        },
+        {
+            "ref_code": "P4",
+            "title": "Board committees",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "SEC Corporate Governance Guideline 2020 principle 4"
+        },
+        {
+            "ref_code": "P5",
+            "title": "Appointment and re-election of directors",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "SEC Corporate Governance Guideline 2020 principle 5"
+        },
+        {
+            "ref_code": "P6",
+            "title": "Board evaluation",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "SEC Corporate Governance Guideline 2020 principle 6"
+        },
+        {
+            "ref_code": "P7",
+            "title": "Remuneration",
+            "level": 1,
+            "sort_order": 7,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "SEC Corporate Governance Guideline 2020 principle 7"
+        },
+        {
+            "ref_code": "P8",
+            "title": "Risk management and internal control",
+            "level": 1,
+            "sort_order": 8,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "SEC Corporate Governance Guideline 2020 principle 8"
+        },
+        {
+            "ref_code": "P9",
+            "title": "Internal audit",
+            "level": 1,
+            "sort_order": 9,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "SEC Corporate Governance Guideline 2020 principle 9"
+        },
+        {
+            "ref_code": "P10",
+            "title": "External audit",
+            "level": 1,
+            "sort_order": 10,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "SEC Corporate Governance Guideline 2020 principle 10"
+        },
+        {
+            "ref_code": "P11",
+            "title": "Related party transactions",
+            "level": 1,
+            "sort_order": 11,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "SEC Corporate Governance Guideline 2020 principle 11"
+        },
+        {
+            "ref_code": "P12",
+            "title": "Disclosure and transparency",
+            "level": 1,
+            "sort_order": 12,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "SEC Corporate Governance Guideline 2020 principle 12"
+        },
+        {
+            "ref_code": "P13",
+            "title": "Shareholder rights and engagement",
+            "level": 1,
+            "sort_order": 13,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "SEC Corporate Governance Guideline 2020 principle 13"
+        },
+        {
+            "ref_code": "P14",
+            "title": "Sustainability and stakeholder relations",
+            "level": 1,
+            "sort_order": 14,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "SEC Corporate Governance Guideline 2020 principle 14"
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "SEC-NG-CG-FORM-01",
+            "title": "Corporate governance Form 01 filed with the SEC",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "The annual corporate governance report on Form 01.",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "fiscal_year_end",
+                "offset_days": 30
+            },
+            "penalty_description": "₦500,000 plus ₦5,000 for each day the default continues. The daily element is modelled here; the fixed ₦500,000 element is stated in this description.",
+            "penalty_amount_minor": 500000,
+            "penalty_currency": "NGN",
+            "penalty_basis": "per_day",
+            "applies_to": {
+                "entity_types": [
+                    "listed_company",
+                    "public_limited_company",
+                    "capital_market_operator",
+                    "fund_manager",
+                    "broker_dealer"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "SEC Corporate Governance Guideline 2020 and Form 01",
+            "effective_from": "2020-10-10"
+        }
+    ],
+    "controls": [],
+    "mappings": []
+}

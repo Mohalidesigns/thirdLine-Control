@@ -1,0 +1,61 @@
+{
+    "code": "ZA-JSE-3.84",
+    "name": "JSE Listings Requirements section 3.84",
+    "version": "1.0.0",
+    "jurisdiction": "ZA",
+    "issuing_body": "Johannesburg Stock Exchange",
+    "effective_from": "2017-01-01",
+    "source_url": "https://www.jse.co.za",
+    "verification_status": "draft",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "This pack ships as DRAFT. Nothing in it has been verified against the regulator’s primary document, and its records are excluded from generated regulatory submissions. Verify before selling or relying on this content in-market (rule R10).",
+    "regulator": {
+        "code": "JSE",
+        "name": "Johannesburg Stock Exchange",
+        "jurisdiction": "ZA",
+        "sector": [
+            "capital_markets"
+        ],
+        "website": "https://www.jse.co.za",
+        "is_active": true
+    },
+    "framework": {
+        "code": "ZA-JSE-3.84",
+        "name": "JSE Listings Requirements section 3.84",
+        "issuing_body": "Johannesburg Stock Exchange",
+        "jurisdiction": "ZA",
+        "version": "1.0.0",
+        "category": "governance",
+        "effective_from": "2017-01-01",
+        "is_certifiable": false,
+        "source_url": "https://www.jse.co.za",
+        "verification_status": "draft",
+        "description": "Continuing obligations of listed issuers under section 3.84, alongside the JSE Sustainability and Climate Disclosure Guidance."
+    },
+    "requirements": [
+        {
+            "ref_code": "S3.84",
+            "title": "Section 3.84 continuing obligations",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "SUST",
+            "title": "JSE Sustainability and Climate Disclosure Guidance",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        }
+    ],
+    "obligations": [],
+    "controls": [],
+    "mappings": []
+}

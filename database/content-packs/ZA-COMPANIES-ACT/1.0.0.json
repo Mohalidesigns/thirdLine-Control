@@ -1,0 +1,94 @@
+{
+    "code": "ZA-COMPANIES-ACT",
+    "name": "Companies Act 71 of 2008",
+    "version": "1.0.0",
+    "jurisdiction": "ZA",
+    "issuing_body": "Companies and Intellectual Property Commission",
+    "effective_from": "2011-05-01",
+    "source_url": "https://www.cipc.co.za",
+    "verification_status": "draft",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "This pack ships as DRAFT. Nothing in it has been verified against the regulator’s primary document, and its records are excluded from generated regulatory submissions. Verify before selling or relying on this content in-market (rule R10).",
+    "regulator": {
+        "code": "CIPC",
+        "name": "Companies and Intellectual Property Commission",
+        "jurisdiction": "ZA",
+        "sector": [
+            "all"
+        ],
+        "website": "https://www.cipc.co.za",
+        "is_active": true
+    },
+    "framework": {
+        "code": "ZA-COMPANIES-ACT",
+        "name": "Companies Act 71 of 2008",
+        "issuing_body": "Companies and Intellectual Property Commission",
+        "jurisdiction": "ZA",
+        "version": "1.0.0",
+        "category": "governance",
+        "effective_from": "2011-05-01",
+        "is_certifiable": false,
+        "source_url": "https://www.cipc.co.za",
+        "verification_status": "draft",
+        "description": "Audit committee requirements under section 94, the social and ethics committee under section 72(4), and the public interest score."
+    },
+    "requirements": [
+        {
+            "ref_code": "S94",
+            "title": "Audit committee (section 94)",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "S72-4",
+            "title": "Social and ethics committee (section 72(4))",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "PIS",
+            "title": "Public interest score",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "ZA-CIPC-ANNUAL-RETURN",
+            "title": "CIPC annual return",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "due_rule": {
+                "type": "relative",
+                "anchor": "period_end",
+                "offset_days": 30
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "ZA"
+                ]
+            },
+            "legal_reference": "Companies Act 71 of 2008",
+            "effective_from": "2011-05-01"
+        }
+    ],
+    "controls": [],
+    "mappings": []
+}

@@ -1,0 +1,430 @@
+{
+    "code": "FRC-NCCG-2018",
+    "name": "Nigerian Code of Corporate Governance 2018",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "Financial Reporting Council of Nigeria",
+    "effective_from": "2019-01-01",
+    "source_url": "https://www.financialreportingcouncil.gov.ng",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack. Twenty-eight principles on an apply-and-explain basis. Principle titles are working labels grouped as described in the research brief and must be reconciled against the Code and return FRC/CG/001 before this pack is marked verified. Note that \"N/A\" responses are prohibited in the return: every principle needs an application narrative. Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack ships unverified: records are usable internally but excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "FRC-NG",
+        "name": "Financial Reporting Council of Nigeria",
+        "jurisdiction": "NG",
+        "sector": [
+            "all"
+        ],
+        "website": "https://www.financialreportingcouncil.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "FRC-NCCG-2018",
+        "name": "Nigerian Code of Corporate Governance 2018",
+        "issuing_body": "Financial Reporting Council of Nigeria",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "governance",
+        "effective_from": "2019-01-01",
+        "is_certifiable": false,
+        "source_url": "https://www.financialreportingcouncil.gov.ng",
+        "verification_status": "unverified",
+        "description": "Twenty-eight apply-and-explain principles covering the board, remuneration, risk management, internal audit, whistleblowing, external audit, shareholder relations, business conduct, sustainability and disclosure. Reported annually on return FRC/CG/001, certified by the Chairman, MD/CEO, Governance Committee Chair and Company Secretary."
+    },
+    "requirements": [
+        {
+            "ref_code": "P1",
+            "title": "Role of the board",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 1"
+        },
+        {
+            "ref_code": "P2",
+            "title": "Board charter",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 2"
+        },
+        {
+            "ref_code": "P3",
+            "title": "Board structure and composition",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 3"
+        },
+        {
+            "ref_code": "P4",
+            "title": "Chairman",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 4"
+        },
+        {
+            "ref_code": "P5",
+            "title": "Managing Director / Chief Executive Officer",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 5"
+        },
+        {
+            "ref_code": "P6",
+            "title": "Executive directors",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 6"
+        },
+        {
+            "ref_code": "P7",
+            "title": "Non-executive directors",
+            "level": 1,
+            "sort_order": 7,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 7"
+        },
+        {
+            "ref_code": "P8",
+            "title": "Independent non-executive directors",
+            "level": 1,
+            "sort_order": 8,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 8"
+        },
+        {
+            "ref_code": "P9",
+            "title": "Company secretary",
+            "level": 1,
+            "sort_order": 9,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 9"
+        },
+        {
+            "ref_code": "P10",
+            "title": "Access to independent professional advice",
+            "level": 1,
+            "sort_order": 10,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 10"
+        },
+        {
+            "ref_code": "P11",
+            "title": "Board meetings",
+            "level": 1,
+            "sort_order": 11,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 11"
+        },
+        {
+            "ref_code": "P12",
+            "title": "Board committees",
+            "level": 1,
+            "sort_order": 12,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 12"
+        },
+        {
+            "ref_code": "P13",
+            "title": "Appointment to the board",
+            "level": 1,
+            "sort_order": 13,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 13"
+        },
+        {
+            "ref_code": "P14",
+            "title": "Induction and continuing education",
+            "level": 1,
+            "sort_order": 14,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 14"
+        },
+        {
+            "ref_code": "P15",
+            "title": "Board evaluation",
+            "level": 1,
+            "sort_order": 15,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 15"
+        },
+        {
+            "ref_code": "P16",
+            "title": "Remuneration governance",
+            "level": 1,
+            "sort_order": 16,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 16"
+        },
+        {
+            "ref_code": "P17",
+            "title": "Risk management",
+            "level": 1,
+            "sort_order": 17,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 17"
+        },
+        {
+            "ref_code": "P18",
+            "title": "Internal audit",
+            "level": 1,
+            "sort_order": 18,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 18"
+        },
+        {
+            "ref_code": "P19",
+            "title": "Whistleblowing",
+            "level": 1,
+            "sort_order": 19,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 19"
+        },
+        {
+            "ref_code": "P20",
+            "title": "External audit",
+            "level": 1,
+            "sort_order": 20,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 20"
+        },
+        {
+            "ref_code": "P21",
+            "title": "General meetings",
+            "level": 1,
+            "sort_order": 21,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 21"
+        },
+        {
+            "ref_code": "P22",
+            "title": "Shareholder engagement",
+            "level": 1,
+            "sort_order": 22,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 22"
+        },
+        {
+            "ref_code": "P23",
+            "title": "Protection of shareholder rights",
+            "level": 1,
+            "sort_order": 23,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 23"
+        },
+        {
+            "ref_code": "P24",
+            "title": "Business conduct and ethics",
+            "level": 1,
+            "sort_order": 24,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 24"
+        },
+        {
+            "ref_code": "P25",
+            "title": "Monitoring of ethical culture",
+            "level": 1,
+            "sort_order": 25,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 25"
+        },
+        {
+            "ref_code": "P26",
+            "title": "Sustainability",
+            "level": 1,
+            "sort_order": 26,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 26"
+        },
+        {
+            "ref_code": "P27",
+            "title": "Stakeholder communication",
+            "level": 1,
+            "sort_order": 27,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 27"
+        },
+        {
+            "ref_code": "P28",
+            "title": "Disclosures",
+            "level": 1,
+            "sort_order": 28,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "source_reference": "FRC NCCG 2018 principle 28"
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "FRC-CG-001-RETURN",
+            "title": "Corporate governance return FRC/CG/001",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "The annual corporate governance return, sections A to E: introduction; general information (incorporation date, RC number, auditors, registrars, contacts); board composition, appointment dates and meeting attendance per director and per committee; senior management positions, names and gender; and the application narrative for each of the 28 principles. \"N/A\" responses are prohibited. Certified by four signatories: the Chairman, the MD/CEO, the Governance Committee Chair and the Company Secretary.",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "fiscal_year_end",
+                "offset_days": 180
+            },
+            "applies_to": {
+                "entity_types": [
+                    "listed_company",
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "insurer",
+                    "pension_operator",
+                    "public_limited_company",
+                    "government_licensee",
+                    "concessioned_company"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "FRC Nigerian Code of Corporate Governance 2018; return FRC/CG/001",
+            "effective_from": "2019-01-01"
+        },
+        {
+            "obligation_ref": "FRC-NCCG-BOARD-EVAL",
+            "title": "Annual board evaluation",
+            "obligation_type": "assessment",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "The board carries out an annual evaluation of its performance and that of its committees and individual directors.",
+            "requirement_ref": "P15",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "fiscal_year_end",
+                "offset_days": 150
+            },
+            "applies_to": {
+                "entity_types": [
+                    "listed_company",
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "insurer",
+                    "pension_operator",
+                    "public_limited_company",
+                    "government_licensee",
+                    "concessioned_company"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "FRC Nigerian Code of Corporate Governance 2018, principle 15",
+            "effective_from": "2019-01-01"
+        }
+    ],
+    "controls": [
+        {
+            "control_ref": "TPL-FRC-NCCG-001",
+            "title": "Per-principle application narrative maintained through the year",
+            "category": "Authorisation",
+            "type": "Preventive",
+            "nature": "Manual",
+            "frequency": "Quarterly",
+            "description": "An application narrative and supporting evidence is maintained for each of the 28 principles through the year rather than assembled at filing time, since \"N/A\" responses are not permitted.",
+            "objective": "Ensure the FRC/CG/001 return can be completed with a substantive answer for every principle."
+        }
+    ],
+    "mappings": []
+}

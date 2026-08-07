@@ -1,0 +1,205 @@
+{
+    "code": "NAICOM-NIIRA-25",
+    "name": "Nigerian Insurance Industry Reform Act 2025 (NAICOM)",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "National Insurance Commission",
+    "effective_from": "2025-08-06",
+    "source_url": "https://naicom.gov.ng",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack. NIIRA 2025 was assented on 6 August 2025 and introduces risk-based supervision and strengthened actuarial independence with direct reporting to NAICOM. Minimum capital by class, claims-handling service levels and penalties are UNCONFIRMED in the research and are not seeded — do not infer them. Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack ships unverified: records are usable internally but excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "NAICOM",
+        "name": "National Insurance Commission",
+        "jurisdiction": "NG",
+        "sector": [
+            "insurance"
+        ],
+        "website": "https://naicom.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "NAICOM-NIIRA-25",
+        "name": "Nigerian Insurance Industry Reform Act 2025",
+        "issuing_body": "National Insurance Commission",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "sector",
+        "effective_from": "2025-08-06",
+        "is_certifiable": false,
+        "source_url": "https://naicom.gov.ng",
+        "verification_status": "unverified",
+        "description": "Risk-based supervision of Nigerian insurers, with actuarial independence, periodic returns and prior approval of dividend declarations."
+    },
+    "requirements": [
+        {
+            "ref_code": "RBS",
+            "title": "Risk-based supervision",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "ACT",
+            "title": "Actuarial function independence and direct NAICOM reporting",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "FIN",
+            "title": "Audited financial statements, investment statements and revenue accounts",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "QRET",
+            "title": "Quarterly returns",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "DIV",
+            "title": "Prior approval of dividend declarations",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "CAP",
+            "title": "Minimum capital by class of business",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft",
+            "guidance": "Capital requirements by class are unconfirmed and deliberately not seeded."
+        },
+        {
+            "ref_code": "CLM",
+            "title": "Claims handling service levels",
+            "level": 1,
+            "sort_order": 7,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft",
+            "guidance": "Claims service levels are unconfirmed and deliberately not seeded."
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "NAICOM-ANNUAL-FS",
+            "title": "Audited financial statements, investment statements and revenue accounts",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "Audited financial statements together with investment statements and revenue accounts are filed with NAICOM by 30 June.",
+            "requirement_ref": "FIN",
+            "due_rule": {
+                "type": "fixed_date",
+                "month": 6,
+                "day": 30,
+                "roll": "previous_business_day"
+            },
+            "applies_to": {
+                "entity_types": [
+                    "insurer",
+                    "reinsurer",
+                    "insurance_broker",
+                    "takaful_operator"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "NIIRA 2025",
+            "effective_from": "2025-08-06"
+        },
+        {
+            "obligation_ref": "NAICOM-QUARTERLY-RETURNS",
+            "title": "Quarterly returns filed with NAICOM",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "quarterly",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "Quarterly returns are filed within 10 days of the quarter end.",
+            "requirement_ref": "QRET",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "period_end",
+                "offset_days": 10
+            },
+            "applies_to": {
+                "entity_types": [
+                    "insurer",
+                    "reinsurer",
+                    "insurance_broker",
+                    "takaful_operator"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "NIIRA 2025",
+            "effective_from": "2025-08-06"
+        },
+        {
+            "obligation_ref": "NAICOM-DIVIDEND-APPROVAL",
+            "title": "Prior NAICOM approval of a dividend declaration",
+            "obligation_type": "approval",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "A dividend declaration requires prior approval from NAICOM.",
+            "requirement_ref": "DIV",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "dividend_proposed",
+                "offset_days": 0
+            },
+            "applies_to": {
+                "entity_types": [
+                    "insurer",
+                    "reinsurer",
+                    "insurance_broker",
+                    "takaful_operator"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "NIIRA 2025",
+            "effective_from": "2025-08-06"
+        }
+    ],
+    "controls": [],
+    "mappings": []
+}

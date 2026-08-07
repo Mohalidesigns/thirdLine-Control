@@ -1,0 +1,234 @@
+{
+    "code": "CBN-BASEL-III",
+    "name": "CBN Basel III Implementation Guidelines (2021)",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "Central Bank of Nigeria",
+    "effective_from": "2021-09-01",
+    "source_url": "https://www.cbn.gov.ng",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack. Regulatory capital, leverage, LCR, NSFR, ICAAP/Pillar 2, stress testing and large exposures. Return cadences below are the platform's working assumptions and must be reconciled with the complete eFASS/FinA return schedule, which the research flags as unconfirmed. Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack ships unverified: its records are usable internally but excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "CBN",
+        "name": "Central Bank of Nigeria",
+        "jurisdiction": "NG",
+        "sector": [
+            "banking",
+            "payments",
+            "other_financial_institutions"
+        ],
+        "website": "https://www.cbn.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "CBN-BASEL-III",
+        "name": "CBN Basel III Implementation Guidelines (2021)",
+        "issuing_body": "Central Bank of Nigeria",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "financial",
+        "effective_from": "2021-09-01",
+        "is_certifiable": false,
+        "source_url": "https://www.cbn.gov.ng",
+        "verification_status": "unverified",
+        "description": "Nigerian implementation of the Basel III capital, liquidity and leverage standards, with Pillar 2 ICAAP and supervisory stress testing."
+    },
+    "requirements": [
+        {
+            "ref_code": "CAP",
+            "title": "Regulatory capital and capital adequacy",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "LEV",
+            "title": "Leverage ratio",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "LCR",
+            "title": "Liquidity coverage ratio",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Monthly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "NSFR",
+            "title": "Net stable funding ratio",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "ICAAP",
+            "title": "ICAAP and Pillar 2",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "STRESS",
+            "title": "Stress testing",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Semi-annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "LEXP",
+            "title": "Large exposures",
+            "level": 1,
+            "sort_order": 7,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "CBN-BASEL-ICAAP",
+            "title": "ICAAP document submitted to the CBN",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "jurisdictions": null,
+            "requirement_ref": "ICAAP",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "fiscal_year_end",
+                "offset_days": 120
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Basel III Implementation Guidelines (2021), Pillar 2",
+            "effective_from": "2021-09-01"
+        },
+        {
+            "obligation_ref": "CBN-BASEL-LCR",
+            "title": "Liquidity coverage ratio return",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "monthly",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "jurisdictions": null,
+            "requirement_ref": "LCR",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "period_end",
+                "offset_days": 10
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Basel III Implementation Guidelines (2021)",
+            "effective_from": "2021-09-01"
+        },
+        {
+            "obligation_ref": "CBN-BASEL-NSFR",
+            "title": "Net stable funding ratio return",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "quarterly",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "jurisdictions": null,
+            "requirement_ref": "NSFR",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "period_end",
+                "offset_days": 15
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Basel III Implementation Guidelines (2021)",
+            "effective_from": "2021-09-01"
+        },
+        {
+            "obligation_ref": "CBN-BASEL-STRESS",
+            "title": "Supervisory stress testing exercise",
+            "obligation_type": "assessment",
+            "trigger_type": "calendar",
+            "frequency": "semi_annual",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "jurisdictions": null,
+            "requirement_ref": "STRESS",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "period_end",
+                "offset_days": 45
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Basel III Implementation Guidelines (2021)",
+            "effective_from": "2021-09-01"
+        }
+    ],
+    "controls": [],
+    "mappings": []
+}

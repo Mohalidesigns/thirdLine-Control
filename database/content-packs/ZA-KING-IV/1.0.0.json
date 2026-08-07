@@ -1,0 +1,211 @@
+{
+    "code": "ZA-KING-IV",
+    "name": "King IV Report on Corporate Governance for South Africa 2016",
+    "version": "1.0.0",
+    "jurisdiction": "ZA",
+    "issuing_body": "Institute of Directors in South Africa",
+    "effective_from": "2017-04-01",
+    "source_url": "https://www.iodsa.co.za",
+    "verification_status": "draft",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Principle titles are working labels and must be reconciled against the published Report. This pack ships as DRAFT. Nothing in it has been verified against the regulator’s primary document, and its records are excluded from generated regulatory submissions. Verify before selling or relying on this content in-market (rule R10).",
+    "regulator": {
+        "code": "IODSA",
+        "name": "Institute of Directors in South Africa",
+        "jurisdiction": "ZA",
+        "sector": [
+            "all"
+        ],
+        "website": "https://www.iodsa.co.za",
+        "is_active": true
+    },
+    "framework": {
+        "code": "ZA-KING-IV",
+        "name": "King IV Report on Corporate Governance for South Africa 2016",
+        "issuing_body": "Institute of Directors in South Africa",
+        "jurisdiction": "ZA",
+        "version": "1.0.0",
+        "category": "governance",
+        "effective_from": "2017-04-01",
+        "is_certifiable": false,
+        "source_url": "https://www.iodsa.co.za",
+        "verification_status": "draft",
+        "description": "Seventeen principles applied on an apply-and-explain basis, with sector supplements."
+    },
+    "requirements": [
+        {
+            "ref_code": "P1",
+            "title": "Leadership",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "P2",
+            "title": "Organisational values, ethics and culture",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "P3",
+            "title": "Corporate citizenship",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "P4",
+            "title": "Strategy, performance and reporting",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "P5",
+            "title": "Reports and disclosure",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "P6",
+            "title": "Primary role and responsibilities of the governing body",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "P7",
+            "title": "Composition of the governing body",
+            "level": 1,
+            "sort_order": 7,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "P8",
+            "title": "Committees of the governing body",
+            "level": 1,
+            "sort_order": 8,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "P9",
+            "title": "Evaluation of performance of the governing body",
+            "level": 1,
+            "sort_order": 9,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "P10",
+            "title": "Appointment and delegation to management",
+            "level": 1,
+            "sort_order": 10,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "P11",
+            "title": "Risk governance",
+            "level": 1,
+            "sort_order": 11,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "P12",
+            "title": "Technology and information governance",
+            "level": 1,
+            "sort_order": 12,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "P13",
+            "title": "Compliance governance",
+            "level": 1,
+            "sort_order": 13,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "P14",
+            "title": "Remuneration governance",
+            "level": 1,
+            "sort_order": 14,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "P15",
+            "title": "Assurance",
+            "level": 1,
+            "sort_order": 15,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "P16",
+            "title": "Stakeholder relationships",
+            "level": 1,
+            "sort_order": 16,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "P17",
+            "title": "Responsibilities of institutional investors",
+            "level": 1,
+            "sort_order": 17,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        }
+    ],
+    "obligations": [],
+    "controls": [],
+    "mappings": []
+}

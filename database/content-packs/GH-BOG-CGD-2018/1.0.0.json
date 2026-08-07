@@ -1,0 +1,82 @@
+{
+    "code": "GH-BOG-CGD-2018",
+    "name": "BoG Corporate Governance Directive 2018",
+    "version": "1.0.0",
+    "jurisdiction": "GH",
+    "issuing_body": "Bank of Ghana",
+    "effective_from": "2018-03-01",
+    "source_url": "https://www.bog.gov.gh",
+    "verification_status": "draft",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "This pack ships as DRAFT. Nothing in it has been verified against the regulator’s primary document, and its records are excluded from generated regulatory submissions. Verify before selling or relying on this content in-market (rule R10).",
+    "regulator": {
+        "code": "BOG",
+        "name": "Bank of Ghana",
+        "jurisdiction": "GH",
+        "sector": [
+            "banking",
+            "payments"
+        ],
+        "website": "https://www.bog.gov.gh",
+        "is_active": true
+    },
+    "framework": {
+        "code": "GH-BOG-CGD-2018",
+        "name": "BoG Corporate Governance Directive 2018",
+        "issuing_body": "Bank of Ghana",
+        "jurisdiction": "GH",
+        "version": "1.0.0",
+        "category": "governance",
+        "effective_from": "2018-03-01",
+        "is_certifiable": false,
+        "source_url": "https://www.bog.gov.gh",
+        "verification_status": "draft",
+        "description": "Board composition, tenure limits, committees and the section 56 internal audit requirements under the Banks and Specialised Deposit-Taking Institutions Act 930."
+    },
+    "requirements": [
+        {
+            "ref_code": "BRD",
+            "title": "Board composition",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "TEN",
+            "title": "Tenure limits",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "CTE",
+            "title": "Board committees",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "IA",
+            "title": "Internal audit (section 56)",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        }
+    ],
+    "obligations": [],
+    "controls": [],
+    "mappings": []
+}

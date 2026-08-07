@@ -1,0 +1,162 @@
+{
+    "code": "SEC-NG-RETURNS",
+    "name": "SEC Nigeria periodic returns calendar",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "Securities and Exchange Commission, Nigeria",
+    "effective_from": "2020-01-01",
+    "source_url": "https://sec.gov.ng",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack: annual report and accounts within three months of year end; quarterly financial statements within 30 days of quarter end; corporate governance report within 30 days of year end. Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack ships unverified: records are usable internally but excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "SEC-NG",
+        "name": "Securities and Exchange Commission, Nigeria",
+        "jurisdiction": "NG",
+        "sector": [
+            "capital_markets"
+        ],
+        "website": "https://sec.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "SEC-NG-RETURNS",
+        "name": "SEC Nigeria periodic returns",
+        "issuing_body": "Securities and Exchange Commission, Nigeria",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "financial",
+        "effective_from": "2020-01-01",
+        "is_certifiable": false,
+        "source_url": "https://sec.gov.ng",
+        "verification_status": "unverified",
+        "description": "The periodic reporting calendar for entities regulated by the Securities and Exchange Commission."
+    },
+    "requirements": [
+        {
+            "ref_code": "AR",
+            "title": "Annual report and accounts",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "QF",
+            "title": "Quarterly financial statements",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "CG",
+            "title": "Corporate governance report",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "SEC-NG-ANNUAL-REPORT",
+            "title": "Annual report and accounts filed with the SEC",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "requirement_ref": "AR",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "fiscal_year_end",
+                "offset_months": 3
+            },
+            "applies_to": {
+                "entity_types": [
+                    "listed_company",
+                    "public_limited_company",
+                    "capital_market_operator",
+                    "fund_manager",
+                    "broker_dealer"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "SEC Nigeria returns calendar",
+            "effective_from": "2020-01-01"
+        },
+        {
+            "obligation_ref": "SEC-NG-QUARTERLY",
+            "title": "Quarterly financial statements filed with the SEC",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "quarterly",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "requirement_ref": "QF",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "period_end",
+                "offset_days": 30
+            },
+            "applies_to": {
+                "entity_types": [
+                    "listed_company",
+                    "public_limited_company",
+                    "capital_market_operator",
+                    "fund_manager",
+                    "broker_dealer"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "SEC Nigeria returns calendar",
+            "effective_from": "2020-01-01"
+        },
+        {
+            "obligation_ref": "SEC-NG-CG-REPORT",
+            "title": "Corporate governance report filed with the SEC",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "requirement_ref": "CG",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "fiscal_year_end",
+                "offset_days": 30
+            },
+            "applies_to": {
+                "entity_types": [
+                    "listed_company",
+                    "public_limited_company",
+                    "capital_market_operator",
+                    "fund_manager",
+                    "broker_dealer"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "SEC Nigeria returns calendar",
+            "effective_from": "2020-01-01"
+        }
+    ],
+    "controls": [],
+    "mappings": []
+}

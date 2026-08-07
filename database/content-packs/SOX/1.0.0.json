@@ -1,0 +1,139 @@
+{
+    "code": "SOX",
+    "name": "Sarbanes-Oxley Act — sections 302 and 404",
+    "version": "1.0.0",
+    "jurisdiction": "US",
+    "issuing_body": "United States Congress / PCAOB",
+    "effective_from": "2002-07-30",
+    "source_url": "https://pcaobus.org/oversight/standards/auditing-standards/details/AS2201",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack. Sections 302 and 404(a)/(b) plus the AS 2201 top-down risk-based evaluation steps. Included primarily as the mapping target for the Nigerian FRC ICFR module. Section references must be confirmed before this pack is marked verified.",
+    "framework": {
+        "code": "SOX",
+        "name": "Sarbanes-Oxley Act — sections 302 and 404",
+        "issuing_body": "United States Congress / PCAOB",
+        "jurisdiction": "US",
+        "version": "1.0.0",
+        "category": "financial",
+        "effective_from": "2002-07-30",
+        "is_certifiable": false,
+        "source_url": "https://pcaobus.org/oversight/standards/auditing-standards/details/AS2201",
+        "verification_status": "unverified",
+        "description": "Certification of disclosure controls, management assessment of internal control over financial reporting, and auditor attestation, evaluated top-down from entity-level controls to transaction-level controls."
+    },
+    "requirements": [
+        {
+            "ref_code": "S302",
+            "title": "Section 302 — Corporate responsibility for financial reports",
+            "description": "Quarterly certification by the principal executive and financial officers covering disclosure controls and procedures.",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "S404",
+            "title": "Section 404 — Management assessment of internal controls",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": false,
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "S404A",
+            "parent_ref": "S404",
+            "title": "Section 404(a) — Management assessment of ICFR",
+            "description": "Annual management report on the effectiveness of internal control over financial reporting.",
+            "level": 2,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "S404B",
+            "parent_ref": "S404",
+            "title": "Section 404(b) — Auditor attestation",
+            "description": "External auditor attestation on the effectiveness of internal control over financial reporting, where applicable.",
+            "level": 2,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "AS2201",
+            "title": "PCAOB AS 2201 — Top-down risk-based approach",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "domain",
+            "is_testable": false,
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "AS2201.1",
+            "parent_ref": "AS2201",
+            "title": "Entity-level controls",
+            "level": 2,
+            "sort_order": 1,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "AS2201.2",
+            "parent_ref": "AS2201",
+            "title": "Significant accounts and disclosures",
+            "level": 2,
+            "sort_order": 2,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "AS2201.3",
+            "parent_ref": "AS2201",
+            "title": "Relevant assertions and significant processes",
+            "level": 2,
+            "sort_order": 3,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "AS2201.4",
+            "parent_ref": "AS2201",
+            "title": "Selection and testing of controls",
+            "level": 2,
+            "sort_order": 4,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "AS2201.5",
+            "parent_ref": "AS2201",
+            "title": "Evaluation of identified deficiencies",
+            "level": 2,
+            "sort_order": 5,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        }
+    ],
+    "obligations": [],
+    "controls": [],
+    "mappings": []
+}

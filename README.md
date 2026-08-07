@@ -57,6 +57,18 @@ policy → query scoping**, mirrored to the UI via shared Inertia props.
 | View / export audit log | ✓ | ✓ | — | — | — | — |
 | Feature flags, security policy, branding | ✓ | — | — | — | — | — |
 | Own MFA, notification preferences, saved views, search | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| View frameworks & requirement trees | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Author / edit a tenant framework | ✓ | ✓ | — | — | — | — |
+| Map a control to a requirement | ✓ | ✓ | ✓ | — | — | — |
+| **Approve a control-to-requirement mapping (maker ≠ checker)** | see note | ✓ | — | — | — | — |
+| View the obligation register & compliance calendar | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Author / edit obligations, assign to entities | ✓ | ✓ | — | — | — | — |
+| Record a regulatory submission | ✓ | ✓ | ✓ | own only | — | — |
+| **Accept / reject a submission (filer ≠ reviewer)** | see note | ✓ | — | — | — | — |
+| Waive an obligation instance | ✓ | ✓ | — | — | — | — |
+| Log & impact-assess a regulatory publication | ✓ | ✓ | ✓ | — | — | — |
+| **Sign a regulatory change off as Actioned (assessor ≠ signer)** | see note | ✓ | — | — | — | — |
+| Install regulatory content packs | ✓ | — | — | — | — | — |
 
 **Segregation of duties (FR-12.3), enforced in `ExceptionPolicy` + `ExceptionService`
 with no admin bypass:** only a Control Function Head may move an exception to
@@ -64,6 +76,15 @@ Verified-Closed; the tester whose test raised it can never close it; a control o
 can never close an exception on their own control; owners can reach *Remediated* and
 no further. Covered by explicit failing-path tests in
 `tests/Feature/SegregationOfDutiesTest.php`.
+
+The Phase 8 gates work the same way and are equally bypass-free: "see note" in the
+rows above means a System Administrator has the permission but **still cannot pass
+the gate on their own work** — they cannot approve a mapping they created, accept a
+filing they recorded, or sign off an impact assessment they wrote. Failing-path
+tests: `tests/Feature/FrameworkCoverageTest.php`,
+`tests/Feature/ObligationSubmissionTest.php`,
+`tests/Feature/RegulatoryChangeWorkflowTest.php`,
+`tests/Feature/ObligationEngineTest.php` (non-applicability declarations).
 
 ## Audit trail
 
@@ -95,6 +116,14 @@ and before/after JSON. A logging failure never breaks the business operation
 | `secondline:queue-evidence-disposal` | daily 02:00 | Queue expired evidence for dual-approval disposal (legal holds excluded) |
 | `secondline:run-escalations` | daily 07:00 | Evaluate escalation matrices, notify by in-app + queued email |
 | `secondline:send-owner-digests` | Mondays 07:30 | Open/overdue digest per control owner |
+| `atheris:generate-obligation-instances` | daily 02:30 | Materialise the compliance calendar within a rolling 400-day horizon, recompute overdue status and penalty exposure, fire graduated reminders at T-90/-60/-30/-14/-7/-3/-1/0 and daily once overdue (idempotent) |
+| `atheris:poll-regulatory-feeds` | daily 06:00 | Poll regulator publication feeds; new items land as `New` regulatory changes, deduplicated on the feed GUID |
+
+Run on demand:
+
+| Command | Purpose |
+|---|---|
+| `atheris:install-content-pack {code} [--pack-version=] [--dry-run] [--all] [--list]` | Install a versioned regulatory content pack. Idempotent, checksummed, prints a diff report first, never writes a tenant-owned record |
 
 ## Reports & exports
 
@@ -171,6 +200,69 @@ enabled; tenant overrides win — `Admin → Feature Flags`).
   low-bandwidth mode (kills animations; later phases honour it for charts and
   images), connection-quality banner.
 
+## Framework & regulatory obligation engine (Phase 8)
+
+Behind four feature flags: `frameworks`, `obligations`, `regulatory-changes`,
+`content-packs`.
+
+- **Frameworks & requirement trees** — `frameworks` + self-referencing
+  `framework_requirements` (domain → principle → control objective). Shipped
+  frameworks are global (`tenant_id NULL`); a tenant may hold its own copy, and
+  the installer never touches a tenant-owned row. Explorer shows the tree with
+  per-requirement coverage, plus a **requirement × entity coverage heatmap**.
+- **"Test once, satisfy many"** — `control_requirement_map` is the tenant's claim
+  that a control satisfies a requirement, and it is **maker-checker**: an officer
+  maps, a Control Function Head approves, and an unapproved mapping counts for
+  nothing in coverage and never reaches a submission. `framework_mappings` draws
+  equivalences between requirements across frameworks, so one control's page
+  lists every requirement it satisfies, directly and by inheritance.
+- **Deterministic mapping suggestions** — cosine similarity over TF-IDF vectors of
+  the requirement and control text, returned with the shared terms that produced
+  the score. Suggestions are drafts a person judges; Phase 14 adds the AI-assisted
+  variant under the same rule.
+- **Obligation register** — `regulatory_obligations` carries the due rule,
+  applicability, legal reference, and the penalty as **integer minor units plus an
+  ISO-4217 code** (R7). Nothing about a regulator lives in PHP.
+- **Due-date resolution** — `ObligationService` resolves three rule shapes against
+  the entity's fiscal calendar, jurisdiction holidays (`public_holidays`, seeded
+  and tenant-overridable) and the tenant timezone:
+  `fixed_date` (first occurrence after the period it reports on),
+  `relative` (offset from a fiscal or period anchor) and
+  `event_relative` (an hour-precise countdown that does **not** roll off a weekend —
+  a 72-hour breach notification stays 72 hours).
+- **Applicability engine** — an obligation's `applies_to` is matched against the
+  entity's regulatory profile (entity type, licence categories, jurisdiction). A
+  tenant may declare an obligation inapplicable, but the declaration only
+  suppresses anything **after a second person approves it**.
+- **Cost of non-compliance** — live penalty exposure per overdue instance for every
+  `penalty_basis`: `fixed`, `per_day`, `per_week` (a part-week counts as a whole
+  week — the CBN consumer-protection case), `per_instance`, and `percentage`
+  (stored in basis points; without a declared base the exposure is **zero, never
+  invented**).
+- **Compliance calendar** — month/quarter/year views with a filing-density strip,
+  filters by regulator, entity, owner and status. An instance only reaches
+  *Submitted* with a submission reference **and** at least one evidence item, and
+  only a second person can accept it.
+- **Regulatory change feed** — manual entry plus RSS ingestion where a regulator
+  publishes one, through New → Under Review → Impact Assessed → Actioned with
+  maker-checker on Actioned and links to the affected obligations and controls.
+- **Content packs** — versioned, checksummed JSON in `database/content-packs/`,
+  installed by `ContentPackInstaller`. 45 packs ship: 11 international frameworks,
+  20 Nigerian regulator packs, 13 pan-African packs and one cross-framework mapping
+  set (30 equivalences). Installs are idempotent, produce a diff report first, and
+  only ever write global rows.
+
+**Verification status is enforced, not advisory (R10).** Every framework,
+requirement and obligation carries `verification_status`. Only `verified` records
+may enter a generated regulatory submission — `ObligationService::submissionEligibleInstances()`
+is the single gate, and everything else is badged "Unverified" wherever it appears.
+As shipped: **COSO IC 2013, COSO ERM 2017 and the ISO 31000 principles are
+`verified`; every Nigerian pack is `unverified`; every pan-African pack is `draft`**,
+because none of those dates, thresholds or penalties has yet been confirmed against
+the regulator's primary document. The 13 known-unverified research items are
+recorded in each pack's `changelog`. Verifying them is the phase-8 research backlog,
+not a code change.
+
 ## Key business rules (where they live)
 
 - **Maker–checker** on controls, test scripts, ratings, compensating controls — policies + services
@@ -183,8 +275,10 @@ enabled; tenant overrides win — `Admin → Feature Flags`).
 ## Quality gate
 
 ```bash
-composer test     # 29 feature/unit tests incl. SoD, legal-hold, dual-approval, and API-auth bypass attempts
-composer lint     # Pint
+composer test        # 211 feature/unit tests incl. SoD, legal-hold, dual-approval,
+                     # due-rule and penalty maths, content-pack idempotency,
+                     # and API-auth bypass attempts
+vendor/bin/pint      # lint
 npm run build
 ```
 
@@ -198,8 +292,15 @@ NDPA safeguards, and the ThirdLine/NexusRisk integration layer with OpenAPI spec
 maker-checker and break-glass), MFA with role enforcement, tenant branding,
 notification preferences + multi-channel dispatcher, audit log UI, localisation +
 multi-currency Money, global search, saved views, feature flags, and the PWA shell
-with low-bandwidth mode. Next per the v2 master plan: Phase 8 — Framework &
-Regulatory Obligation Engine. Still pending from v1 backlog: Excel bulk control
+with low-bandwidth mode.
+
+**v2.0 Phase 8 (Framework & Regulatory Obligation Engine) is implemented**: the
+framework and requirement-tree engine with maker-checker control mapping and
+coverage heatmaps, the regulatory obligation register with due-rule resolution,
+applicability and live penalty exposure, the compliance calendar with evidence-backed
+submission and second-person acceptance, the regulatory change feed, and 45 versioned
+content packs covering international, Nigerian and pan-African regulation. Next per
+the v2 master plan: Phase 9 — Control Library v2, CSA & Surveys. Still pending from v1 backlog: Excel bulk control
 import, Word-format report export, webhook subscriptions, NexusRisk risk-register
 pull, in-place evidence redaction and data-subject-request tooling, continuous
 controls monitoring (v2 Phase 12).

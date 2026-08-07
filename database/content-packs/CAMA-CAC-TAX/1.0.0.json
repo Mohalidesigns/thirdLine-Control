@@ -1,0 +1,398 @@
+{
+    "code": "CAMA-CAC-TAX",
+    "name": "CAMA 2020 and statutory filing baseline (CAC, FIRS, NSITF, PenCom)",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "Corporate Affairs Commission",
+    "effective_from": "2020-08-07",
+    "source_url": "https://www.cac.gov.ng",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack — the statutory baseline that applies to every Nigerian company regardless of sector. Covers CAC annual returns and PSC filing, AGM and board meeting timing, companies income tax, VAT, PAYE, withholding tax, NSITF and pension remittance, plus the registrations (NDPC, NIPC, NOTAP, SCUML). Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack ships unverified: records are usable internally but excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "CAC",
+        "name": "Corporate Affairs Commission",
+        "jurisdiction": "NG",
+        "sector": [
+            "all"
+        ],
+        "website": "https://www.cac.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "CAMA-CAC-TAX",
+        "name": "CAMA 2020 statutory filing baseline",
+        "issuing_body": "Corporate Affairs Commission",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "governance",
+        "effective_from": "2020-08-07",
+        "is_certifiable": false,
+        "source_url": "https://www.cac.gov.ng",
+        "verification_status": "unverified",
+        "description": "The filings every Nigerian company owes irrespective of sector: corporate registry, tax, payroll and pension."
+    },
+    "requirements": [
+        {
+            "ref_code": "CAC",
+            "title": "Corporate registry filings",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "GOV",
+            "title": "Meetings and governance timing",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "TAX",
+            "title": "Tax filings and remittances",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Monthly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "PAY",
+            "title": "Payroll, pension and social insurance remittances",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Monthly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "REG",
+            "title": "Statutory registrations",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "CAC-ANNUAL-RETURN",
+            "title": "CAC annual return",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "The annual return is filed with the Corporate Affairs Commission. The first return is due within 18 months of incorporation, and annually thereafter.",
+            "requirement_ref": "CAC",
+            "due_rule": {
+                "type": "fixed_date",
+                "month": 6,
+                "day": 30
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CAMA 2020",
+            "effective_from": "2020-08-07"
+        },
+        {
+            "obligation_ref": "CAC-FIRST-ANNUAL-RETURN",
+            "title": "First CAC annual return after incorporation",
+            "obligation_type": "filing",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "A newly incorporated company files its first annual return within 18 months of incorporation.",
+            "requirement_ref": "CAC",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "incorporation",
+                "offset_days": 548
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CAMA 2020",
+            "effective_from": "2020-08-07"
+        },
+        {
+            "obligation_ref": "CAC-PSC-FILING",
+            "title": "Persons with significant control filing",
+            "obligation_type": "disclosure",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "Particulars of persons with significant control are filed and kept current.",
+            "requirement_ref": "CAC",
+            "due_rule": {
+                "type": "fixed_date",
+                "month": 6,
+                "day": 30
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CAMA 2020 and PSC Regulations 2022",
+            "effective_from": "2022-01-01"
+        },
+        {
+            "obligation_ref": "CAC-AGM",
+            "title": "Annual general meeting held",
+            "obligation_type": "operational",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "The first AGM is held within 18 months of incorporation and subsequent AGMs no later than 15 months after the preceding one.",
+            "requirement_ref": "GOV",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "previous_agm",
+                "offset_days": 456
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CAMA 2020",
+            "effective_from": "2020-08-07"
+        },
+        {
+            "obligation_ref": "FIRS-CIT",
+            "title": "Companies income tax return",
+            "obligation_type": "payment",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "The companies income tax return is filed within six months of the fiscal year end. A newly incorporated company files its first return within 18 months of incorporation.",
+            "requirement_ref": "TAX",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "fiscal_year_end",
+                "offset_months": 6
+            },
+            "regulator_code": "FIRS",
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "Companies Income Tax Act",
+            "effective_from": "2020-08-07"
+        },
+        {
+            "obligation_ref": "FIRS-VAT",
+            "title": "Value added tax return and remittance",
+            "obligation_type": "payment",
+            "trigger_type": "calendar",
+            "frequency": "monthly",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "VAT is filed and remitted by the 21st of the month following the transaction month.",
+            "requirement_ref": "TAX",
+            "due_rule": {
+                "type": "fixed_date",
+                "day": 21
+            },
+            "regulator_code": "FIRS",
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "Value Added Tax Act",
+            "effective_from": "2020-08-07"
+        },
+        {
+            "obligation_ref": "FIRS-PAYE-MONTHLY",
+            "title": "PAYE remittance",
+            "obligation_type": "payment",
+            "trigger_type": "calendar",
+            "frequency": "monthly",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "Pay-as-you-earn deductions are remitted by the 10th of the following month.",
+            "requirement_ref": "PAY",
+            "due_rule": {
+                "type": "fixed_date",
+                "day": 10
+            },
+            "regulator_code": "FIRS",
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "Personal Income Tax Act",
+            "effective_from": "2020-08-07"
+        },
+        {
+            "obligation_ref": "FIRS-PAYE-ANNUAL",
+            "title": "Annual PAYE return",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "The annual PAYE return is filed by 31 January.",
+            "requirement_ref": "PAY",
+            "due_rule": {
+                "type": "fixed_date",
+                "month": 1,
+                "day": 31
+            },
+            "regulator_code": "FIRS",
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "Personal Income Tax Act",
+            "effective_from": "2020-08-07"
+        },
+        {
+            "obligation_ref": "FIRS-WHT",
+            "title": "Withholding tax remittance",
+            "obligation_type": "payment",
+            "trigger_type": "calendar",
+            "frequency": "monthly",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "Withholding tax is remitted within 30 days of deduction.",
+            "requirement_ref": "TAX",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "period_end",
+                "offset_days": 30
+            },
+            "regulator_code": "FIRS",
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "Companies Income Tax Act — withholding tax",
+            "effective_from": "2020-08-07"
+        },
+        {
+            "obligation_ref": "NSITF-CONTRIBUTION",
+            "title": "NSITF employee compensation contribution",
+            "obligation_type": "payment",
+            "trigger_type": "calendar",
+            "frequency": "monthly",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "A contribution of 1% of monthly payroll is remitted to the Nigeria Social Insurance Trust Fund.",
+            "requirement_ref": "PAY",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "period_end",
+                "offset_days": 10
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "Employee Compensation Act",
+            "effective_from": "2020-08-07",
+            "penalty_description": "Contribution rate is 1% of monthly payroll; the rate is stored in basis points and needs payroll as the base.",
+            "penalty_amount_minor": 100,
+            "penalty_currency": "NGN",
+            "penalty_basis": "percentage"
+        },
+        {
+            "obligation_ref": "PENSION-REMITTANCE",
+            "title": "Pension contribution remittance",
+            "obligation_type": "payment",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "Employee (8%) and employer (10%) pension contributions are remitted within 7 days of salary payment.",
+            "requirement_ref": "PAY",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "salary_paid",
+                "offset_days": 7
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "Pension Reform Act 2014",
+            "effective_from": "2020-08-07"
+        },
+        {
+            "obligation_ref": "NDPC-REGISTRATION",
+            "title": "NDPC registration and renewal",
+            "obligation_type": "registration",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "description": "Registration with the Nigeria Data Protection Commission is obtained and kept current.",
+            "requirement_ref": "REG",
+            "due_rule": {
+                "type": "fixed_date",
+                "month": 1,
+                "day": 31
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "NDPA 2023",
+            "effective_from": "2023-06-14"
+        }
+    ],
+    "controls": [
+        {
+            "control_ref": "TPL-CAMA-001",
+            "title": "Statutory filing calendar reviewed monthly",
+            "category": "Cut-off",
+            "type": "Detective",
+            "nature": "Manual",
+            "frequency": "Monthly",
+            "description": "The statutory filing calendar is reviewed monthly against evidence of filing, with late or missing filings escalated.",
+            "objective": "Ensure no statutory filing is missed and penalties do not accrue unnoticed."
+        }
+    ],
+    "mappings": []
+}

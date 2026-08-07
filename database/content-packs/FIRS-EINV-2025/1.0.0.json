@@ -1,0 +1,129 @@
+{
+    "code": "FIRS-EINV-2025",
+    "name": "FIRS e-invoicing (Merchant Buyer Solution)",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "Federal Inland Revenue Service",
+    "effective_from": "2025-08-01",
+    "source_url": "https://www.firs.gov.ng",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack. Circular of 9 July 2025 introducing the FIRS Merchant Buyer Solution on a pre-clearance (continuous transaction control) model, mandatory for large taxpayers with turnover of ₦5bn or more from 1 August 2025. Later taxpayer-band dates, the IRN/QR/UBL technical specification, penalties, and the commencement of the Nigeria Tax Act 2025 and Nigeria Tax Administration Act 2025 are all UNCONFIRMED and are not seeded. Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack ships unverified: records are usable internally but excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "FIRS",
+        "name": "Federal Inland Revenue Service",
+        "jurisdiction": "NG",
+        "sector": [
+            "all"
+        ],
+        "website": "https://www.firs.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "FIRS-EINV-2025",
+        "name": "FIRS e-invoicing",
+        "issuing_body": "Federal Inland Revenue Service",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "sector",
+        "effective_from": "2025-08-01",
+        "is_certifiable": false,
+        "source_url": "https://www.firs.gov.ng",
+        "verification_status": "unverified",
+        "description": "Pre-clearance electronic invoicing through the FIRS Merchant Buyer Solution."
+    },
+    "requirements": [
+        {
+            "ref_code": "ONB",
+            "title": "Onboarding to the Merchant Buyer Solution",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "CTC",
+            "title": "Pre-clearance of invoices (continuous transaction control)",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Daily",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "SPEC",
+            "title": "IRN, QR code and UBL technical specification",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft",
+            "guidance": "Technical specification unconfirmed."
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "FIRS-EINV-ONBOARD",
+            "title": "Onboard to the FIRS Merchant Buyer Solution",
+            "obligation_type": "registration",
+            "trigger_type": "calendar",
+            "frequency": "one_off",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "Large taxpayers with turnover of ₦5bn or more onboard to the FIRS Merchant Buyer Solution from 1 August 2025.",
+            "requirement_ref": "ONB",
+            "due_rule": {
+                "type": "fixed_date",
+                "month": 8,
+                "day": 1
+            },
+            "effective_from": "2025-07-09",
+            "effective_to": "2025-08-01",
+            "applies_to": {
+                "licence_categories": [
+                    "large_taxpayer"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "FIRS circular of 9 July 2025"
+        },
+        {
+            "obligation_ref": "FIRS-EINV-CLEARANCE",
+            "title": "Invoices cleared through FIRSMBS before issue",
+            "obligation_type": "operational",
+            "trigger_type": "calendar",
+            "frequency": "daily",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "Invoices are submitted for pre-clearance before they are issued to the buyer.",
+            "requirement_ref": "CTC",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "period_end",
+                "offset_days": 0,
+                "roll": "none"
+            },
+            "effective_from": "2025-08-01",
+            "applies_to": {
+                "licence_categories": [
+                    "large_taxpayer"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "FIRS circular of 9 July 2025"
+        }
+    ],
+    "controls": [],
+    "mappings": []
+}

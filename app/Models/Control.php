@@ -152,6 +152,19 @@ class Control extends Model
         return $this->hasMany(ControlException::class);
     }
 
+    /** Framework requirements this control claims to satisfy (Phase 8). */
+    public function requirementMappings(): HasMany
+    {
+        return $this->hasMany(ControlRequirementMap::class);
+    }
+
+    public function requirements(): BelongsToMany
+    {
+        return $this->belongsToMany(FrameworkRequirement::class, 'control_requirement_map', 'control_id', 'requirement_id')
+            ->withPivot(['coverage', 'mapped_by', 'mapped_at', 'approved_by', 'approved_at'])
+            ->withTimestamps();
+    }
+
     public function latestPublishedRating(): ?EffectivenessRating
     {
         return $this->effectivenessRatings()

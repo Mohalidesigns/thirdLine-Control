@@ -1,0 +1,141 @@
+{
+    "code": "PENCOM",
+    "name": "PenCom regulatory framework for licensed pension operators",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "National Pension Commission",
+    "effective_from": "2014-07-01",
+    "source_url": "https://www.pencom.gov.ng",
+    "verification_status": "draft",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Shell pack. Covers the Pension Reform Act 2014, the Regulations for Compliance Officers (RR/P&R/09/03), the Guidelines for Risk Management Framework for Licensed Pension Operators and the Investment Regulation as amended in February 2019. The contents of the risk management guideline are UNCONFIRMED, so the obligations here are shells seeded as draft — filing dates must be researched before use. Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack ships unverified: records are usable internally but excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "PENCOM",
+        "name": "National Pension Commission",
+        "jurisdiction": "NG",
+        "sector": [
+            "pensions"
+        ],
+        "website": "https://www.pencom.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "PENCOM",
+        "name": "PenCom regulatory framework for licensed pension operators",
+        "issuing_body": "National Pension Commission",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "sector",
+        "effective_from": "2014-07-01",
+        "is_certifiable": false,
+        "source_url": "https://www.pencom.gov.ng",
+        "verification_status": "draft",
+        "description": "Obligations of licensed pension fund administrators and custodians under the Pension Reform Act 2014 and PenCom regulations."
+    },
+    "requirements": [
+        {
+            "ref_code": "PRA",
+            "title": "Pension Reform Act 2014 obligations",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "CO",
+            "title": "Regulations for Compliance Officers (RR/P&R/09/03)",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "RMF",
+            "title": "Guidelines for Risk Management Framework",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft",
+            "guidance": "Guideline contents unconfirmed — research required before this requirement is used for testing."
+        },
+        {
+            "ref_code": "INV",
+            "title": "Investment Regulation (amended February 2019)",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "PENCOM-COMPLIANCE-RETURN",
+            "title": "Compliance officer return to PenCom",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "quarterly",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "description": "Periodic compliance return required of licensed pension operators. Cadence and due date are unconfirmed; this record is a shell pending research.",
+            "requirement_ref": "CO",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "period_end",
+                "offset_days": 30
+            },
+            "applies_to": {
+                "entity_types": [
+                    "pension_fund_administrator",
+                    "pension_fund_custodian",
+                    "closed_pension_fund_administrator"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "PenCom Regulations for Compliance Officers RR/P&R/09/03",
+            "effective_from": "2014-07-01"
+        },
+        {
+            "obligation_ref": "PENCOM-RMF-REVIEW",
+            "title": "Risk management framework review",
+            "obligation_type": "assessment",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "description": "Review of the risk management framework required by the PenCom guidelines. Frequency unconfirmed; shell pending research.",
+            "requirement_ref": "RMF",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "fiscal_year_end",
+                "offset_days": 90
+            },
+            "applies_to": {
+                "entity_types": [
+                    "pension_fund_administrator",
+                    "pension_fund_custodian",
+                    "closed_pension_fund_administrator"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "PenCom Guidelines for Risk Management Framework",
+            "effective_from": "2014-07-01"
+        }
+    ],
+    "controls": [],
+    "mappings": []
+}

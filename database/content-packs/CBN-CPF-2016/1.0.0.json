@@ -1,0 +1,242 @@
+{
+    "code": "CBN-CPF-2016",
+    "name": "CBN Consumer Protection Framework 2016 and Regulations 2019",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "Central Bank of Nigeria",
+    "effective_from": "2016-11-07",
+    "source_url": "https://www.cbn.gov.ng",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack. Framework issued 7 November 2016, Regulations 20 December 2019. The three penalty figures below are the highest-value records in this pack and must be confirmed against the Regulations before the pack is marked verified. Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack ships unverified: its records are usable internally but excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "CBN",
+        "name": "Central Bank of Nigeria",
+        "jurisdiction": "NG",
+        "sector": [
+            "banking",
+            "payments",
+            "other_financial_institutions"
+        ],
+        "website": "https://www.cbn.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "CBN-CPF-2016",
+        "name": "CBN Consumer Protection Framework and Regulations",
+        "issuing_body": "Central Bank of Nigeria",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "sector",
+        "effective_from": "2016-11-07",
+        "is_certifiable": false,
+        "source_url": "https://www.cbn.gov.ng",
+        "verification_status": "unverified",
+        "description": "Consumer protection obligations for financial institutions: complaint channels, acknowledgement, tracking, resolution and reporting."
+    },
+    "requirements": [
+        {
+            "ref_code": "CHN",
+            "title": "Complaint channels",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Monthly",
+            "verification_status": "unverified",
+            "guidance": "Complaints must be receivable by letter, email, telephone, social media and digital platforms."
+        },
+        {
+            "ref_code": "ACK",
+            "title": "Acknowledgement and unique tracking identifier",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Daily",
+            "verification_status": "unverified",
+            "guidance": "Every complaint is acknowledged within 24 hours and issued a unique tracking identifier."
+        },
+        {
+            "ref_code": "RES",
+            "title": "Complaint resolution and escalation",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Weekly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "DIR",
+            "title": "Compliance with CBN directives",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "CBN-CPF-ACK-24H",
+            "title": "Acknowledge a consumer complaint within 24 hours with a unique tracking ID",
+            "obligation_type": "notification",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "jurisdictions": null,
+            "description": "Every consumer complaint is acknowledged within 24 hours and issued a unique tracking identifier.",
+            "requirement_ref": "ACK",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "complaint_received",
+                "offset_hours": 24
+            },
+            "penalty_description": "₦2,000,000 for failure to acknowledge a complaint.",
+            "penalty_amount_minor": 200000000,
+            "penalty_currency": "NGN",
+            "penalty_basis": "per_instance",
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank",
+                    "microfinance_bank",
+                    "finance_company",
+                    "bureau_de_change",
+                    "primary_mortgage_bank",
+                    "development_finance_institution",
+                    "payment_service_provider",
+                    "switching_company",
+                    "mobile_money_operator",
+                    "payment_solution_service_provider",
+                    "payment_terminal_service_provider"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Consumer Protection Regulations 2019",
+            "effective_from": "2019-12-20"
+        },
+        {
+            "obligation_ref": "CBN-CPF-RESOLUTION",
+            "title": "Resolve consumer complaints within the prescribed period",
+            "obligation_type": "operational",
+            "trigger_type": "calendar",
+            "frequency": "weekly",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "jurisdictions": null,
+            "description": "Complaints are resolved within the prescribed period. Unresolved complaints attract a penalty for each week they remain open.",
+            "requirement_ref": "RES",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "period_end",
+                "offset_days": 0
+            },
+            "penalty_description": "₦500,000 per complaint for each week the complaint remains unresolved.",
+            "penalty_amount_minor": 50000000,
+            "penalty_currency": "NGN",
+            "penalty_basis": "per_week",
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank",
+                    "microfinance_bank",
+                    "finance_company",
+                    "bureau_de_change",
+                    "primary_mortgage_bank",
+                    "development_finance_institution",
+                    "payment_service_provider",
+                    "switching_company",
+                    "mobile_money_operator",
+                    "payment_solution_service_provider",
+                    "payment_terminal_service_provider"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Consumer Protection Regulations 2019",
+            "effective_from": "2019-12-20"
+        },
+        {
+            "obligation_ref": "CBN-CPF-DIRECTIVE",
+            "title": "Comply with a CBN consumer protection directive",
+            "obligation_type": "operational",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "jurisdictions": null,
+            "description": "A directive issued by the CBN following a consumer complaint is complied with.",
+            "requirement_ref": "DIR",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "cbn_directive_issued",
+                "offset_days": 30
+            },
+            "penalty_description": "₦2,000,000 for non-compliance with a CBN directive.",
+            "penalty_amount_minor": 200000000,
+            "penalty_currency": "NGN",
+            "penalty_basis": "per_instance",
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank",
+                    "microfinance_bank",
+                    "finance_company",
+                    "bureau_de_change",
+                    "primary_mortgage_bank",
+                    "development_finance_institution",
+                    "payment_service_provider",
+                    "switching_company",
+                    "mobile_money_operator",
+                    "payment_solution_service_provider",
+                    "payment_terminal_service_provider"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Consumer Protection Regulations 2019",
+            "effective_from": "2019-12-20"
+        }
+    ],
+    "controls": [
+        {
+            "control_ref": "TPL-CBN-CPF-001",
+            "title": "24-hour complaint acknowledgement with unique tracking ID",
+            "category": "Authorisation",
+            "type": "Preventive",
+            "nature": "Automated",
+            "frequency": "Daily",
+            "description": "Every complaint received on any channel is logged and acknowledged within 24 hours with a system-generated unique tracking identifier.",
+            "objective": "Meet the acknowledgement requirement and avoid the associated penalty."
+        },
+        {
+            "control_ref": "TPL-CBN-CPF-002",
+            "title": "Weekly ageing review of unresolved complaints",
+            "category": "Reconciliation",
+            "type": "Detective",
+            "nature": "Manual",
+            "frequency": "Weekly",
+            "description": "Unresolved complaints are aged weekly and escalated, with the accruing penalty exposure reported to management.",
+            "objective": "Limit the per-week penalty exposure on unresolved complaints."
+        }
+    ],
+    "mappings": []
+}

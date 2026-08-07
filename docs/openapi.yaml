@@ -98,6 +98,62 @@ paths:
                   data:
                     type: array
                     items: { $ref: '#/components/schemas/ExceptionSummary' }
+  /frameworks/coverage:
+    get:
+      summary: Framework coverage headline per framework
+      description: >
+        Share of each framework's testable requirements covered by an approved
+        control mapping, and the share where the mapped control also carries a
+        current effective rating. Unapproved mappings and retired controls are
+        excluded. Global frameworks plus any the tenant owns.
+      parameters:
+        - name: jurisdiction
+          in: query
+          description: ISO-3166 alpha-2 code, or INTL
+          schema: { type: string }
+      responses:
+        '200':
+          description: Coverage per framework
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/FrameworkCoverage' }
+  /obligations/instances:
+    get:
+      summary: Pull the regulatory filing calendar
+      description: >
+        Generated obligation instances for the tenant, oldest deadline first.
+        Every row carries the source obligation's verification_status: a value
+        other than "verified" means the underlying dates and penalties have not
+        been confirmed against the regulator's primary document and the record
+        must not be treated as filing-ready.
+      parameters:
+        - name: since
+          in: query
+          schema: { type: string, format: date-time }
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [Not Started, In Progress, Submitted, Accepted, Rejected, Overdue, Waived]
+        - name: due_before
+          in: query
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Obligation instances with live penalty exposure
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/ObligationInstance' }
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -156,3 +212,46 @@ components:
             age_days: { type: integer }
             is_overdue: { type: boolean }
             date_raised: { type: string, format: date }
+    Money:
+      type: object
+      description: Integer minor units plus an ISO-4217 code — never a float.
+      properties:
+        amount: { type: integer, description: Minor units, e.g. kobo }
+        currency: { type: string, enum: [NGN, GHS, KES, ZAR, USD, EUR, GBP] }
+        formatted: { type: string, example: '₦1,000,000.00' }
+    FrameworkCoverage:
+      type: object
+      properties:
+        framework_id: { type: integer }
+        code: { type: string, example: COSO-IC-2013 }
+        name: { type: string }
+        testable_requirements: { type: integer }
+        mapped_requirements: { type: integer, description: At least one approved mapping to an active control }
+        effective_requirements: { type: integer, description: Mapped control also carries a current effective rating }
+        unmapped_requirements: { type: integer }
+        mapped_percentage: { type: integer }
+        effective_percentage: { type: integer }
+        verification_status: { type: string, enum: [verified, unverified, draft] }
+    ObligationInstance:
+      type: object
+      properties:
+        id: { type: integer }
+        obligation_ref: { type: string, example: CBN-CG-2023-BOARD-EVAL }
+        title: { type: string }
+        regulator: { type: string, example: CBN }
+        entity: { type: string, nullable: true }
+        owner: { type: string, nullable: true }
+        period_label: { type: string, example: FY2026 }
+        due_at: { type: string, format: date-time }
+        status:
+          type: string
+          enum: [Not Started, In Progress, Submitted, Accepted, Rejected, Overdue, Waived]
+        days_overdue: { type: integer }
+        submission_reference: { type: string, nullable: true }
+        penalty_exposure:
+          allOf: [{ $ref: '#/components/schemas/Money' }]
+          nullable: true
+        verification_status:
+          type: string
+          enum: [verified, unverified, draft]
+          description: Only "verified" records may enter a generated regulatory submission.

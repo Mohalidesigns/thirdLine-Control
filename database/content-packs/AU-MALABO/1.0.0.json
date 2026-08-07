@@ -1,0 +1,81 @@
+{
+    "code": "AU-MALABO",
+    "name": "African Union Convention on Cyber Security and Personal Data Protection (Malabo)",
+    "version": "1.0.0",
+    "jurisdiction": "INTL",
+    "issuing_body": "African Union",
+    "effective_from": "2023-06-08",
+    "source_url": "https://au.int",
+    "verification_status": "draft",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Continental instrument. Note the tension between the AfCFTA Protocol on Digital Trade (adopted February 2024, annexes still under negotiation) and the CBN and BoG data localisation mandates. This pack ships as DRAFT. Nothing in it has been verified against the regulator’s primary document, and its records are excluded from generated regulatory submissions. Verify before selling or relying on this content in-market (rule R10).",
+    "regulator": {
+        "code": "AU",
+        "name": "African Union",
+        "jurisdiction": "INTL",
+        "sector": [
+            "all"
+        ],
+        "website": "https://au.int",
+        "is_active": true
+    },
+    "framework": {
+        "code": "AU-MALABO",
+        "name": "African Union Convention on Cyber Security and Personal Data Protection (Malabo)",
+        "issuing_body": "African Union",
+        "jurisdiction": "INTL",
+        "version": "1.0.0",
+        "category": "privacy",
+        "effective_from": "2023-06-08",
+        "is_certifiable": false,
+        "source_url": "https://au.int",
+        "verification_status": "draft",
+        "description": "Adopted in 2014 and in force since 8 June 2023, with 21 signatures and 16 ratifications including Nigeria, South Africa, Kenya, Rwanda, Senegal, Uganda, Tanzania and Mauritius. Requires an independent national data protection authority, a national cybersecurity policy, criminalisation of acts affecting confidentiality, integrity and availability, and electronic transaction rules."
+    },
+    "requirements": [
+        {
+            "ref_code": "DPA",
+            "title": "Independent national data protection authority",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "CYB",
+            "title": "National cybersecurity policy",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "CRIM",
+            "title": "Criminalisation of CIA-affecting acts",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "ETRANS",
+            "title": "Electronic transaction rules",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        }
+    ],
+    "obligations": [],
+    "controls": [],
+    "mappings": []
+}

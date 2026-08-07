@@ -1,0 +1,95 @@
+{
+    "code": "KE-DPA-2019",
+    "name": "Data Protection Act 2019 (Kenya)",
+    "version": "1.0.0",
+    "jurisdiction": "KE",
+    "issuing_body": "Office of the Data Protection Commissioner (Kenya)",
+    "effective_from": "2019-11-25",
+    "source_url": "https://www.odpc.go.ke",
+    "verification_status": "draft",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "This pack ships as DRAFT. Nothing in it has been verified against the regulator’s primary document, and its records are excluded from generated regulatory submissions. Verify before selling or relying on this content in-market (rule R10).",
+    "regulator": {
+        "code": "ODPC",
+        "name": "Office of the Data Protection Commissioner (Kenya)",
+        "jurisdiction": "KE",
+        "sector": [
+            "all"
+        ],
+        "website": "https://www.odpc.go.ke",
+        "is_active": true
+    },
+    "framework": {
+        "code": "KE-DPA-2019",
+        "name": "Data Protection Act 2019 (Kenya)",
+        "issuing_body": "Office of the Data Protection Commissioner (Kenya)",
+        "jurisdiction": "KE",
+        "version": "1.0.0",
+        "category": "privacy",
+        "effective_from": "2019-11-25",
+        "is_certifiable": false,
+        "source_url": "https://www.odpc.go.ke",
+        "verification_status": "draft",
+        "description": "Registration with the Office of the Data Protection Commissioner, data protection impact assessments, and 72-hour breach notification."
+    },
+    "requirements": [
+        {
+            "ref_code": "REG",
+            "title": "ODPC registration",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "DPIA",
+            "title": "Data protection impact assessment",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "BRCH",
+            "title": "Breach notification within 72 hours",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "KE-DPA-BREACH-72H",
+            "title": "Personal data breach notified to the ODPC within 72 hours",
+            "obligation_type": "notification",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "requirement_ref": "BRCH",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "breach_detected",
+                "offset_hours": 72
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "KE"
+                ]
+            },
+            "legal_reference": "Data Protection Act 2019 (Kenya)",
+            "effective_from": "2019-11-25"
+        }
+    ],
+    "controls": [],
+    "mappings": []
+}

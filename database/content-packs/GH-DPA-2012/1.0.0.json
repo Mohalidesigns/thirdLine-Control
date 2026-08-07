@@ -1,0 +1,76 @@
+{
+    "code": "GH-DPA-2012",
+    "name": "Data Protection Act 2012 (Act 843), Ghana",
+    "version": "1.0.0",
+    "jurisdiction": "GH",
+    "issuing_body": "Data Protection Commission (Ghana)",
+    "effective_from": "2012-10-16",
+    "source_url": "https://www.dataprotection.org.gh",
+    "verification_status": "draft",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "This pack ships as DRAFT. Nothing in it has been verified against the regulator’s primary document, and its records are excluded from generated regulatory submissions. Verify before selling or relying on this content in-market (rule R10).",
+    "regulator": {
+        "code": "GH-DPC",
+        "name": "Data Protection Commission (Ghana)",
+        "jurisdiction": "GH",
+        "sector": [
+            "all"
+        ],
+        "website": "https://www.dataprotection.org.gh",
+        "is_active": true
+    },
+    "framework": {
+        "code": "GH-DPA-2012",
+        "name": "Data Protection Act 2012 (Act 843), Ghana",
+        "issuing_body": "Data Protection Commission (Ghana)",
+        "jurisdiction": "GH",
+        "version": "1.0.0",
+        "category": "privacy",
+        "effective_from": "2012-10-16",
+        "is_certifiable": false,
+        "source_url": "https://www.dataprotection.org.gh",
+        "verification_status": "draft",
+        "description": "Registration with the Data Protection Commission, renewable every two years."
+    },
+    "requirements": [
+        {
+            "ref_code": "REG",
+            "title": "Data controller registration",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft",
+            "guidance": "Renewable every two years."
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "GH-DPA-REGISTRATION",
+            "title": "Data protection registration renewal",
+            "obligation_type": "registration",
+            "trigger_type": "calendar",
+            "frequency": "biennial",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "requirement_ref": "REG",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "period_end",
+                "offset_days": 0
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "GH"
+                ]
+            },
+            "legal_reference": "Data Protection Act 2012 (Act 843)",
+            "effective_from": "2012-10-16"
+        }
+    ],
+    "controls": [],
+    "mappings": []
+}

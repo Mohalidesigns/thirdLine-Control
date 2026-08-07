@@ -1,0 +1,165 @@
+{
+    "code": "ZA-POPIA",
+    "name": "Protection of Personal Information Act (POPIA)",
+    "version": "1.0.0",
+    "jurisdiction": "ZA",
+    "issuing_body": "Information Regulator (South Africa)",
+    "effective_from": "2021-07-01",
+    "source_url": "https://inforegulator.org.za",
+    "verification_status": "draft",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "This pack ships as DRAFT. Nothing in it has been verified against the regulator’s primary document, and its records are excluded from generated regulatory submissions. Verify before selling or relying on this content in-market (rule R10).",
+    "regulator": {
+        "code": "ZA-INFOREG",
+        "name": "Information Regulator (South Africa)",
+        "jurisdiction": "ZA",
+        "sector": [
+            "all"
+        ],
+        "website": "https://inforegulator.org.za",
+        "is_active": true
+    },
+    "framework": {
+        "code": "ZA-POPIA",
+        "name": "Protection of Personal Information Act (POPIA)",
+        "issuing_body": "Information Regulator (South Africa)",
+        "jurisdiction": "ZA",
+        "version": "1.0.0",
+        "category": "privacy",
+        "effective_from": "2021-07-01",
+        "is_certifiable": false,
+        "source_url": "https://inforegulator.org.za",
+        "verification_status": "draft",
+        "description": "Eight conditions for lawful processing, Information Officer registration under section 55, and the PAIA manual."
+    },
+    "requirements": [
+        {
+            "ref_code": "C1",
+            "title": "Accountability",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "C2",
+            "title": "Processing limitation",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "C3",
+            "title": "Purpose specification",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "C4",
+            "title": "Further processing limitation",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "C5",
+            "title": "Information quality",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "C6",
+            "title": "Openness",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "C7",
+            "title": "Security safeguards",
+            "level": 1,
+            "sort_order": 7,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "C8",
+            "title": "Data subject participation",
+            "level": 1,
+            "sort_order": 8,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "S55",
+            "title": "Information Officer registration (section 55)",
+            "level": 1,
+            "sort_order": 9,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "PAIA",
+            "title": "PAIA manual",
+            "level": 1,
+            "sort_order": 10,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "ZA-POPIA-IO-REGISTRATION",
+            "title": "Information Officer registered with the Information Regulator",
+            "obligation_type": "registration",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "requirement_ref": "S55",
+            "due_rule": {
+                "type": "fixed_date",
+                "month": 3,
+                "day": 31
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "ZA"
+                ]
+            },
+            "legal_reference": "POPIA section 55",
+            "effective_from": "2021-07-01"
+        }
+    ],
+    "controls": [],
+    "mappings": []
+}

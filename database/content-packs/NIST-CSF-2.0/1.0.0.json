@@ -1,0 +1,64 @@
+{
+    "code": "NIST-CSF-2.0",
+    "name": "NIST Cybersecurity Framework 2.0",
+    "version": "1.0.0",
+    "jurisdiction": "INTL",
+    "issuing_body": "National Institute of Standards and Technology",
+    "effective_from": "2024-02-26",
+    "source_url": "https://www.nist.gov/cyberframework",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack. Six functions and their categories. Category and subcategory identifiers are commonly cited as 22 and 106 respectively; those counts and every category identifier below must be confirmed against NIST CSWP 29 before this pack is marked verified. Subcategories are deliberately not seeded until that check is done.",
+    "framework": {
+        "code": "NIST-CSF-2.0",
+        "name": "NIST Cybersecurity Framework 2.0",
+        "issuing_body": "National Institute of Standards and Technology",
+        "jurisdiction": "INTL",
+        "version": "1.0.0",
+        "category": "security",
+        "effective_from": "2024-02-26",
+        "is_certifiable": false,
+        "source_url": "https://www.nist.gov/cyberframework",
+        "verification_status": "unverified",
+        "description": "Six functions — GOVERN, IDENTIFY, PROTECT, DETECT, RESPOND, RECOVER — with GOVERN new in 2.0 and wrapping the other five. Organisations express current and target state as Organizational Profiles and maturity as Tiers (Partial, Risk Informed, Repeatable, Adaptive)."
+    },
+    "requirements": [
+        { "ref_code": "GV", "title": "GOVERN", "description": "The organisation's cybersecurity risk management strategy, expectations and policy are established, communicated and monitored.", "level": 1, "sort_order": 1, "requirement_type": "domain", "is_testable": false, "verification_status": "unverified" },
+        { "ref_code": "GV.OC", "parent_ref": "GV", "title": "Organizational Context", "level": 2, "sort_order": 1, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Annual", "verification_status": "unverified" },
+        { "ref_code": "GV.RM", "parent_ref": "GV", "title": "Risk Management Strategy", "level": 2, "sort_order": 2, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Annual", "verification_status": "unverified" },
+        { "ref_code": "GV.RR", "parent_ref": "GV", "title": "Roles, Responsibilities and Authorities", "level": 2, "sort_order": 3, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Annual", "verification_status": "unverified" },
+        { "ref_code": "GV.PO", "parent_ref": "GV", "title": "Policy", "level": 2, "sort_order": 4, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Annual", "verification_status": "unverified" },
+        { "ref_code": "GV.OV", "parent_ref": "GV", "title": "Oversight", "level": 2, "sort_order": 5, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Quarterly", "verification_status": "unverified" },
+        { "ref_code": "GV.SC", "parent_ref": "GV", "title": "Cybersecurity Supply Chain Risk Management", "level": 2, "sort_order": 6, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Quarterly", "verification_status": "unverified" },
+
+        { "ref_code": "ID", "title": "IDENTIFY", "level": 1, "sort_order": 2, "requirement_type": "domain", "is_testable": false, "verification_status": "unverified" },
+        { "ref_code": "ID.AM", "parent_ref": "ID", "title": "Asset Management", "level": 2, "sort_order": 1, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Quarterly", "suggested_evidence": ["Asset inventory", "Data flow diagrams"], "verification_status": "unverified" },
+        { "ref_code": "ID.RA", "parent_ref": "ID", "title": "Risk Assessment", "level": 2, "sort_order": 2, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Quarterly", "verification_status": "unverified" },
+        { "ref_code": "ID.IM", "parent_ref": "ID", "title": "Improvement", "level": 2, "sort_order": 3, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Annual", "verification_status": "unverified" },
+
+        { "ref_code": "PR", "title": "PROTECT", "level": 1, "sort_order": 3, "requirement_type": "domain", "is_testable": false, "verification_status": "unverified" },
+        { "ref_code": "PR.AA", "parent_ref": "PR", "title": "Identity Management, Authentication and Access Control", "level": 2, "sort_order": 1, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Quarterly", "verification_status": "unverified" },
+        { "ref_code": "PR.AT", "parent_ref": "PR", "title": "Awareness and Training", "level": 2, "sort_order": 2, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Annual", "verification_status": "unverified" },
+        { "ref_code": "PR.DS", "parent_ref": "PR", "title": "Data Security", "level": 2, "sort_order": 3, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Quarterly", "verification_status": "unverified" },
+        { "ref_code": "PR.PS", "parent_ref": "PR", "title": "Platform Security", "level": 2, "sort_order": 4, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Quarterly", "verification_status": "unverified" },
+        { "ref_code": "PR.IR", "parent_ref": "PR", "title": "Technology Infrastructure Resilience", "level": 2, "sort_order": 5, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Quarterly", "verification_status": "unverified" },
+
+        { "ref_code": "DE", "title": "DETECT", "level": 1, "sort_order": 4, "requirement_type": "domain", "is_testable": false, "verification_status": "unverified" },
+        { "ref_code": "DE.CM", "parent_ref": "DE", "title": "Continuous Monitoring", "level": 2, "sort_order": 1, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Monthly", "verification_status": "unverified" },
+        { "ref_code": "DE.AE", "parent_ref": "DE", "title": "Adverse Event Analysis", "level": 2, "sort_order": 2, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Monthly", "verification_status": "unverified" },
+
+        { "ref_code": "RS", "title": "RESPOND", "level": 1, "sort_order": 5, "requirement_type": "domain", "is_testable": false, "verification_status": "unverified" },
+        { "ref_code": "RS.MA", "parent_ref": "RS", "title": "Incident Management", "level": 2, "sort_order": 1, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Quarterly", "verification_status": "unverified" },
+        { "ref_code": "RS.AN", "parent_ref": "RS", "title": "Incident Analysis", "level": 2, "sort_order": 2, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Quarterly", "verification_status": "unverified" },
+        { "ref_code": "RS.CO", "parent_ref": "RS", "title": "Incident Response Reporting and Communication", "level": 2, "sort_order": 3, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Quarterly", "verification_status": "unverified" },
+        { "ref_code": "RS.MI", "parent_ref": "RS", "title": "Incident Mitigation", "level": 2, "sort_order": 4, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Quarterly", "verification_status": "unverified" },
+
+        { "ref_code": "RC", "title": "RECOVER", "level": 1, "sort_order": 6, "requirement_type": "domain", "is_testable": false, "verification_status": "unverified" },
+        { "ref_code": "RC.RP", "parent_ref": "RC", "title": "Incident Recovery Plan Execution", "level": 2, "sort_order": 1, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Semi-annual", "verification_status": "unverified" },
+        { "ref_code": "RC.CO", "parent_ref": "RC", "title": "Incident Recovery Communication", "level": 2, "sort_order": 2, "requirement_type": "objective", "is_testable": true, "suggested_frequency": "Semi-annual", "verification_status": "unverified" }
+    ],
+    "obligations": [],
+    "controls": [],
+    "mappings": []
+}

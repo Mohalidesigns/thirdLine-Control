@@ -1,0 +1,282 @@
+{
+    "code": "CBN-RBCF-2022",
+    "name": "CBN Risk-Based Cybersecurity Framework",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "Central Bank of Nigeria",
+    "effective_from": "2023-01-01",
+    "source_url": "https://www.cbn.gov.ng",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack. Six parts, applying in DMB/PSP and OFI variants, both effective 1 January 2023. The incident-notification window to the CBN (commonly cited as 24 hours) and the returns cadence and format are flagged in the research as unconfirmed and are seeded as draft. Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack ships unverified: its records are usable internally but excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "CBN",
+        "name": "Central Bank of Nigeria",
+        "jurisdiction": "NG",
+        "sector": [
+            "banking",
+            "payments",
+            "other_financial_institutions"
+        ],
+        "website": "https://www.cbn.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "CBN-RBCF-2022",
+        "name": "CBN Risk-Based Cybersecurity Framework",
+        "issuing_body": "Central Bank of Nigeria",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "security",
+        "effective_from": "2023-01-01",
+        "is_certifiable": false,
+        "source_url": "https://www.cbn.gov.ng",
+        "verification_status": "unverified",
+        "description": "Six-part cybersecurity framework with joint board, senior management and CISO accountability. Separate variants apply to deposit money banks and payment service providers, and to other financial institutions."
+    },
+    "requirements": [
+        {
+            "ref_code": "P1",
+            "title": "Part 1 — Cybersecurity Governance and Oversight",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "Board, senior management and the Chief Information Security Officer are jointly accountable for cyber risk. The CISO role and reporting line are defined."
+        },
+        {
+            "ref_code": "P2",
+            "title": "Part 2 — Cybersecurity Risk Management System",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified",
+            "guidance": "The CISO maintains a live inventory of users, devices, applications, software and hardware, and periodic cyber risk assessments are performed."
+        },
+        {
+            "ref_code": "P3",
+            "title": "Part 3 — Cyber Resilience Assessment",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "P4",
+            "title": "Part 4 — Cybersecurity Operational Resilience",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified",
+            "guidance": "Offsite backups and tested recovery arrangements."
+        },
+        {
+            "ref_code": "P5",
+            "title": "Part 5 — Cyber-Threat Intelligence",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Monthly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "P6",
+            "title": "Part 6 — Metrics, Monitoring and Reporting",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "CBN-RBCF-CYBER-ASSESS",
+            "title": "Annual cyber resilience assessment",
+            "obligation_type": "assessment",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "jurisdictions": null,
+            "description": "A cyber resilience assessment is performed and reported to the board at least annually.",
+            "requirement_ref": "P3",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "fiscal_year_end",
+                "offset_days": 90
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank",
+                    "payment_service_provider",
+                    "switching_company",
+                    "mobile_money_operator",
+                    "payment_solution_service_provider",
+                    "payment_terminal_service_provider",
+                    "microfinance_bank",
+                    "finance_company",
+                    "bureau_de_change",
+                    "primary_mortgage_bank",
+                    "development_finance_institution"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Risk-Based Cybersecurity Framework, Part 3",
+            "effective_from": "2023-01-01"
+        },
+        {
+            "obligation_ref": "CBN-RBCF-ASSET-INVENTORY",
+            "title": "Cyber asset inventory review",
+            "obligation_type": "operational",
+            "trigger_type": "calendar",
+            "frequency": "quarterly",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "jurisdictions": null,
+            "description": "The CISO maintains and reviews the inventory of users, devices, applications, software and hardware.",
+            "requirement_ref": "P2",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "period_end",
+                "offset_days": 15
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank",
+                    "payment_service_provider",
+                    "switching_company",
+                    "mobile_money_operator",
+                    "payment_solution_service_provider",
+                    "payment_terminal_service_provider",
+                    "microfinance_bank",
+                    "finance_company",
+                    "bureau_de_change",
+                    "primary_mortgage_bank",
+                    "development_finance_institution"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Risk-Based Cybersecurity Framework, Part 2",
+            "effective_from": "2023-01-01"
+        },
+        {
+            "obligation_ref": "CBN-RBCF-INCIDENT-NOTIFY",
+            "title": "Cybersecurity incident notification to the CBN",
+            "obligation_type": "notification",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "jurisdictions": null,
+            "description": "A material cybersecurity incident is notified to the Central Bank of Nigeria. The research brief cites a 24-hour window but this has not been confirmed against the framework document — the window below must be verified before use.",
+            "requirement_ref": "P6",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "cyber_incident_detected",
+                "offset_hours": 24
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank",
+                    "payment_service_provider",
+                    "switching_company",
+                    "mobile_money_operator",
+                    "payment_solution_service_provider",
+                    "payment_terminal_service_provider",
+                    "microfinance_bank",
+                    "finance_company",
+                    "bureau_de_change",
+                    "primary_mortgage_bank",
+                    "development_finance_institution"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Risk-Based Cybersecurity Framework, Part 6",
+            "effective_from": "2023-01-01"
+        },
+        {
+            "obligation_ref": "CBN-RBCF-RETURNS",
+            "title": "Cybersecurity metrics returns to the CBN",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "quarterly",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "jurisdictions": null,
+            "description": "Periodic cybersecurity metrics returns. Cadence and format are unconfirmed in the research and must be verified before this obligation is relied upon.",
+            "requirement_ref": "P6",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "period_end",
+                "offset_days": 15
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank",
+                    "payment_service_provider",
+                    "switching_company",
+                    "mobile_money_operator",
+                    "payment_solution_service_provider",
+                    "payment_terminal_service_provider",
+                    "microfinance_bank",
+                    "finance_company",
+                    "bureau_de_change",
+                    "primary_mortgage_bank",
+                    "development_finance_institution"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Risk-Based Cybersecurity Framework, Part 6",
+            "effective_from": "2023-01-01"
+        }
+    ],
+    "controls": [
+        {
+            "control_ref": "TPL-CBN-RBCF-001",
+            "title": "Live cyber asset inventory maintained by the CISO",
+            "category": "Access Management",
+            "type": "Detective",
+            "nature": "Hybrid",
+            "frequency": "Quarterly",
+            "description": "The inventory of users, devices, applications, software and hardware is reconciled to discovery tooling each quarter.",
+            "objective": "Ensure the cyber risk assessment is performed against a complete asset population."
+        }
+    ],
+    "mappings": []
+}

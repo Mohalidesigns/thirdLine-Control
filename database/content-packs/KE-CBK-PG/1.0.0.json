@@ -1,0 +1,101 @@
+{
+    "code": "KE-CBK-PG",
+    "name": "CBK Prudential Guidelines (2013 set)",
+    "version": "1.0.0",
+    "jurisdiction": "KE",
+    "issuing_body": "Central Bank of Kenya",
+    "effective_from": "2013-01-01",
+    "source_url": "https://www.centralbank.go.ke",
+    "verification_status": "draft",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Individual CBK prudential guideline numbers are UNCONFIRMED and are deliberately not seeded. This pack ships as DRAFT. Nothing in it has been verified against the regulator’s primary document, and its records are excluded from generated regulatory submissions. Verify before selling or relying on this content in-market (rule R10).",
+    "regulator": {
+        "code": "CBK",
+        "name": "Central Bank of Kenya",
+        "jurisdiction": "KE",
+        "sector": [
+            "banking"
+        ],
+        "website": "https://www.centralbank.go.ke",
+        "is_active": true
+    },
+    "framework": {
+        "code": "KE-CBK-PG",
+        "name": "CBK Prudential Guidelines (2013 set)",
+        "issuing_body": "Central Bank of Kenya",
+        "jurisdiction": "KE",
+        "version": "1.0.0",
+        "category": "sector",
+        "effective_from": "2013-01-01",
+        "is_certifiable": false,
+        "source_url": "https://www.centralbank.go.ke",
+        "verification_status": "draft",
+        "description": "Corporate governance, risk management, internal controls and internal audit, AML/CFT and stress testing guidelines for Kenyan banks, together with the CBK Climate Risk Guidance 2021."
+    },
+    "requirements": [
+        {
+            "ref_code": "CG",
+            "title": "Corporate governance",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "RM",
+            "title": "Risk management",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "IC",
+            "title": "Internal controls and internal audit",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "AML",
+            "title": "AML/CFT",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "ST",
+            "title": "Stress testing",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "CLIM",
+            "title": "Climate risk (2021 guidance)",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        }
+    ],
+    "obligations": [],
+    "controls": [],
+    "mappings": []
+}

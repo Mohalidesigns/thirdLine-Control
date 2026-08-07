@@ -1,0 +1,261 @@
+{
+    "code": "NDPA-GAID-2025",
+    "name": "Nigeria Data Protection Act 2023 and NDPC GAID 2025",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "Nigeria Data Protection Commission",
+    "effective_from": "2025-09-19",
+    "source_url": "https://ndpc.gov.ng",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack. The General Application and Implementation Directive was issued 20 March 2025 and took effect 19 September 2025, with audit-filing fees applying from the 2026 audit cycle. Data controllers and processors are tiered as UHL, EHL or OHL under Articles 8–9; only UHL and EHL file Compliance Audit Returns. Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack ships unverified: records are usable internally but excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "NDPC",
+        "name": "Nigeria Data Protection Commission",
+        "jurisdiction": "NG",
+        "sector": [
+            "all"
+        ],
+        "website": "https://ndpc.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "NDPA-GAID-2025",
+        "name": "NDPA 2023 and NDPC GAID 2025",
+        "issuing_body": "Nigeria Data Protection Commission",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "privacy",
+        "effective_from": "2025-09-19",
+        "is_certifiable": false,
+        "source_url": "https://ndpc.gov.ng",
+        "verification_status": "unverified",
+        "description": "Nigerian data protection obligations: controller tiering, compliance audit returns, data protection officer independence, data protection impact assessments, breach notification and cross-border transfer conditions."
+    },
+    "requirements": [
+        {
+            "ref_code": "TIER",
+            "title": "Controller and processor tiering (Articles 8–9)",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "Data controllers and processors of major importance are tiered as UHL, EHL or OHL. Only UHL and EHL file Compliance Audit Returns, and both must engage a licensed Data Protection Compliance Organisation."
+        },
+        {
+            "ref_code": "CAR",
+            "title": "Compliance Audit Return (Article 10)",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "Filed by 31 March annually; new entities file within 15 months of commencing business. Fees run from ₦100,000 to ₦1,000,000 by data volume, with a 50% administrative penalty for late filing."
+        },
+        {
+            "ref_code": "DPO",
+            "title": "Data protection officer independence (Articles 11–12)",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "DPIA",
+            "title": "Data protection impact assessment (Article 28)",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified",
+            "guidance": "Mandatory for high-risk processing: before processing begins; within 4 months for sensitive-data software deployed after GAID; within 6 months for pre-existing processing."
+        },
+        {
+            "ref_code": "BRCH",
+            "title": "Personal data breach notification (Article 33)",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "Notify the NDPC within 72 hours; notify data subjects immediately where the risk to them is high."
+        },
+        {
+            "ref_code": "XBORDER",
+            "title": "Cross-border transfers (Part VIII and Schedule 5)",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "Schedule 5 carries the adequacy-evaluation explanatory note."
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "NDPA-CAR-ANNUAL",
+            "title": "Compliance Audit Return filed with the NDPC",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "The annual Compliance Audit Return, filed by 31 March. Fees are ₦100,000 to ₦1,000,000 depending on data volume, and late filing attracts a 50% administrative penalty on the applicable fee.",
+            "requirement_ref": "CAR",
+            "due_rule": {
+                "type": "fixed_date",
+                "month": 3,
+                "day": 31,
+                "roll": "previous_business_day"
+            },
+            "penalty_description": "50% administrative penalty on the applicable filing fee for late submission. The rate is stored in basis points; the base is the fee band that applies to the entity’s data volume.",
+            "penalty_amount_minor": 5000,
+            "penalty_currency": "NGN",
+            "penalty_basis": "percentage",
+            "applies_to": {
+                "licence_categories": [
+                    "ndpa_uhl",
+                    "ndpa_ehl"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "NDPC GAID 2025, Article 10",
+            "effective_from": "2026-01-01"
+        },
+        {
+            "obligation_ref": "NDPA-CAR-NEW-ENTITY",
+            "title": "First Compliance Audit Return for a newly established entity",
+            "obligation_type": "filing",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "A newly established data controller or processor of major importance files its first Compliance Audit Return within 15 months of commencing business.",
+            "requirement_ref": "CAR",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "business_commenced",
+                "offset_days": 456
+            },
+            "applies_to": {
+                "licence_categories": [
+                    "ndpa_uhl",
+                    "ndpa_ehl"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "NDPC GAID 2025, Article 10",
+            "effective_from": "2025-09-19"
+        },
+        {
+            "obligation_ref": "NDPA-BREACH-72H",
+            "title": "Personal data breach notified to the NDPC within 72 hours",
+            "obligation_type": "notification",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "A personal data breach is notified to the Nigeria Data Protection Commission within 72 hours of becoming aware of it. Where the risk to data subjects is high they are notified immediately.",
+            "requirement_ref": "BRCH",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "breach_detected",
+                "offset_hours": 72
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "NDPC GAID 2025, Article 33; NDPA 2023",
+            "effective_from": "2025-09-19"
+        },
+        {
+            "obligation_ref": "NDPA-DPIA-NEW-PROCESSING",
+            "title": "Data protection impact assessment before high-risk processing",
+            "obligation_type": "assessment",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "A DPIA is completed before high-risk processing begins.",
+            "requirement_ref": "DPIA",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "high_risk_processing_proposed",
+                "offset_days": 0
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "NDPC GAID 2025, Article 28",
+            "effective_from": "2025-09-19"
+        },
+        {
+            "obligation_ref": "NDPA-DPIA-POST-GAID-SOFTWARE",
+            "title": "DPIA for sensitive-data software deployed after GAID",
+            "obligation_type": "assessment",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "Software processing sensitive personal data deployed after GAID took effect requires a DPIA within four months of deployment.",
+            "requirement_ref": "DPIA",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "sensitive_data_software_deployed",
+                "offset_days": 122
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "NDPC GAID 2025, Article 28",
+            "effective_from": "2025-09-19"
+        }
+    ],
+    "controls": [
+        {
+            "control_ref": "TPL-NDPA-001",
+            "title": "72-hour breach notification runbook",
+            "category": "Change Management",
+            "type": "Corrective",
+            "nature": "Manual",
+            "frequency": "Quarterly",
+            "description": "A tested runbook drives assessment, NDPC notification within 72 hours and data subject notification where the risk is high.",
+            "objective": "Meet the statutory breach notification window."
+        },
+        {
+            "control_ref": "TPL-NDPA-002",
+            "title": "DPIA gate on new high-risk processing",
+            "category": "Authorisation",
+            "type": "Preventive",
+            "nature": "Manual",
+            "frequency": "Quarterly",
+            "description": "No high-risk processing goes live without a completed and signed-off data protection impact assessment.",
+            "objective": "Ensure DPIAs precede processing as Article 28 requires."
+        }
+    ],
+    "mappings": []
+}

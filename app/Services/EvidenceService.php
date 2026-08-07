@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\ControlException;
 use App\Models\Evidence;
 use App\Models\Finding;
+use App\Models\ObligationInstance;
 use App\Models\RetentionPolicy;
 use App\Models\TestInstance;
 use App\Models\User;
@@ -22,6 +23,8 @@ class EvidenceService
         'test_instance' => TestInstance::class,
         'exception' => ControlException::class,
         'finding' => Finding::class,
+        // Phase 8: the proof that a regulatory filing was actually made.
+        'obligation_instance' => ObligationInstance::class,
     ];
 
     /**

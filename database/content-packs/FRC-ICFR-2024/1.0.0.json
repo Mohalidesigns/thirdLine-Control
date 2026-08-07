@@ -1,0 +1,184 @@
+{
+    "code": "FRC-ICFR-2024",
+    "name": "FRC Guidance on Management Report on Internal Control over Financial Reporting",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "Financial Reporting Council of Nigeria",
+    "effective_from": "2024-08-01",
+    "source_url": "https://www.financialreportingcouncil.gov.ng",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack — Nigeria's SOX-404 equivalent. Scope: all public interest entities EXCEPT listed entities (which follow SEC guidance), CAMA 2020 small companies, unit microfinance banks, insurance brokers, and non-tertiary education and health institutions. COSO 2013 is highly recommended as the evaluation framework, which is why this pack maps to COSO-IC-2013. Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack ships unverified: records are usable internally but excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "FRC-NG",
+        "name": "Financial Reporting Council of Nigeria",
+        "jurisdiction": "NG",
+        "sector": [
+            "all"
+        ],
+        "website": "https://www.financialreportingcouncil.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "FRC-ICFR-2024",
+        "name": "FRC Guidance on Management Report on ICFR",
+        "issuing_body": "Financial Reporting Council of Nigeria",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "financial",
+        "effective_from": "2024-08-01",
+        "is_certifiable": false,
+        "source_url": "https://www.financialreportingcouncil.gov.ng",
+        "verification_status": "unverified",
+        "description": "Management report on internal control over financial reporting: responsibility statement, framework identification, effectiveness assessment at fiscal year end disclosing material weaknesses, and a statement that the external auditor issued an attestation report. Evaluation is top-down and risk-based."
+    },
+    "requirements": [
+        {
+            "ref_code": "MR.1",
+            "title": "Statement of management responsibility for ICFR",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "MR.2",
+            "title": "Identification of the evaluation framework used",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "COSO 2013 is highly recommended."
+        },
+        {
+            "ref_code": "MR.3",
+            "title": "Management’s effectiveness assessment as at fiscal year end",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "Any material weakness must be disclosed. A material weakness precludes a conclusion that ICFR is effective."
+        },
+        {
+            "ref_code": "MR.4",
+            "title": "Statement that the external auditor issued an attestation report",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "TD",
+            "title": "Top-down, risk-based evaluation",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified",
+            "guidance": "Evidential matter must give reasonable support for the assessment; documentation is scoped to controls addressing identified financial-reporting risks."
+        },
+        {
+            "ref_code": "DEF.1",
+            "title": "Deficiency taxonomy — control deficiency",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "DEF.2",
+            "title": "Deficiency taxonomy — significant deficiency",
+            "level": 1,
+            "sort_order": 7,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified",
+            "guidance": "Reported to the audit committee and the external auditor."
+        },
+        {
+            "ref_code": "DEF.3",
+            "title": "Deficiency taxonomy — material weakness",
+            "level": 1,
+            "sort_order": 8,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified",
+            "guidance": "Precludes an effective conclusion and must be disclosed in the management report."
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "FRC-ICFR-MGT-REPORT",
+            "title": "Management report on internal control over financial reporting",
+            "obligation_type": "disclosure",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "The annual management report on ICFR, containing the responsibility statement, the framework used, the effectiveness assessment as at fiscal year end with any material weaknesses disclosed, and confirmation of the external auditor’s attestation.",
+            "requirement_ref": "MR.3",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "fiscal_year_end",
+                "offset_days": 90
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "insurer",
+                    "pension_operator",
+                    "public_limited_company",
+                    "government_licensee",
+                    "concessioned_company"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "FRC Guidance on Management Report on ICFR (2024)",
+            "effective_from": "2024-08-01"
+        }
+    ],
+    "controls": [
+        {
+            "control_ref": "TPL-FRC-ICFR-001",
+            "title": "Top-down ICFR scoping from significant accounts to key controls",
+            "category": "Reconciliation",
+            "type": "Preventive",
+            "nature": "Manual",
+            "frequency": "Annual",
+            "coso_component": "Risk Assessment",
+            "description": "Scoping runs from entity-level controls to significant accounts and disclosures, then to processes and key controls addressing identified financial-reporting risks.",
+            "objective": "Ensure the ICFR assessment covers the risks that matter and no more."
+        },
+        {
+            "control_ref": "TPL-FRC-ICFR-002",
+            "title": "Three-tier deficiency evaluation and escalation",
+            "category": "Reconciliation",
+            "type": "Detective",
+            "nature": "Manual",
+            "frequency": "Quarterly",
+            "coso_component": "Monitoring Activities",
+            "description": "Every identified deficiency is classified as a control deficiency, a significant deficiency or a material weakness, with significant deficiencies reported to the audit committee and the external auditor.",
+            "objective": "Ensure deficiencies are evaluated consistently and escalated as the guidance requires."
+        }
+    ],
+    "mappings": []
+}

@@ -1,0 +1,285 @@
+{
+    "code": "CROSS-MAP",
+    "name": "Cross-framework mapping set",
+    "version": "1.0.0",
+    "jurisdiction": "INTL",
+    "issuing_body": "Atheris Control",
+    "effective_from": null,
+    "source_url": null,
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "The minimum viable \"test once, satisfy many\" mapping set. This pack carries no framework of its own: it only draws edges between requirements installed by other packs, and installs last so both ends exist. A mapping whose far side is not installed is skipped silently — install the missing pack and re-run. Every edge here is an assertion about equivalence and should be reviewed by a person before coverage is claimed on the strength of it.",
+    "mappings": [
+        {
+            "from_framework": "COSO-IC-2013",
+            "from_ref": "P11",
+            "to_framework": "ISO-27001-2022",
+            "to_ref": "A.8",
+            "relationship": "partial",
+            "coverage_percentage": 70,
+            "rationale": "General controls over technology are largely delivered by the Annex A technological controls."
+        },
+        {
+            "from_framework": "COSO-IC-2013",
+            "from_ref": "P11",
+            "to_framework": "NIST-CSF-2.0",
+            "to_ref": "PR",
+            "relationship": "partial",
+            "coverage_percentage": 70,
+            "rationale": "The PROTECT function delivers the technology general controls COSO principle 11 calls for."
+        },
+        {
+            "from_framework": "COSO-IC-2013",
+            "from_ref": "P11",
+            "to_framework": "COBIT-2019",
+            "to_ref": "DSS05",
+            "relationship": "partial",
+            "coverage_percentage": 60,
+            "rationale": "COBIT DSS05 Managed Security Services operationalises technology general controls."
+        },
+        {
+            "from_framework": "ISO-27001-2022",
+            "from_ref": "A.8",
+            "to_framework": "NIST-CSF-2.0",
+            "to_ref": "PR",
+            "relationship": "partial",
+            "coverage_percentage": 75,
+            "rationale": "Both cover the protective technology control set."
+        },
+        {
+            "from_framework": "ISO-27001-2022",
+            "from_ref": "A.8",
+            "to_framework": "PCI-DSS-4.0.1",
+            "to_ref": "G1",
+            "relationship": "partial",
+            "coverage_percentage": 50,
+            "rationale": "Network and system security controls overlap with PCI DSS goal 1 for switches and payment terminal service providers."
+        },
+        {
+            "from_framework": "COSO-IC-2013",
+            "from_ref": "P10",
+            "to_framework": "CBN-RBCF-2022",
+            "to_ref": "P2",
+            "relationship": "supports",
+            "coverage_percentage": 60,
+            "rationale": "The CBN cybersecurity risk management system is a domain-specific instance of selecting and developing control activities."
+        },
+        {
+            "from_framework": "COSO-IC-2013",
+            "from_ref": "P12",
+            "to_framework": "CBN-RBCF-2022",
+            "to_ref": "P1",
+            "relationship": "supports",
+            "coverage_percentage": 60,
+            "rationale": "Deployment through policies and procedures maps to the framework’s governance and oversight part."
+        },
+        {
+            "from_framework": "COSO-IC-2013",
+            "from_ref": "P10",
+            "to_framework": "FRC-NCCG-2018",
+            "to_ref": "P17",
+            "relationship": "supports",
+            "coverage_percentage": 60,
+            "rationale": "NCCG principle 17 (risk management) relies on the selection and development of control activities."
+        },
+        {
+            "from_framework": "COSO-IC-2013",
+            "from_ref": "P12",
+            "to_framework": "FRC-NCCG-2018",
+            "to_ref": "P17",
+            "relationship": "supports",
+            "coverage_percentage": 50,
+            "rationale": "Risk management is deployed through policies and procedures."
+        },
+        {
+            "from_framework": "ISO-27001-2022",
+            "from_ref": "A.5.7",
+            "to_framework": "NIST-CSF-2.0",
+            "to_ref": "ID.RA",
+            "relationship": "partial",
+            "coverage_percentage": 60,
+            "rationale": "Threat intelligence feeds the risk assessment category."
+        },
+        {
+            "from_framework": "ISO-27001-2022",
+            "from_ref": "A.5.7",
+            "to_framework": "NIST-CSF-2.0",
+            "to_ref": "GV.OC",
+            "relationship": "informs",
+            "coverage_percentage": 40,
+            "rationale": "Threat intelligence informs the organisational context under GOVERN."
+        },
+        {
+            "from_framework": "CBN-RBCF-2022",
+            "from_ref": "P5",
+            "to_framework": "ISO-27001-2022",
+            "to_ref": "A.5.7",
+            "relationship": "equivalent",
+            "coverage_percentage": 90,
+            "rationale": "Both require an operating cyber-threat intelligence capability."
+        },
+        {
+            "from_framework": "NDPA-GAID-2025",
+            "from_ref": "DPIA",
+            "to_framework": "ISO-27001-2022",
+            "to_ref": "A.5.34",
+            "relationship": "partial",
+            "coverage_percentage": 60,
+            "rationale": "Privacy and protection of personally identifiable information underpins the DPIA obligation in Article 28."
+        },
+        {
+            "from_framework": "NDPA-GAID-2025",
+            "from_ref": "DPIA",
+            "to_framework": "ZA-POPIA",
+            "to_ref": "C1",
+            "relationship": "supports",
+            "coverage_percentage": 40,
+            "rationale": "POPIA’s accountability condition carries the equivalent assessment duty. The precise POPIA section reference is unconfirmed and must be verified."
+        },
+        {
+            "from_framework": "NDPA-GAID-2025",
+            "from_ref": "BRCH",
+            "to_framework": "KE-DPA-2019",
+            "to_ref": "BRCH",
+            "relationship": "equivalent",
+            "coverage_percentage": 100,
+            "rationale": "Both require notification to the supervisory authority within 72 hours."
+        },
+        {
+            "from_framework": "FRC-ICFR-2024",
+            "from_ref": "MR.2",
+            "to_framework": "COSO-IC-2013",
+            "to_ref": "CE",
+            "relationship": "supports",
+            "coverage_percentage": 100,
+            "rationale": "COSO 2013 is the recommended evaluation framework for the FRC ICFR report."
+        },
+        {
+            "from_framework": "FRC-ICFR-2024",
+            "from_ref": "MR.3",
+            "to_framework": "SOX",
+            "to_ref": "S404A",
+            "relationship": "equivalent",
+            "coverage_percentage": 100,
+            "rationale": "Both require an annual management assessment of ICFR effectiveness as at fiscal year end."
+        },
+        {
+            "from_framework": "FRC-ICFR-2024",
+            "from_ref": "MR.4",
+            "to_framework": "SOX",
+            "to_ref": "S404B",
+            "relationship": "equivalent",
+            "coverage_percentage": 100,
+            "rationale": "Both require external auditor attestation on ICFR."
+        },
+        {
+            "from_framework": "FRC-ICFR-2024",
+            "from_ref": "TD",
+            "to_framework": "SOX",
+            "to_ref": "AS2201",
+            "relationship": "equivalent",
+            "coverage_percentage": 90,
+            "rationale": "Both prescribe a top-down, risk-based evaluation from entity-level controls downward."
+        },
+        {
+            "from_framework": "SOX",
+            "from_ref": "AS2201.1",
+            "to_framework": "COSO-IC-2013",
+            "to_ref": "CE",
+            "relationship": "supports",
+            "coverage_percentage": 80,
+            "rationale": "Entity-level controls in AS 2201 are the COSO control environment."
+        },
+        {
+            "from_framework": "SOX",
+            "from_ref": "AS2201.5",
+            "to_framework": "COSO-IC-2013",
+            "to_ref": "P17",
+            "relationship": "equivalent",
+            "coverage_percentage": 90,
+            "rationale": "Evaluating identified deficiencies is COSO principle 17."
+        },
+        {
+            "from_framework": "NDIC-DPAS",
+            "from_ref": "M-IC",
+            "to_framework": "CBN-CG-2023",
+            "to_ref": "IAD",
+            "relationship": "supports",
+            "coverage_percentage": 70,
+            "rationale": "The internal control management factor is driven by the strength of the internal audit function the CBN guidelines require."
+        },
+        {
+            "from_framework": "NDIC-DPAS",
+            "from_ref": "M-RM",
+            "to_framework": "CBN-CG-2023",
+            "to_ref": "RSK",
+            "relationship": "supports",
+            "coverage_percentage": 70,
+            "rationale": "The risk management management factor is driven by the ERM framework the CBN guidelines require."
+        },
+        {
+            "from_framework": "NDIC-DPAS",
+            "from_ref": "M-IC",
+            "to_framework": "COSO-IC-2013",
+            "to_ref": "MA",
+            "relationship": "supports",
+            "coverage_percentage": 60,
+            "rationale": "Monitoring activities evidence the internal control quality the premium assessment rewards."
+        },
+        {
+            "from_framework": "CBN-RBCF-2022",
+            "from_ref": "P1",
+            "to_framework": "ISO-27001-2022",
+            "to_ref": "CL.5",
+            "relationship": "partial",
+            "coverage_percentage": 70,
+            "rationale": "Governance and oversight maps to the leadership clause of the management system."
+        },
+        {
+            "from_framework": "CBN-RBCF-2022",
+            "from_ref": "P2",
+            "to_framework": "ISO-27001-2022",
+            "to_ref": "CL.6",
+            "relationship": "partial",
+            "coverage_percentage": 70,
+            "rationale": "The cyber risk management system maps to the planning clause."
+        },
+        {
+            "from_framework": "CBN-RBCF-2022",
+            "from_ref": "P2",
+            "to_framework": "NIST-CSF-2.0",
+            "to_ref": "ID.RA",
+            "relationship": "partial",
+            "coverage_percentage": 70,
+            "rationale": "Periodic cyber risk assessment maps to the risk assessment category."
+        },
+        {
+            "from_framework": "CBN-RBCF-2022",
+            "from_ref": "P4",
+            "to_framework": "NIST-CSF-2.0",
+            "to_ref": "RC",
+            "relationship": "partial",
+            "coverage_percentage": 60,
+            "rationale": "Operational resilience maps to the RECOVER function."
+        },
+        {
+            "from_framework": "CBN-RBCF-2022",
+            "from_ref": "P6",
+            "to_framework": "NIST-CSF-2.0",
+            "to_ref": "DE.CM",
+            "relationship": "partial",
+            "coverage_percentage": 60,
+            "rationale": "Metrics, monitoring and reporting map to continuous monitoring."
+        },
+        {
+            "from_framework": "CBN-RBCF-2022",
+            "from_ref": "P3",
+            "to_framework": "PCI-DSS-4.0.1",
+            "to_ref": "G5",
+            "relationship": "supports",
+            "coverage_percentage": 40,
+            "rationale": "Resilience assessment overlaps with the PCI requirement to test networks regularly, relevant to switches and payment terminal service providers."
+        }
+    ]
+}

@@ -5,16 +5,24 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\MfaController;
 use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\CompensatingControlController;
+use App\Http\Controllers\ContentPackController;
 use App\Http\Controllers\ControlController;
+use App\Http\Controllers\ControlRequirementMapController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EscalationMatrixController;
 use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\ExceptionController;
 use App\Http\Controllers\FeatureFlagController;
+use App\Http\Controllers\FrameworkController;
+use App\Http\Controllers\FrameworkRequirementController;
 use App\Http\Controllers\IntegrationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
+use App\Http\Controllers\ObligationAssignmentController;
+use App\Http\Controllers\ObligationController;
+use App\Http\Controllers\ObligationInstanceController;
 use App\Http\Controllers\PwaController;
+use App\Http\Controllers\RegulatoryChangeController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RiskController;
 use App\Http\Controllers\SavedViewController;
@@ -151,6 +159,73 @@ Route::middleware('auth')->group(function () {
         Route::get('board-pack', [ReportController::class, 'boardPack'])->name('reports.board-pack');
     });
 
+    // ── Frameworks & requirement mapping (Phase 8) ───────────────────
+    Route::middleware('feature:frameworks')->group(function () {
+        // Static segments first so they are not captured as {framework}.
+        Route::get('frameworks/coverage-summary', [FrameworkController::class, 'coverageSummary'])
+            ->name('frameworks.coverage-summary');
+        Route::post('frameworks/import', [FrameworkController::class, 'import'])->name('frameworks.import');
+        Route::get('frameworks/{framework}/coverage', [FrameworkController::class, 'coverage'])->name('frameworks.coverage');
+        Route::get('frameworks/{framework}/export', [FrameworkController::class, 'export'])->name('frameworks.export');
+        Route::resource('frameworks', FrameworkController::class)->except(['edit']);
+
+        Route::post('frameworks/{framework}/requirements/reorder', [FrameworkRequirementController::class, 'reorder'])
+            ->name('frameworks.requirements.reorder');
+        Route::post('frameworks/{framework}/requirements', [FrameworkRequirementController::class, 'store'])
+            ->name('frameworks.requirements.store');
+        Route::put('frameworks/{framework}/requirements/{requirement}', [FrameworkRequirementController::class, 'update'])
+            ->name('frameworks.requirements.update');
+        Route::delete('frameworks/{framework}/requirements/{requirement}', [FrameworkRequirementController::class, 'destroy'])
+            ->name('frameworks.requirements.destroy');
+        Route::get('frameworks/{framework}/requirements/{requirement}/suggestions', [FrameworkRequirementController::class, 'suggestions'])
+            ->name('frameworks.requirements.suggestions');
+
+        Route::get('control-mappings', [ControlRequirementMapController::class, 'index'])->name('control-mappings.index');
+        Route::post('control-mappings', [ControlRequirementMapController::class, 'store'])->name('control-mappings.store');
+        Route::post('control-mappings/{mapping}/approve', [ControlRequirementMapController::class, 'approve'])->name('control-mappings.approve');
+        Route::post('control-mappings/{mapping}/reject', [ControlRequirementMapController::class, 'reject'])->name('control-mappings.reject');
+        Route::delete('control-mappings/{mapping}', [ControlRequirementMapController::class, 'destroy'])->name('control-mappings.destroy');
+        Route::post('requirements/{requirement}/bulk-map', [ControlRequirementMapController::class, 'bulkStore'])->name('control-mappings.bulk');
+        Route::post('framework-mappings/{framework_mapping}/verify', [ControlRequirementMapController::class, 'verifyLink'])
+            ->name('framework-mappings.verify');
+        Route::get('controls/{control}/frameworks', [ControlRequirementMapController::class, 'crossFramework'])
+            ->name('controls.frameworks');
+    });
+
+    // ── Regulatory obligations & compliance calendar (Phase 8) ───────
+    Route::middleware('feature:obligations')->group(function () {
+        Route::get('obligations/calendar', [ObligationController::class, 'calendar'])->name('obligations.calendar');
+        Route::get('obligations/instances', [ObligationInstanceController::class, 'index'])->name('obligations.instances.index');
+        Route::get('obligations/instances/{instance}', [ObligationInstanceController::class, 'show'])->name('obligations.instances.show');
+        Route::post('obligations/instances/{instance}/start', [ObligationInstanceController::class, 'start'])->name('obligations.instances.start');
+        Route::post('obligations/instances/{instance}/submit', [ObligationInstanceController::class, 'submit'])->name('obligations.instances.submit');
+        Route::post('obligations/instances/{instance}/review', [ObligationInstanceController::class, 'review'])->name('obligations.instances.review');
+        Route::post('obligations/instances/{instance}/waive', [ObligationInstanceController::class, 'waive'])->name('obligations.instances.waive');
+
+        Route::get('entities/{entity}/obligations', [ObligationController::class, 'applicability'])->name('entities.obligations');
+        Route::post('entities/{entity}/obligations', [ObligationAssignmentController::class, 'bulkStore'])->name('entities.obligations.bulk');
+
+        Route::resource('obligations', ObligationController::class)->except(['destroy']);
+
+        Route::post('obligation-assignments', [ObligationAssignmentController::class, 'store'])->name('obligation-assignments.store');
+        Route::put('obligation-assignments/{assignment}', [ObligationAssignmentController::class, 'update'])->name('obligation-assignments.update');
+        Route::post('obligation-assignments/{assignment}/non-applicable', [ObligationAssignmentController::class, 'declareNonApplicable'])
+            ->name('obligation-assignments.non-applicable');
+        Route::post('obligation-assignments/{assignment}/approve-non-applicability', [ObligationAssignmentController::class, 'approveNonApplicability'])
+            ->name('obligation-assignments.approve-non-applicability');
+    });
+
+    // ── Regulatory change feed (Phase 8) ─────────────────────────────
+    Route::middleware('feature:regulatory-changes')->group(function () {
+        Route::get('regulatory-changes', [RegulatoryChangeController::class, 'index'])->name('regulatory-changes.index');
+        Route::post('regulatory-changes', [RegulatoryChangeController::class, 'store'])->name('regulatory-changes.store');
+        Route::post('regulatory-changes/{change}/review', [RegulatoryChangeController::class, 'startReview'])->name('regulatory-changes.review');
+        Route::post('regulatory-changes/{change}/assess', [RegulatoryChangeController::class, 'assess'])->name('regulatory-changes.assess');
+        Route::post('regulatory-changes/{change}/action', [RegulatoryChangeController::class, 'action'])->name('regulatory-changes.action');
+        Route::post('regulatory-changes/{change}/not-applicable', [RegulatoryChangeController::class, 'notApplicable'])
+            ->name('regulatory-changes.not-applicable');
+    });
+
     // ── Evidence (FR-9) ──────────────────────────────────────────────
     Route::post('evidence', [EvidenceController::class, 'store'])->name('evidence.store');
     Route::get('evidence/{evidence}/download', [EvidenceController::class, 'download'])->name('evidence.download');
@@ -216,6 +291,17 @@ Route::middleware('auth')->group(function () {
             Route::get('audit-log', [AuditLogController::class, 'index'])->name('admin.audit-log');
             Route::get('audit-log/export', [AuditLogController::class, 'export'])
                 ->middleware('permission:export audit log')->name('admin.audit-log.export');
+        });
+
+        // Regulatory content packs (Phase 8) — installation is a platform
+        // operation, gated on its own permission inside the admin area.
+        Route::middleware('feature:content-packs')->group(function () {
+            Route::get('content-packs', [ContentPackController::class, 'index'])->name('admin.content-packs');
+
+            Route::middleware('permission:install content-packs')->group(function () {
+                Route::post('content-packs/preview', [ContentPackController::class, 'preview'])->name('admin.content-packs.preview');
+                Route::post('content-packs/install', [ContentPackController::class, 'install'])->name('admin.content-packs.install');
+            });
         });
 
         Route::get('integrations', [IntegrationController::class, 'index'])->name('admin.integrations');

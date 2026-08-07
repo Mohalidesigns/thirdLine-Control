@@ -1,0 +1,208 @@
+{
+    "code": "NDIC-DPAS",
+    "name": "NDIC Differential Premium Assessment System",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "Nigeria Deposit Insurance Corporation",
+    "effective_from": "2020-01-01",
+    "source_url": "https://www.ndic.gov.ng",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack. The management add-ons are the software-addressable part of the assessment: poor internal controls +0.02%, late return submission +0.01%, financial misreporting +0.03%, weak risk management +0.02%, non-compliance with examiners' recommendations +0.02%, within an overall add-on cap of 0.30%. Rates are stored on the requirements as guidance, not as penalties, because they adjust a premium rather than fine an entity. Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack ships unverified: its records are usable internally but excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "NDIC",
+        "name": "Nigeria Deposit Insurance Corporation",
+        "jurisdiction": "NG",
+        "sector": [
+            "banking"
+        ],
+        "website": "https://www.ndic.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "NDIC-DPAS",
+        "name": "NDIC Differential Premium Assessment System",
+        "issuing_body": "Nigeria Deposit Insurance Corporation",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "financial",
+        "effective_from": "2020-01-01",
+        "is_certifiable": false,
+        "source_url": "https://www.ndic.gov.ng",
+        "verification_status": "unverified",
+        "description": "Deposit insurance premium assessed as a base rate plus risk add-ons capped at 0.30%, combining quantitative measures with management factors that internal control performance directly drives."
+    },
+    "requirements": [
+        {
+            "ref_code": "Q-CAP",
+            "title": "Capital adequacy factor",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified",
+            "guidance": "Add-on range 0.01%–0.05%."
+        },
+        {
+            "ref_code": "Q-AQ",
+            "title": "Asset quality factor",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified",
+            "guidance": "Add-on range 0.02%–0.04%."
+        },
+        {
+            "ref_code": "Q-LIQ",
+            "title": "Liquidity factor",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified",
+            "guidance": "Add-on range 0.02%–0.04%."
+        },
+        {
+            "ref_code": "M-IC",
+            "title": "Management factor — internal controls",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified",
+            "guidance": "Poor internal controls attract a +0.02% add-on."
+        },
+        {
+            "ref_code": "M-RET",
+            "title": "Management factor — timeliness of returns",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Monthly",
+            "verification_status": "unverified",
+            "guidance": "Late return submission attracts a +0.01% add-on."
+        },
+        {
+            "ref_code": "M-REP",
+            "title": "Management factor — financial reporting accuracy",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified",
+            "guidance": "Financial misreporting attracts a +0.03% add-on."
+        },
+        {
+            "ref_code": "M-RM",
+            "title": "Management factor — risk management",
+            "level": 1,
+            "sort_order": 7,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified",
+            "guidance": "Weak risk management attracts a +0.02% add-on."
+        },
+        {
+            "ref_code": "M-EXAM",
+            "title": "Management factor — examiners’ recommendations",
+            "level": 1,
+            "sort_order": 8,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified",
+            "guidance": "Non-compliance with examiners’ recommendations attracts a +0.02% add-on."
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "NDIC-DPAS-RETURNS",
+            "title": "Deposit insurance premium returns to the NDIC",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "jurisdictions": null,
+            "description": "Returns supporting the differential premium assessment are filed with the NDIC. Late submission attracts a +0.01% premium add-on rather than a fine.",
+            "requirement_ref": "M-RET",
+            "due_rule": {
+                "type": "fixed_date",
+                "month": 3,
+                "day": 31,
+                "roll": "previous_business_day"
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "microfinance_bank",
+                    "primary_mortgage_bank",
+                    "payment_service_bank"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "NDIC Differential Premium Assessment System",
+            "effective_from": "2020-01-01"
+        },
+        {
+            "obligation_ref": "NDIC-EXAM-RECOMMENDATIONS",
+            "title": "Implementation of examiners’ recommendations",
+            "obligation_type": "operational",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "jurisdictions": null,
+            "description": "Recommendations from the examination report are implemented and evidenced. Non-compliance attracts a +0.02% premium add-on.",
+            "requirement_ref": "M-EXAM",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "examination_report_received",
+                "offset_days": 90
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "microfinance_bank",
+                    "primary_mortgage_bank",
+                    "payment_service_bank"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "NDIC Differential Premium Assessment System",
+            "effective_from": "2020-01-01"
+        }
+    ],
+    "controls": [
+        {
+            "control_ref": "TPL-NDIC-001",
+            "title": "Regulatory return submission timeliness monitoring",
+            "category": "Cut-off",
+            "type": "Detective",
+            "nature": "Manual",
+            "frequency": "Monthly",
+            "description": "Every regulatory return is tracked against its due date and late submissions are escalated, because lateness feeds directly into the deposit insurance premium.",
+            "objective": "Avoid the late-return premium add-on."
+        }
+    ],
+    "mappings": []
+}

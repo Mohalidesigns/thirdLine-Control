@@ -1,0 +1,96 @@
+{
+    "code": "KE-CMA-2015",
+    "name": "CMA Code of Corporate Governance Practices for Issuers 2015",
+    "version": "1.0.0",
+    "jurisdiction": "KE",
+    "issuing_body": "Capital Markets Authority (Kenya)",
+    "effective_from": "2016-03-01",
+    "source_url": "https://www.cma.or.ke",
+    "verification_status": "draft",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "This pack ships as DRAFT. Nothing in it has been verified against the regulator’s primary document, and its records are excluded from generated regulatory submissions. Verify before selling or relying on this content in-market (rule R10).",
+    "regulator": {
+        "code": "KE-CMA",
+        "name": "Capital Markets Authority (Kenya)",
+        "jurisdiction": "KE",
+        "sector": [
+            "capital_markets"
+        ],
+        "website": "https://www.cma.or.ke",
+        "is_active": true
+    },
+    "framework": {
+        "code": "KE-CMA-2015",
+        "name": "CMA Code of Corporate Governance Practices for Issuers 2015",
+        "issuing_body": "Capital Markets Authority (Kenya)",
+        "jurisdiction": "KE",
+        "version": "1.0.0",
+        "category": "governance",
+        "effective_from": "2016-03-01",
+        "is_certifiable": false,
+        "source_url": "https://www.cma.or.ke",
+        "verification_status": "draft",
+        "description": "Apply-or-explain governance code for Kenyan issuers, notable for requiring a biennial independent governance audit by an accredited governance auditor."
+    },
+    "requirements": [
+        {
+            "ref_code": "GA",
+            "title": "Biennial independent governance audit",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft",
+            "guidance": "Carried out by an accredited governance auditor every two years — a distinctive, software-addressable requirement."
+        },
+        {
+            "ref_code": "BRD",
+            "title": "Board composition and effectiveness",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "DIS",
+            "title": "Disclosure and transparency",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "KE-CMA-GOVERNANCE-AUDIT",
+            "title": "Independent governance audit",
+            "obligation_type": "assessment",
+            "trigger_type": "calendar",
+            "frequency": "biennial",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "requirement_ref": "GA",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "fiscal_year_end",
+                "offset_days": 120
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "KE"
+                ]
+            },
+            "legal_reference": "CMA Code of Corporate Governance Practices for Issuers 2015",
+            "effective_from": "2016-03-01"
+        }
+    ],
+    "controls": [],
+    "mappings": []
+}

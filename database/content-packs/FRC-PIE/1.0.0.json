@@ -1,0 +1,188 @@
+{
+    "code": "FRC-PIE",
+    "name": "FRC Public Interest Entity definition and filing calendar",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "Financial Reporting Council of Nigeria",
+    "effective_from": "2019-01-01",
+    "source_url": "https://www.financialreportingcouncil.gov.ng",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack. PIE definition and the associated filing calendar. The ₦30bn turnover threshold and the ₦1bn public-works contract threshold are stored as guidance on the requirements. Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack ships unverified: records are usable internally but excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "FRC-NG",
+        "name": "Financial Reporting Council of Nigeria",
+        "jurisdiction": "NG",
+        "sector": [
+            "all"
+        ],
+        "website": "https://www.financialreportingcouncil.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "FRC-PIE",
+        "name": "FRC Public Interest Entity obligations",
+        "issuing_body": "Financial Reporting Council of Nigeria",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "financial",
+        "effective_from": "2019-01-01",
+        "is_certifiable": false,
+        "source_url": "https://www.financialreportingcouncil.gov.ng",
+        "verification_status": "unverified",
+        "description": "Who is a public interest entity, and what a PIE must file with the Financial Reporting Council and by when."
+    },
+    "requirements": [
+        {
+            "ref_code": "DEF",
+            "title": "Public interest entity definition",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": false,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "Governments and government organisations; listed companies; unlisted regulated entities (banks, insurance, pension operators); public limited companies; private holding companies with public or regulated subsidiaries; concessioned and privatised companies; government licensees; government contractors with public-works contracts of ₦1bn or more; and entities with annual turnover of ₦30bn or more."
+        },
+        {
+            "ref_code": "FIL.1",
+            "title": "Annual report and audited financial statements",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "FIL.2",
+            "title": "Qualified audit reports",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "FIL.3",
+            "title": "Copies of filings made with other regulators",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "FRC-PIE-AFS",
+            "title": "Annual report and audited financial statements filed with the FRC",
+            "obligation_type": "filing",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "The annual report and audited financial statements are filed with the FRC within 60 days of board approval.",
+            "requirement_ref": "FIL.1",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "board_approved_financial_statements",
+                "offset_days": 60
+            },
+            "applies_to": {
+                "entity_types": [
+                    "listed_company",
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "insurer",
+                    "pension_operator",
+                    "public_limited_company",
+                    "government_licensee",
+                    "concessioned_company"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "FRC filing requirements for public interest entities",
+            "effective_from": "2019-01-01"
+        },
+        {
+            "obligation_ref": "FRC-PIE-QUALIFIED",
+            "title": "Qualified audit report filed with the FRC",
+            "obligation_type": "filing",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "A qualified audit report is filed with the FRC within 30 days of the qualification.",
+            "requirement_ref": "FIL.2",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "audit_qualification_issued",
+                "offset_days": 30
+            },
+            "applies_to": {
+                "entity_types": [
+                    "listed_company",
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "insurer",
+                    "pension_operator",
+                    "public_limited_company",
+                    "government_licensee",
+                    "concessioned_company"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "FRC filing requirements for public interest entities",
+            "effective_from": "2019-01-01"
+        },
+        {
+            "obligation_ref": "FRC-PIE-OTHER-REGULATOR",
+            "title": "Copies of other-regulator filings sent to the FRC",
+            "obligation_type": "filing",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "Copies of filings made with other regulators are sent to the FRC within 30 days.",
+            "requirement_ref": "FIL.3",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "other_regulator_filing_made",
+                "offset_days": 30
+            },
+            "applies_to": {
+                "entity_types": [
+                    "listed_company",
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "insurer",
+                    "pension_operator",
+                    "public_limited_company",
+                    "government_licensee",
+                    "concessioned_company"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "FRC filing requirements for public interest entities",
+            "effective_from": "2019-01-01"
+        }
+    ],
+    "controls": [],
+    "mappings": []
+}

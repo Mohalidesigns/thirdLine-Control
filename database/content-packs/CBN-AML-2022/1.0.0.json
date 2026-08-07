@@ -1,0 +1,228 @@
+{
+    "code": "CBN-AML-2022",
+    "name": "CBN AML/CFT/CPF Regulations 2022 and TFS Guidelines 2022",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "Central Bank of Nigeria",
+    "effective_from": "2022-01-01",
+    "source_url": "https://www.cbn.gov.ng",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack, anchored on s.66 BOFIA 2020 and s.54 TPPA 2022. Section numbers, retention periods, CTR thresholds and training frequency are flagged unconfirmed in the research and are seeded as draft. The May 2025 exposure draft \"Baseline Standards for Automated AML Solutions\" signals a coming automation mandate and is not modelled. Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack ships unverified: its records are usable internally but excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "CBN",
+        "name": "Central Bank of Nigeria",
+        "jurisdiction": "NG",
+        "sector": [
+            "banking",
+            "payments",
+            "other_financial_institutions"
+        ],
+        "website": "https://www.cbn.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "CBN-AML-2022",
+        "name": "CBN AML/CFT/CPF Regulations 2022",
+        "issuing_body": "Central Bank of Nigeria",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "sector",
+        "effective_from": "2022-01-01",
+        "is_certifiable": false,
+        "source_url": "https://www.cbn.gov.ng",
+        "verification_status": "unverified",
+        "description": "Anti-money laundering, counter-terrorist financing and counter-proliferation financing obligations, with targeted financial sanctions guidelines."
+    },
+    "requirements": [
+        {
+            "ref_code": "CDD",
+            "title": "Customer due diligence and beneficial ownership",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "SCR",
+            "title": "Real-time screening of customers and transactions",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Daily",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "TFS",
+            "title": "Targeted financial sanctions and immediate freeze on designation",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Daily",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "RPT",
+            "title": "Suspicious and currency transaction reporting to the NFIU",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Daily",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "TRN",
+            "title": "AML/CFT/CPF training",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "RET",
+            "title": "Record retention",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "CBN-AML-STR",
+            "title": "Suspicious transaction report to the NFIU",
+            "obligation_type": "notification",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "jurisdictions": null,
+            "description": "A suspicious transaction is reported to the Nigerian Financial Intelligence Unit. The filing window must be confirmed against the regulations before this record is relied upon.",
+            "requirement_ref": "RPT",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "suspicion_formed",
+                "offset_hours": 24
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank",
+                    "microfinance_bank",
+                    "finance_company",
+                    "bureau_de_change",
+                    "primary_mortgage_bank",
+                    "development_finance_institution",
+                    "payment_service_provider",
+                    "switching_company",
+                    "mobile_money_operator",
+                    "payment_solution_service_provider",
+                    "payment_terminal_service_provider"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN AML/CFT/CPF Regulations 2022; s.66 BOFIA 2020",
+            "effective_from": "2022-01-01"
+        },
+        {
+            "obligation_ref": "CBN-AML-SANCTIONS-SCREEN",
+            "title": "Sanctions list screening and freeze readiness",
+            "obligation_type": "operational",
+            "trigger_type": "calendar",
+            "frequency": "daily",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "jurisdictions": null,
+            "description": "Customers, transactions and beneficial owners are screened against sanctions lists, with immediate freeze on designation.",
+            "requirement_ref": "TFS",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "period_end",
+                "offset_days": 0,
+                "roll": "none"
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank",
+                    "microfinance_bank",
+                    "finance_company",
+                    "bureau_de_change",
+                    "primary_mortgage_bank",
+                    "development_finance_institution",
+                    "payment_service_provider",
+                    "switching_company",
+                    "mobile_money_operator",
+                    "payment_solution_service_provider",
+                    "payment_terminal_service_provider"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN TFS Guidelines 2022; s.54 TPPA 2022",
+            "effective_from": "2022-01-01"
+        },
+        {
+            "obligation_ref": "CBN-AML-TRAINING",
+            "title": "Annual AML/CFT/CPF training programme",
+            "obligation_type": "training",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "jurisdictions": null,
+            "description": "Staff receive AML/CFT/CPF training. Frequency is unconfirmed in the research and is seeded as annual pending verification.",
+            "requirement_ref": "TRN",
+            "due_rule": {
+                "type": "fixed_date",
+                "month": 12,
+                "day": 31
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank",
+                    "microfinance_bank",
+                    "finance_company",
+                    "bureau_de_change",
+                    "primary_mortgage_bank",
+                    "development_finance_institution",
+                    "payment_service_provider",
+                    "switching_company",
+                    "mobile_money_operator",
+                    "payment_solution_service_provider",
+                    "payment_terminal_service_provider"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN AML/CFT/CPF Regulations 2022",
+            "effective_from": "2022-01-01"
+        }
+    ],
+    "controls": [],
+    "mappings": []
+}

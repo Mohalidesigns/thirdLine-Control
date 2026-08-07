@@ -1,0 +1,228 @@
+{
+    "code": "CBN-DATALOC-2026",
+    "name": "CBN Payment Data Localisation and Market Structure Circular",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "Central Bank of Nigeria",
+    "effective_from": "2026-06-15",
+    "source_url": "https://www.cbn.gov.ng",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack for circular PSS/DIR/PUB/CIR/001/004 of 15 June 2026. Complementary to the NITDA cloud computing policy of 17 February 2025 mandating local hosting of sensitive finance, health and government data. Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack ships unverified: its records are usable internally but excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "CBN",
+        "name": "Central Bank of Nigeria",
+        "jurisdiction": "NG",
+        "sector": [
+            "banking",
+            "payments",
+            "other_financial_institutions"
+        ],
+        "website": "https://www.cbn.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "CBN-DATALOC-2026",
+        "name": "CBN Payment Data Localisation and Market Structure Circular",
+        "issuing_body": "Central Bank of Nigeria",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "privacy",
+        "effective_from": "2026-06-15",
+        "is_certifiable": false,
+        "source_url": "https://www.cbn.gov.ng",
+        "verification_status": "unverified",
+        "description": "In-country storage and processing of Nigerian payment transaction data, market-structure concentration limits, ultimate beneficial owner disclosure and monthly market-share returns."
+    },
+    "requirements": [
+        {
+            "ref_code": "LOC",
+            "title": "In-country storage and processing of payment transaction data",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "All Nigerian payment transaction data is to be stored and processed within Nigeria by the compliance date."
+        },
+        {
+            "ref_code": "MKT",
+            "title": "Market structure concentration limits",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "No entity may hold more than 25% of card issuing and more than 15% of merchant acquiring."
+        },
+        {
+            "ref_code": "UBO",
+            "title": "Ultimate beneficial owner disclosure",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified"
+        },
+        {
+            "ref_code": "RET",
+            "title": "Monthly market-share returns",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Monthly",
+            "verification_status": "unverified"
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "CBN-DATALOC-INCOUNTRY",
+            "title": "Payment transaction data stored and processed in Nigeria",
+            "obligation_type": "operational",
+            "trigger_type": "calendar",
+            "frequency": "one_off",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "jurisdictions": null,
+            "description": "All Nigerian payment transaction data is stored and processed in-country by 1 January 2027.",
+            "requirement_ref": "LOC",
+            "due_rule": {
+                "type": "fixed_date",
+                "month": 1,
+                "day": 1
+            },
+            "effective_from": "2026-06-15",
+            "effective_to": "2027-01-01",
+            "applies_to": {
+                "entity_types": [
+                    "payment_service_provider",
+                    "switching_company",
+                    "mobile_money_operator",
+                    "payment_solution_service_provider",
+                    "payment_terminal_service_provider",
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN circular PSS/DIR/PUB/CIR/001/004 (15 June 2026)"
+        },
+        {
+            "obligation_ref": "CBN-DATALOC-MARKET-STRUCTURE",
+            "title": "Market-structure compliance with concentration limits",
+            "obligation_type": "operational",
+            "trigger_type": "calendar",
+            "frequency": "one_off",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "jurisdictions": null,
+            "description": "Concentration limits on card issuing and merchant acquiring are met by 31 December 2026.",
+            "requirement_ref": "MKT",
+            "due_rule": {
+                "type": "fixed_date",
+                "month": 12,
+                "day": 31
+            },
+            "effective_from": "2026-06-15",
+            "effective_to": "2026-12-31",
+            "applies_to": {
+                "entity_types": [
+                    "payment_service_provider",
+                    "switching_company",
+                    "mobile_money_operator",
+                    "payment_solution_service_provider",
+                    "payment_terminal_service_provider",
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN circular PSS/DIR/PUB/CIR/001/004 (15 June 2026)"
+        },
+        {
+            "obligation_ref": "CBN-DATALOC-UBO",
+            "title": "Ultimate beneficial owner disclosure to the CBN",
+            "obligation_type": "disclosure",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "jurisdictions": null,
+            "description": "Ultimate beneficial ownership is disclosed to the Central Bank of Nigeria.",
+            "requirement_ref": "UBO",
+            "due_rule": {
+                "type": "fixed_date",
+                "month": 1,
+                "day": 31
+            },
+            "effective_from": "2026-06-15",
+            "applies_to": {
+                "entity_types": [
+                    "payment_service_provider",
+                    "switching_company",
+                    "mobile_money_operator",
+                    "payment_solution_service_provider",
+                    "payment_terminal_service_provider",
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN circular PSS/DIR/PUB/CIR/001/004 (15 June 2026)"
+        },
+        {
+            "obligation_ref": "CBN-DATALOC-MARKET-RETURNS",
+            "title": "Monthly market-share return to the CBN",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "monthly",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "jurisdictions": null,
+            "description": "A market-share return is filed monthly.",
+            "requirement_ref": "RET",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "period_end",
+                "offset_days": 10
+            },
+            "effective_from": "2026-06-15",
+            "applies_to": {
+                "entity_types": [
+                    "payment_service_provider",
+                    "switching_company",
+                    "mobile_money_operator",
+                    "payment_solution_service_provider",
+                    "payment_terminal_service_provider"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN circular PSS/DIR/PUB/CIR/001/004 (15 June 2026)"
+        }
+    ],
+    "controls": [],
+    "mappings": []
+}

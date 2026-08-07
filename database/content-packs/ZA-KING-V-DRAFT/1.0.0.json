@@ -1,0 +1,91 @@
+{
+    "code": "ZA-KING-V-DRAFT",
+    "name": "King V Report (draft, April 2025)",
+    "version": "1.0.0",
+    "jurisdiction": "ZA",
+    "issuing_body": "Institute of Directors in South Africa",
+    "effective_from": "2025-04-01",
+    "source_url": "https://www.iodsa.co.za",
+    "verification_status": "draft",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Final publication date and the final principle count are UNCONFIRMED. Do not rely on this pack until King V is published. This pack ships as DRAFT. Nothing in it has been verified against the regulator’s primary document, and its records are excluded from generated regulatory submissions. Verify before selling or relying on this content in-market (rule R10).",
+    "regulator": {
+        "code": "IODSA",
+        "name": "Institute of Directors in South Africa",
+        "jurisdiction": "ZA",
+        "sector": [
+            "all"
+        ],
+        "website": "https://www.iodsa.co.za",
+        "is_active": true
+    },
+    "framework": {
+        "code": "ZA-KING-V-DRAFT",
+        "name": "King V Report (draft, April 2025)",
+        "issuing_body": "Institute of Directors in South Africa",
+        "jurisdiction": "ZA",
+        "version": "1.0.0",
+        "category": "governance",
+        "effective_from": "2025-04-01",
+        "is_certifiable": false,
+        "source_url": "https://www.iodsa.co.za",
+        "verification_status": "draft",
+        "description": "Draft successor to King IV: a plain-language rewrite with consolidated principles, a two-year cooling-off for former executives claiming independence, a nine-year tenure rule for independence, Risk and Social & Ethics Committees each requiring at least one independent non-executive director, and a substantially expanded technology chapter covering AI governance."
+    },
+    "requirements": [
+        {
+            "ref_code": "IND-COOL",
+            "title": "Two-year cooling-off for former executives claiming independence",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "IND-TEN",
+            "title": "Nine-year tenure rule for independence",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "CTE-RISK",
+            "title": "Risk Committee with at least one independent non-executive director",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "CTE-SE",
+            "title": "Social and Ethics Committee with at least one independent non-executive director",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "TECH-AI",
+            "title": "Technology chapter — artificial intelligence governance",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        }
+    ],
+    "obligations": [],
+    "controls": [],
+    "mappings": []
+}

@@ -39,6 +39,17 @@ const STATUS_CLASSES = {
     Strong: 'badge-low',
     Moderate: 'badge-medium',
     Weak: 'badge-critical',
+    // Obligation instances (Phase 8)
+    'Not Started': 'badge-status-draft',
+    Overdue: 'badge-status-overdue',
+    Accepted: 'badge-status-completed',
+    Rejected: 'badge-critical',
+    Waived: 'badge-status-draft',
+    // Regulatory changes (Phase 8)
+    New: 'badge-status-pending',
+    'Impact Assessed': 'badge-status-pending',
+    Actioned: 'badge-status-completed',
+    'Not Applicable': 'badge-status-draft',
 };
 
 export default function StatusBadge({ status, className = '' }) {

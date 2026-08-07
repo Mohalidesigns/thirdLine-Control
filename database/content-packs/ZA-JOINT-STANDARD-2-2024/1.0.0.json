@@ -1,0 +1,82 @@
+{
+    "code": "ZA-JOINT-STANDARD-2-2024",
+    "name": "Joint Standard 2 of 2024 — Cybersecurity and Cyber Resilience",
+    "version": "1.0.0",
+    "jurisdiction": "ZA",
+    "issuing_body": "Prudential Authority (South African Reserve Bank)",
+    "effective_from": "2025-06-01",
+    "source_url": "https://www.resbank.co.za",
+    "verification_status": "draft",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "This pack ships as DRAFT. Nothing in it has been verified against the regulator’s primary document, and its records are excluded from generated regulatory submissions. Verify before selling or relying on this content in-market (rule R10).",
+    "regulator": {
+        "code": "ZA-PA",
+        "name": "Prudential Authority (South African Reserve Bank)",
+        "jurisdiction": "ZA",
+        "sector": [
+            "banking",
+            "insurance"
+        ],
+        "website": "https://www.resbank.co.za",
+        "is_active": true
+    },
+    "framework": {
+        "code": "ZA-JOINT-STANDARD-2-2024",
+        "name": "Joint Standard 2 of 2024 — Cybersecurity and Cyber Resilience",
+        "issuing_body": "Prudential Authority (South African Reserve Bank)",
+        "jurisdiction": "ZA",
+        "version": "1.0.0",
+        "category": "security",
+        "effective_from": "2025-06-01",
+        "is_certifiable": false,
+        "source_url": "https://www.resbank.co.za",
+        "verification_status": "draft",
+        "description": "Cybersecurity and cyber resilience requirements for South African financial institutions, complementing Joint Standard 1 of 2023 on IT governance and risk."
+    },
+    "requirements": [
+        {
+            "ref_code": "GOV",
+            "title": "Cybersecurity governance",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "RISK",
+            "title": "Cyber risk management",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "RES",
+            "title": "Cyber resilience",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "INC",
+            "title": "Incident management and notification",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        }
+    ],
+    "obligations": [],
+    "controls": [],
+    "mappings": []
+}

@@ -1,0 +1,433 @@
+{
+    "code": "CBN-CG-2023",
+    "name": "CBN Corporate Governance Guidelines 2023",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "Central Bank of Nigeria",
+    "effective_from": "2023-08-01",
+    "source_url": "https://www.cbn.gov.ng",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack. Separate instruments apply to banks and to financial holding companies; this pack models the common requirements and flags the FHC variants in requirement guidance. The guidelines sit on top of FRC NCCG 2018. Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack therefore ships unverified: its records are usable internally but are excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "CBN",
+        "name": "Central Bank of Nigeria",
+        "jurisdiction": "NG",
+        "sector": [
+            "banking",
+            "payments",
+            "other_financial_institutions"
+        ],
+        "website": "https://www.cbn.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "CBN-CG-2023",
+        "name": "CBN Corporate Governance Guidelines 2023",
+        "issuing_body": "Central Bank of Nigeria",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "governance",
+        "effective_from": "2023-08-01",
+        "is_certifiable": false,
+        "source_url": "https://www.cbn.gov.ng",
+        "verification_status": "unverified",
+        "description": "Governance guidelines for banks and financial holding companies: board composition and tenure, mandatory committees, internal audit, risk management, compliance and the associated CBN filings."
+    },
+    "requirements": [
+        {
+            "ref_code": "BRD",
+            "title": "Board composition and structure",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "7–15 directors for commercial and non-interest banks, 7–13 for payment service banks; minimum 2–3 independent non-executive directors; single-gender boards are prohibited (S.1.6); at least two non-executive directors must have fintech, ICT or cybersecurity expertise."
+        },
+        {
+            "ref_code": "TEN",
+            "title": "Director and auditor tenure",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "MD/CEO and executive directors maximum 12 years; NEDs 12 years (3 × 4); INEDs 8 years (2 × 4); cumulative directorship cap 24 years; FHC MD/CEO 10 years. External auditor tenure maximum 10 years with a 10-year cooling-off; audit partner rotation every 5 years. Cooling-off executive→NED and NED→executive is 2 years."
+        },
+        {
+            "ref_code": "CTE",
+            "title": "Board committees",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "unverified",
+            "guidance": "Board Audit Committee, Board Nomination and Governance Committee, Board Risk Committee and Board Risk Management Committee are mandatory. BAC and BRMC cannot be combined. Chairs must be INEDs. Minimum quarterly meetings, two-thirds quorum with a non-executive majority. Membership reviewed every 3 years. Charters require CBN \"No Objection\" within 30 days of board approval."
+        },
+        {
+            "ref_code": "IAD",
+            "title": "Internal audit function",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "Internal audit cannot be outsourced. The head of internal audit reports to the Board Audit Committee at minimum rank of Assistant General Manager; appointment and removal require CBN approval. An independent external assessment is required annually."
+        },
+        {
+            "ref_code": "RSK",
+            "title": "Risk management framework",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "Board-approved enterprise risk management framework, reviewed every three years, with an effectiveness review annually. Quoted banks publish a risk management summary on their website."
+        },
+        {
+            "ref_code": "CMP",
+            "title": "Compliance function",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "A board-designated Executive Compliance Officer is required. The Chief Compliance Officer holds the rank of General Manager for national banks or Assistant General Manager otherwise; appointment and removal require CBN approval."
+        },
+        {
+            "ref_code": "FIL",
+            "title": "Regulatory filings",
+            "level": 1,
+            "sort_order": 7,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "Board evaluation report by 31 May; external auditor report by 31 March; annual independent assessment of internal audit by 31 May; investment policy reviewed every three years; non-interest banks file Shariah audit reports quarterly."
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "CBN-CG-2023-IA-ASSESS",
+            "title": "Independent external assessment of the internal audit function filed with CBN",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "An independent external assessment of the internal audit function is commissioned annually and filed with the Central Bank of Nigeria.",
+            "requirement_ref": "IAD",
+            "due_rule": {
+                "type": "fixed_date",
+                "month": 5,
+                "day": 31,
+                "roll": "previous_business_day"
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank",
+                    "financial_holding_company",
+                    "microfinance_bank"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Corporate Governance Guidelines 2023 — internal audit",
+            "effective_from": "2023-08-01"
+        },
+        {
+            "obligation_ref": "CBN-CG-2023-BOARD-EVAL",
+            "title": "Board evaluation report filed with CBN",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "The annual board evaluation report is filed with the Central Bank of Nigeria.",
+            "requirement_ref": "FIL",
+            "due_rule": {
+                "type": "fixed_date",
+                "month": 5,
+                "day": 31,
+                "roll": "previous_business_day"
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank",
+                    "financial_holding_company",
+                    "microfinance_bank"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Corporate Governance Guidelines 2023 — board evaluation",
+            "effective_from": "2023-08-01"
+        },
+        {
+            "obligation_ref": "CBN-CG-2023-EXT-AUDIT",
+            "title": "External auditor report filed with CBN",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "The external auditor’s report is filed with the Central Bank of Nigeria.",
+            "requirement_ref": "FIL",
+            "due_rule": {
+                "type": "fixed_date",
+                "month": 3,
+                "day": 31,
+                "roll": "previous_business_day"
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank",
+                    "financial_holding_company",
+                    "microfinance_bank"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Corporate Governance Guidelines 2023 — external audit",
+            "effective_from": "2023-08-01"
+        },
+        {
+            "obligation_ref": "CBN-CG-2023-ERM-REVIEW",
+            "title": "Enterprise risk management framework review",
+            "obligation_type": "assessment",
+            "trigger_type": "calendar",
+            "frequency": "triennial",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "The board-approved ERM framework is reviewed at least once every three years.",
+            "requirement_ref": "RSK",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "period_end",
+                "offset_days": 0
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank",
+                    "financial_holding_company",
+                    "microfinance_bank"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Corporate Governance Guidelines 2023 — risk management",
+            "effective_from": "2023-08-01"
+        },
+        {
+            "obligation_ref": "CBN-CG-2023-ERM-EFFECTIVENESS",
+            "title": "Annual ERM effectiveness review",
+            "obligation_type": "assessment",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "An effectiveness review of the enterprise risk management framework is carried out annually.",
+            "requirement_ref": "RSK",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "fiscal_year_end",
+                "offset_days": 90
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank",
+                    "financial_holding_company",
+                    "microfinance_bank"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Corporate Governance Guidelines 2023 — risk management",
+            "effective_from": "2023-08-01"
+        },
+        {
+            "obligation_ref": "CBN-CG-2023-CHARTER-NO-OBJECTION",
+            "title": "Board committee charter submitted for CBN \"No Objection\"",
+            "obligation_type": "approval",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "A board committee charter approved by the board is submitted to the CBN for \"No Objection\" within 30 days of board approval.",
+            "requirement_ref": "CTE",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "committee_charter_approved",
+                "offset_days": 30
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank",
+                    "financial_holding_company",
+                    "microfinance_bank"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Corporate Governance Guidelines 2023 — committees",
+            "effective_from": "2023-08-01"
+        },
+        {
+            "obligation_ref": "CBN-CG-2023-AUDIT-PARTNER-ROTATION",
+            "title": "Audit engagement partner rotation",
+            "obligation_type": "operational",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "The external audit engagement partner is rotated every five years.",
+            "requirement_ref": "TEN",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "audit_partner_appointed",
+                "offset_days": 1825
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank",
+                    "financial_holding_company",
+                    "microfinance_bank"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Corporate Governance Guidelines 2023 — auditor tenure",
+            "effective_from": "2023-08-01"
+        },
+        {
+            "obligation_ref": "CBN-CG-2023-RISK-SUMMARY",
+            "title": "Publication of the risk management summary on the website",
+            "obligation_type": "disclosure",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "Quoted banks publish a summary of their risk management approach on their website.",
+            "requirement_ref": "RSK",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "fiscal_year_end",
+                "offset_days": 120
+            },
+            "applies_to": {
+                "entity_types": [
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "payment_service_bank",
+                    "financial_holding_company",
+                    "microfinance_bank"
+                ],
+                "licence_categories": [
+                    "quoted"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Corporate Governance Guidelines 2023 — risk management",
+            "effective_from": "2023-08-01"
+        },
+        {
+            "obligation_ref": "CBN-CG-2023-SHARIAH-AUDIT",
+            "title": "Shariah audit report (non-interest banks)",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "quarterly",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "Non-interest banks file Shariah audit reports quarterly.",
+            "requirement_ref": "FIL",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "period_end",
+                "offset_days": 30
+            },
+            "applies_to": {
+                "entity_types": [
+                    "non_interest_bank"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CBN Corporate Governance Guidelines 2023 — non-interest banking",
+            "effective_from": "2023-08-01"
+        }
+    ],
+    "controls": [
+        {
+            "control_ref": "TPL-CBN-CG-001",
+            "title": "Board committee charter review and CBN No Objection tracking",
+            "category": "Authorisation",
+            "type": "Preventive",
+            "nature": "Manual",
+            "frequency": "Annual",
+            "coso_component": "Control Environment",
+            "description": "Every board committee charter approved by the board is submitted to the CBN for No Objection within 30 days, and the response is tracked to receipt.",
+            "objective": "Ensure committee charters carry regulatory No Objection before they are relied upon."
+        },
+        {
+            "control_ref": "TPL-CBN-CG-002",
+            "title": "Director tenure and independence monitoring",
+            "category": "Segregation of Duties",
+            "type": "Detective",
+            "nature": "Manual",
+            "frequency": "Quarterly",
+            "coso_component": "Control Environment",
+            "description": "A tenure clock is maintained for every director and for the external auditor, with alerts ahead of the guideline limits.",
+            "objective": "Prevent a director or auditor exceeding the tenure limits in the guidelines."
+        }
+    ],
+    "mappings": []
+}

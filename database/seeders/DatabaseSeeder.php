@@ -22,7 +22,13 @@ class DatabaseSeeder extends Seeder
             StarterControlLibrarySeeder::class,
             ReportTemplateSeeder::class,
             RetentionPolicySeeder::class,
+            // Phase 8: holidays before content packs (due dates depend on
+            // them), content packs before demo data (assignments need
+            // obligations to point at).
+            PublicHolidaySeeder::class,
+            RegulatoryContentSeeder::class,
             DemoDataSeeder::class,
+            ObligationDemoSeeder::class,
         ]);
     }
 }

@@ -1,0 +1,248 @@
+{
+    "code": "FRC-IFRS-S1-S2",
+    "name": "FRC IFRS S1/S2 Adoption Roadmap (amended February 2026)",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "Financial Reporting Council of Nigeria",
+    "effective_from": "2026-02-01",
+    "source_url": "https://www.financialreportingcouncil.gov.ng",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack for the amended sustainability reporting roadmap. Phase 3A makes IFRS S1/S2 mandatory for all PIEs for periods beginning 1 January 2028; Phase 3B covers SMEs (turnover ≤ ₦500m and total assets ≤ ₦200m) from 1 January 2030; Phase 4 covers the public sector under IPSASB SRS 1 from 1 January 2028. Transition reliefs include climate-first reporting, Scope 3 deferral and alternative GHG methods aligned to the GHG Protocol. Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack ships unverified: records are usable internally but excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "FRC-NG",
+        "name": "Financial Reporting Council of Nigeria",
+        "jurisdiction": "NG",
+        "sector": [
+            "all"
+        ],
+        "website": "https://www.financialreportingcouncil.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "FRC-IFRS-S1-S2",
+        "name": "FRC IFRS S1/S2 Adoption Roadmap",
+        "issuing_body": "Financial Reporting Council of Nigeria",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "sustainability",
+        "effective_from": "2026-02-01",
+        "is_certifiable": false,
+        "source_url": "https://www.financialreportingcouncil.gov.ng",
+        "verification_status": "unverified",
+        "description": "Phased adoption of IFRS S1 and S2 sustainability disclosure standards in Nigeria, with three pre-reporting filing stages before the first mandatory reporting period."
+    },
+    "requirements": [
+        {
+            "ref_code": "PH3A",
+            "title": "Phase 3A — mandatory adoption by all PIEs",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "Periods beginning on or after 1 January 2028."
+        },
+        {
+            "ref_code": "PH3B",
+            "title": "Phase 3B — SMEs",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "Turnover ≤ ₦500m and total assets ≤ ₦200m; periods beginning on or after 1 January 2030."
+        },
+        {
+            "ref_code": "PH4",
+            "title": "Phase 4 — public sector (IPSASB SRS 1)",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "Periods beginning on or after 1 January 2028."
+        },
+        {
+            "ref_code": "ST1",
+            "title": "Stage 1 pre-reporting filing",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "Three months before the financial year: board resolution, gap analysis and implementation plan."
+        },
+        {
+            "ref_code": "ST2",
+            "title": "Stage 2 pre-reporting filing",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "Within three months of the start of the year: sustainability disclosure policies, materiality assessment, governance structure evidence and board training proof."
+        },
+        {
+            "ref_code": "ST3",
+            "title": "Stage 3 pre-reporting filing",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "unverified",
+            "guidance": "Within six months of the start of the year: professional registration evidence, risk management framework, scenario analysis models, metrics and targets."
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "FRC-IFRS-STAGE1",
+            "title": "Stage 1 pre-reporting filing",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "Board resolution, gap analysis and implementation plan, filed three months before the start of the financial year.",
+            "requirement_ref": "ST1",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "fiscal_year_start",
+                "offset_months": -3
+            },
+            "applies_to": {
+                "entity_types": [
+                    "listed_company",
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "insurer",
+                    "pension_operator",
+                    "public_limited_company",
+                    "government_licensee",
+                    "concessioned_company"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "FRC IFRS S1/S2 adoption roadmap (amended February 2026)",
+            "effective_from": "2026-02-01"
+        },
+        {
+            "obligation_ref": "FRC-IFRS-STAGE2",
+            "title": "Stage 2 pre-reporting filing",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "Sustainability disclosure policies, materiality assessment, governance structure evidence and board training proof, filed within three months of the start of the year.",
+            "requirement_ref": "ST2",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "fiscal_year_start",
+                "offset_months": 3
+            },
+            "applies_to": {
+                "entity_types": [
+                    "listed_company",
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "insurer",
+                    "pension_operator",
+                    "public_limited_company",
+                    "government_licensee",
+                    "concessioned_company"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "FRC IFRS S1/S2 adoption roadmap (amended February 2026)",
+            "effective_from": "2026-02-01"
+        },
+        {
+            "obligation_ref": "FRC-IFRS-STAGE3",
+            "title": "Stage 3 pre-reporting filing",
+            "obligation_type": "filing",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "Professional registration evidence, risk management framework, scenario analysis models, and metrics and targets, filed within six months of the start of the year.",
+            "requirement_ref": "ST3",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "fiscal_year_start",
+                "offset_months": 6
+            },
+            "applies_to": {
+                "entity_types": [
+                    "listed_company",
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "insurer",
+                    "pension_operator",
+                    "public_limited_company",
+                    "government_licensee",
+                    "concessioned_company"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "FRC IFRS S1/S2 adoption roadmap (amended February 2026)",
+            "effective_from": "2026-02-01"
+        },
+        {
+            "obligation_ref": "FRC-IFRS-S1S2-REPORT",
+            "title": "IFRS S1/S2 sustainability disclosures in the annual report",
+            "obligation_type": "disclosure",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "Sustainability-related financial disclosures under IFRS S1 and climate disclosures under IFRS S2, published with the annual report for periods beginning on or after 1 January 2028.",
+            "requirement_ref": "PH3A",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "fiscal_year_end",
+                "offset_days": 120
+            },
+            "applies_to": {
+                "entity_types": [
+                    "listed_company",
+                    "commercial_bank",
+                    "merchant_bank",
+                    "non_interest_bank",
+                    "insurer",
+                    "pension_operator",
+                    "public_limited_company",
+                    "government_licensee",
+                    "concessioned_company"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "FRC IFRS S1/S2 adoption roadmap (amended February 2026), Phase 3A",
+            "effective_from": "2028-01-01"
+        }
+    ],
+    "controls": [],
+    "mappings": []
+}

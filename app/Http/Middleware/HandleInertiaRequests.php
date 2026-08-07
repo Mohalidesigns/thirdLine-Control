@@ -70,6 +70,8 @@ class HandleInertiaRequests extends Middleware
                 'warning' => fn () => $request->session()->get('warning'),
                 'info' => fn () => $request->session()->get('info'),
             ],
+            // Content-pack dry-run report (Phase 8) — flashed, not persisted.
+            'packPlan' => fn () => $request->session()->get('packPlan'),
             'ziggy' => fn () => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),

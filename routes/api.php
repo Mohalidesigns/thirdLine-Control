@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ComplianceApiController;
 use App\Http\Controllers\Api\IntegrationApiController;
 use Illuminate\Support\Facades\Route;
 
@@ -8,4 +9,8 @@ Route::prefix('v1')->middleware('integration.auth')->group(function () {
     Route::post('controls', [IntegrationApiController::class, 'upsertControl']);
     Route::get('test-results', [IntegrationApiController::class, 'testResults']);
     Route::get('exceptions', [IntegrationApiController::class, 'exceptions']);
+
+    // Phase 8 — read-only compliance surface
+    Route::get('frameworks/coverage', [ComplianceApiController::class, 'frameworkCoverage']);
+    Route::get('obligations/instances', [ComplianceApiController::class, 'obligationInstances']);
 });

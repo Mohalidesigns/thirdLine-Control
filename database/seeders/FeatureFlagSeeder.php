@@ -21,6 +21,11 @@ class FeatureFlagSeeder extends Seeder
         'saved-views' => 'Saved filter views on list pages',
         'pwa' => 'Installable PWA shell with offline fallback',
         'low-bandwidth-mode' => 'Reduced-data mode for slow connections',
+        // Phase 8 — framework & regulatory obligation engine
+        'frameworks' => 'Framework explorer, requirement trees, control mapping and coverage heatmaps',
+        'obligations' => 'Regulatory obligation register and compliance calendar',
+        'regulatory-changes' => 'Regulator publication feed and impact-assessment workflow',
+        'content-packs' => 'Versioned regulatory content pack installation',
     ];
 
     public function run(): void

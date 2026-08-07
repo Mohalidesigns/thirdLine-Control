@@ -1,0 +1,102 @@
+{
+    "code": "GH-BOG-CYBER-2026",
+    "name": "BoG Cyber and Information Security Directive 2026",
+    "version": "1.0.0",
+    "jurisdiction": "GH",
+    "issuing_body": "Bank of Ghana",
+    "effective_from": "2026-04-15",
+    "source_url": "https://www.bog.gov.gh",
+    "verification_status": "draft",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "This pack ships as DRAFT. Nothing in it has been verified against the regulator’s primary document, and its records are excluded from generated regulatory submissions. Verify before selling or relying on this content in-market (rule R10).",
+    "regulator": {
+        "code": "BOG",
+        "name": "Bank of Ghana",
+        "jurisdiction": "GH",
+        "sector": [
+            "banking",
+            "payments"
+        ],
+        "website": "https://www.bog.gov.gh",
+        "is_active": true
+    },
+    "framework": {
+        "code": "GH-BOG-CYBER-2026",
+        "name": "BoG Cyber and Information Security Directive 2026",
+        "issuing_body": "Bank of Ghana",
+        "jurisdiction": "GH",
+        "version": "1.0.0",
+        "category": "security",
+        "effective_from": "2026-04-15",
+        "is_certifiable": false,
+        "source_url": "https://www.bog.gov.gh",
+        "verification_status": "draft",
+        "description": "Replaces the October 2018 directive. Scope extends to commercial banks, microfinance institutions, fintechs, payment service providers and non-bank financial institutions. Board-level cyber accountability is not delegable to IT; AI and machine learning governance is explicit for fraud detection and credit scoring; core systems and customer data must remain in Ghana, with cloud restricted to non-sensitive operations; FICSOC oversight is expanded and compliance is proportional to size and risk."
+    },
+    "requirements": [
+        {
+            "ref_code": "BRD",
+            "title": "Board-level cyber accountability (not delegable to IT)",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "AIML",
+            "title": "AI and machine learning governance for fraud detection and credit scoring",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "LOC",
+            "title": "Data localisation — core systems and customer data remain in Ghana",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "CLOUD",
+            "title": "Cloud restricted to non-sensitive operations",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "FICSOC",
+            "title": "FICSOC oversight and reporting",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "PROP",
+            "title": "Proportional compliance by size and risk",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        }
+    ],
+    "obligations": [],
+    "controls": [],
+    "mappings": []
+}

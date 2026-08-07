@@ -1,0 +1,111 @@
+{
+    "code": "SEC-NG-ICFR",
+    "name": "SEC Nigeria ICFR Guidance (ISA ss.60–63)",
+    "version": "1.0.0",
+    "jurisdiction": "NG",
+    "issuing_body": "Securities and Exchange Commission, Nigeria",
+    "effective_from": "2024-01-01",
+    "source_url": "https://sec.gov.ng",
+    "verification_status": "unverified",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Initial pack. ICFR guidance circulated 8 November 2021 with compliance extended to 31 December 2023, addressed to sections 60–63 of the Investments and Securities Act. ISA 2025 was assented on 31 March 2025 and repealed ISA 2007: whether it renumbers ss.60–63, and whether the SEC has reissued this guidance, is UNCONFIRMED. The section references below are therefore seeded as draft. Every date, threshold and penalty in this pack is drawn from the phase-8 research brief and has NOT been confirmed against the regulator’s primary document. The pack ships unverified: records are usable internally but excluded from generated regulatory submissions until a person verifies them (rule R10).",
+    "regulator": {
+        "code": "SEC-NG",
+        "name": "Securities and Exchange Commission, Nigeria",
+        "jurisdiction": "NG",
+        "sector": [
+            "capital_markets"
+        ],
+        "website": "https://sec.gov.ng",
+        "is_active": true
+    },
+    "framework": {
+        "code": "SEC-NG-ICFR",
+        "name": "SEC Nigeria ICFR Guidance",
+        "issuing_body": "Securities and Exchange Commission, Nigeria",
+        "jurisdiction": "NG",
+        "version": "1.0.0",
+        "category": "financial",
+        "effective_from": "2024-01-01",
+        "is_certifiable": false,
+        "source_url": "https://sec.gov.ng",
+        "verification_status": "unverified",
+        "description": "Internal control over financial reporting for listed entities: CEO/CFO certification, an annual board report on ICFR effectiveness, identification of the control framework used, and external auditor attestation placed near the audit opinion."
+    },
+    "requirements": [
+        {
+            "ref_code": "CERT",
+            "title": "CEO and CFO personalised certifications",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft",
+            "source_reference": "ISA ss.60–63 (section numbers unconfirmed after ISA 2025)"
+        },
+        {
+            "ref_code": "BRD",
+            "title": "Annual board report on ICFR effectiveness",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "FWK",
+            "title": "Identification of the control framework used",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "ATT",
+            "title": "External auditor attestation placed near the audit opinion",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        }
+    ],
+    "obligations": [
+        {
+            "obligation_ref": "SEC-NG-ICFR-BOARD-REPORT",
+            "title": "Annual board report on ICFR effectiveness",
+            "obligation_type": "disclosure",
+            "trigger_type": "calendar",
+            "frequency": "annual",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "description": "The board reports annually on the effectiveness of internal control over financial reporting, identifying the framework used, with CEO and CFO certifications and external auditor attestation.",
+            "requirement_ref": "BRD",
+            "due_rule": {
+                "type": "relative",
+                "anchor": "fiscal_year_end",
+                "offset_days": 90
+            },
+            "applies_to": {
+                "entity_types": [
+                    "listed_company",
+                    "public_limited_company"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "SEC Nigeria ICFR guidance, ISA ss.60–63 (unconfirmed after ISA 2025)",
+            "effective_from": "2024-01-01"
+        }
+    ],
+    "controls": [],
+    "mappings": []
+}

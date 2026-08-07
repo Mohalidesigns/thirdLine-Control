@@ -1,0 +1,91 @@
+{
+    "code": "COSO-ICSR-2023",
+    "name": "COSO — Achieving Effective Internal Control over Sustainability Reporting (2023)",
+    "version": "1.0.0",
+    "jurisdiction": "INTL",
+    "issuing_body": "Committee of Sponsoring Organizations of the Treadway Commission",
+    "effective_from": "2023-03-01",
+    "source_url": "https://www.coso.org/",
+    "verification_status": "draft",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "Structural shell only, seeded as draft. Supplemental guidance applying the COSO 2013 components to sustainability reporting; needed for the FRC IFRS S1/S2 roadmap work but not yet researched in detail.",
+    "framework": {
+        "code": "COSO-ICSR-2023",
+        "name": "COSO — Achieving Effective Internal Control over Sustainability Reporting (2023)",
+        "issuing_body": "Committee of Sponsoring Organizations of the Treadway Commission",
+        "jurisdiction": "INTL",
+        "version": "1.0.0",
+        "category": "sustainability",
+        "effective_from": "2023-03-01",
+        "is_certifiable": false,
+        "source_url": "https://www.coso.org/",
+        "verification_status": "draft",
+        "description": "Supplemental guidance applying the COSO 2013 internal control framework to sustainability and ESG reporting."
+    },
+    "requirements": [
+        {
+            "ref_code": "ICSR.1",
+            "title": "Applying the five components of internal control to sustainability reporting",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "ICSR.2",
+            "title": "Scoping sustainability information and reporting boundaries",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "ICSR.3",
+            "title": "Identifying and assessing risks to reliable sustainability reporting",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "ICSR.4",
+            "title": "Designing controls over sustainability data collection and estimation",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "ICSR.5",
+            "title": "Controls over third-party and value-chain sustainability data",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "ICSR.6",
+            "title": "Monitoring and evaluating deficiencies in sustainability reporting controls",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "objective",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        }
+    ],
+    "obligations": [],
+    "controls": [],
+    "mappings": []
+}

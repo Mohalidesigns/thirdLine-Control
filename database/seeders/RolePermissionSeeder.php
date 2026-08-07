@@ -34,6 +34,12 @@ class RolePermissionSeeder extends Seeder
             'manage settings', 'manage users', 'manage escalations',
             // Platform foundations (Phase 7)
             'manage sso', 'view audit log', 'export audit log',
+            // Frameworks & regulatory obligations (Phase 8)
+            'view frameworks', 'manage frameworks', 'map controls', 'approve control-mappings',
+            'view obligations', 'manage obligations', 'assign obligations', 'submit obligations',
+            'approve obligation-submissions', 'waive obligations',
+            'view regulatory-changes', 'assess regulatory-changes', 'action regulatory-changes',
+            'install content-packs',
         ];
 
         foreach ($permissions as $permission) {
@@ -46,8 +52,11 @@ class RolePermissionSeeder extends Seeder
         // read-only executive, and the system administrator.
         Role::findOrCreate('System Administrator', 'web')->syncPermissions($all);
 
+        // Installing regulatory content packs changes platform-wide data, so
+        // it stays with the System Administrator alongside the other
+        // platform-level permissions.
         Role::findOrCreate('Control Function Head', 'web')->syncPermissions(array_diff($all, [
-            'manage users', 'manage settings', 'manage sso',
+            'manage users', 'manage settings', 'manage sso', 'install content-packs',
         ]));
 
         Role::findOrCreate('Control Officer', 'web')->syncPermissions([
@@ -58,22 +67,28 @@ class RolePermissionSeeder extends Seeder
             'view compensating-controls', 'create compensating-controls',
             'view spot-checks', 'conduct spot-checks',
             'view dashboards', 'export reports',
+            'view frameworks', 'map controls',
+            'view obligations', 'submit obligations',
+            'view regulatory-changes', 'assess regulatory-changes',
         ]);
 
         Role::findOrCreate('Control Owner', 'web')->syncPermissions([
             'view controls', 'view exceptions', 'remediate exceptions',
             'view compensating-controls', 'create compensating-controls',
             'view dashboards',
+            'view frameworks', 'view obligations', 'submit obligations',
         ]);
 
         Role::findOrCreate('Line Manager', 'web')->syncPermissions([
             'view controls', 'view risks', 'view tests', 'view exceptions',
             'view compensating-controls', 'view spot-checks', 'view dashboards',
+            'view frameworks', 'view obligations', 'view regulatory-changes',
         ]);
 
         Role::findOrCreate('Executive Viewer', 'web')->syncPermissions([
             'view controls', 'view risks', 'view tests', 'view exceptions',
             'view compensating-controls', 'view spot-checks', 'view dashboards', 'export reports',
+            'view frameworks', 'view obligations', 'view regulatory-changes',
         ]);
     }
 }
