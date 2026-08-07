@@ -1,0 +1,158 @@
+openapi: 3.1.0
+info:
+  title: SecondLine Integration API
+  description: >
+    The SecondLine (Atheris Control Solution) side of the ThirdLine / NexusRisk
+    integration contract (BRD §8). A control is defined once and consumed
+    everywhere: control definitions, test results with effectiveness ratings,
+    and open exceptions are published so internal audit can place reliance on
+    second-line testing. All endpoints are scoped to the tenant that owns the
+    presented API key. Writes require an Idempotency-Key header; repeated
+    delivery of the same key is acknowledged without reprocessing.
+  version: 1.0.0
+servers:
+  - url: https://{host}/api/v1
+    variables:
+      host:
+        default: secondline.client.example
+security:
+  - ApiKeyAuth: []
+paths:
+  /controls:
+    get:
+      summary: Pull control definitions changed since a timestamp
+      parameters:
+        - name: since
+          in: query
+          schema: { type: string, format: date-time }
+        - name: status
+          in: query
+          schema: { type: string, enum: [Draft, Pending Approval, Active, Under Review, Retired] }
+      responses:
+        '200':
+          description: Control definitions with sync envelope fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/ControlEnvelope' }
+    post:
+      summary: Upsert a control definition originated in ThirdLine
+      description: >
+        Enabled only when the tenant's sync direction is Pull or Bidirectional.
+        Matching is by external_ref within the authenticated tenant. Conflicts
+        resolve by the configured rule (default last_approved_at wins).
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ControlEnvelope' }
+      responses:
+        '201':
+          description: Created, updated, or skipped (local newer)
+        '200':
+          description: Duplicate delivery acknowledged (idempotent)
+        '409':
+          description: Tenant is configured SecondLine-master; inbound writes disabled
+  /test-results:
+    get:
+      summary: Pull published test results with effectiveness ratings
+      parameters:
+        - name: since
+          in: query
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Published ratings per control test
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/TestResult' }
+  /exceptions:
+    get:
+      summary: Pull exceptions for audit reliance
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, default: open }
+      responses:
+        '200':
+          description: Exceptions with severity, age, and status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/ExceptionSummary' }
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+  schemas:
+    Envelope:
+      type: object
+      required: [tenant_id, external_ref, source_system]
+      properties:
+        tenant_id: { type: integer }
+        external_ref: { type: string }
+        source_system: { type: string, enum: [SecondLine, ThirdLine, NexusRisk] }
+        version_no: { type: integer }
+        last_approved_at: { type: string, format: date-time, nullable: true }
+    ControlEnvelope:
+      allOf:
+        - { $ref: '#/components/schemas/Envelope' }
+        - type: object
+          required: [control]
+          properties:
+            control:
+              type: object
+              required: [title]
+              properties:
+                control_ref: { type: string }
+                title: { type: string }
+                description: { type: string, nullable: true }
+                objective: { type: string, nullable: true }
+                type: { type: string, enum: [Preventive, Detective, Corrective] }
+                nature: { type: string, enum: [Manual, Automated, Hybrid, IT-Dependent Manual] }
+                frequency: { type: string, enum: [Daily, Weekly, Monthly, Quarterly, Semi-annual, Annual, Event-driven] }
+                is_key_control: { type: boolean }
+                status: { type: string }
+    TestResult:
+      allOf:
+        - { $ref: '#/components/schemas/Envelope' }
+        - type: object
+          properties:
+            reference: { type: string }
+            period_label: { type: string }
+            design_effectiveness: { type: string, enum: [Effective, Partially Effective, Ineffective, Not Tested] }
+            operating_effectiveness: { type: string, enum: [Effective, Partially Effective, Ineffective, Not Tested] }
+            overall_rating: { type: string, enum: [Effective, Partially Effective, Ineffective, Not Tested] }
+            approved_at: { type: string, format: date-time }
+    ExceptionSummary:
+      allOf:
+        - { $ref: '#/components/schemas/Envelope' }
+        - type: object
+          properties:
+            reference: { type: string }
+            title: { type: string }
+            severity: { type: string, enum: [Critical, High, Medium, Low] }
+            status: { type: string }
+            age_days: { type: integer }
+            is_overdue: { type: boolean }
+            date_raised: { type: string, format: date }
