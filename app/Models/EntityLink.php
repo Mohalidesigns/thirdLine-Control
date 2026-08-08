@@ -36,6 +36,11 @@ class EntityLink extends Model
         'requirement' => FrameworkRequirement::class,
         'improvement' => ImprovementAction::class,
         'process' => BusinessProcess::class,
+        // Phase 11 — policy, incident, complaint and case nodes.
+        'policy' => Policy::class,
+        'incident' => Incident::class,
+        'complaint' => Complaint::class,
+        'case' => InvestigationCase::class,
     ];
 
     /** Human labels and the route each node type links to in the UI. */
@@ -50,6 +55,10 @@ class EntityLink extends Model
         'requirement' => 'Requirement',
         'improvement' => 'Improvement',
         'process' => 'Process',
+        'policy' => 'Policy',
+        'incident' => 'Incident',
+        'complaint' => 'Complaint',
+        'case' => 'Case',
     ];
 
     protected $fillable = [

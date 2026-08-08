@@ -21,3 +21,8 @@ Schedule::command('atheris:remind-document-reviews')->weeklyOn(1, '08:00');
 // same run as the escalation sweep at 07:00.
 Schedule::command('atheris:refresh-risk-posture')->dailyAt('03:00');
 Schedule::command('atheris:evaluate-metrics')->dailyAt('03:30');
+
+// Phase 11 — governance clocks. Hourly, not daily: a 24-hour complaint
+// acknowledgement window and a 72-hour breach notification cannot be
+// managed by a job that runs once a night.
+Schedule::command('atheris:refresh-governance-clocks')->hourly();

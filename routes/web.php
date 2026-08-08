@@ -5,7 +5,9 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\MfaController;
 use App\Http\Controllers\Auth\SsoController;
+use App\Http\Controllers\CaseController;
 use App\Http\Controllers\CompensatingControlController;
+use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\ContentPackController;
 use App\Http\Controllers\ControlController;
 use App\Http\Controllers\ControlDistributionController;
@@ -22,6 +24,7 @@ use App\Http\Controllers\FrameworkController;
 use App\Http\Controllers\FrameworkRequirementController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\ImprovementActionController;
+use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\IntegrationController;
 use App\Http\Controllers\LinkageController;
 use App\Http\Controllers\MetricController;
@@ -30,6 +33,8 @@ use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\ObligationAssignmentController;
 use App\Http\Controllers\ObligationController;
 use App\Http\Controllers\ObligationInstanceController;
+use App\Http\Controllers\PolicyController;
+use App\Http\Controllers\PolicyExceptionController;
 use App\Http\Controllers\PwaController;
 use App\Http\Controllers\RegulatoryChangeController;
 use App\Http\Controllers\ReportController;
@@ -46,6 +51,7 @@ use App\Http\Controllers\TenantSecurityController;
 use App\Http\Controllers\TestInstanceController;
 use App\Http\Controllers\TestScriptController;
 use App\Http\Controllers\VersionController;
+use App\Http\Controllers\WhistleblowingController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
@@ -53,6 +59,19 @@ Route::redirect('/', '/dashboard');
 // ── PWA shell (Phase 7.10) — public by design
 Route::get('manifest.webmanifest', [PwaController::class, 'manifest'])->name('pwa.manifest');
 Route::get('offline', [PwaController::class, 'offline'])->name('pwa.offline');
+
+// ── Whistleblowing intake (Phase 11.4) — public by design.
+// Requiring a login to report wrongdoing defeats the control, so the intake
+// and the reporter's one-way follow-up channel sit outside the auth group.
+// Throttled, because an open endpoint is an open endpoint.
+Route::middleware(['feature:whistleblowing', 'throttle:10,1'])->group(function () {
+    Route::get('speak-up', [WhistleblowingController::class, 'create'])->name('whistleblowing.create');
+    Route::post('speak-up', [WhistleblowingController::class, 'store'])->name('whistleblowing.store');
+    Route::get('speak-up/submitted', [WhistleblowingController::class, 'submitted'])->name('whistleblowing.submitted');
+    Route::get('speak-up/status', [WhistleblowingController::class, 'status'])->name('whistleblowing.status');
+    Route::post('speak-up/status', [WhistleblowingController::class, 'checkStatus'])->name('whistleblowing.check');
+    Route::post('speak-up/reply', [WhistleblowingController::class, 'reply'])->name('whistleblowing.reply');
+});
 
 // ── Guest ────────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
@@ -363,6 +382,86 @@ Route::middleware('auth')->group(function () {
         Route::post('regulatory-changes/{change}/action', [RegulatoryChangeController::class, 'action'])->name('regulatory-changes.action');
         Route::post('regulatory-changes/{change}/not-applicable', [RegulatoryChangeController::class, 'notApplicable'])
             ->name('regulatory-changes.not-applicable');
+    });
+
+    // ── Policy management (Phase 11.1) ───────────────────────────────
+    Route::middleware(['feature:policies', 'permission:view policies'])->group(function () {
+        // Static segments first so they are not captured as a {policy}.
+        Route::get('policies/gaps', [PolicyController::class, 'gaps'])->name('policies.gaps');
+        Route::get('policy-exceptions', [PolicyExceptionController::class, 'index'])->name('policy-exceptions.index');
+
+        Route::resource('policies', PolicyController::class)->only(['index', 'create', 'store', 'show', 'update']);
+        Route::post('policies/{policy}/submit', [PolicyController::class, 'submit'])->name('policies.submit');
+        Route::post('policies/{policy}/approve', [PolicyController::class, 'approve'])->name('policies.approve');
+        Route::post('policies/{policy}/reject', [PolicyController::class, 'reject'])->name('policies.reject');
+        Route::post('policies/{policy}/publish', [PolicyController::class, 'publish'])->name('policies.publish');
+        Route::post('policies/{policy}/revise', [PolicyController::class, 'revise'])->name('policies.revise');
+        Route::post('policies/{policy}/withdraw', [PolicyController::class, 'withdraw'])->name('policies.withdraw');
+
+        Route::post('policies/{policy}/exceptions', [PolicyExceptionController::class, 'store'])
+            ->name('policies.exceptions.store');
+        Route::post('policy-exceptions/{exception}/decide', [PolicyExceptionController::class, 'decide'])
+            ->name('policy-exceptions.decide');
+        Route::post('policy-exceptions/{exception}/revoke', [PolicyExceptionController::class, 'revoke'])
+            ->name('policy-exceptions.revoke');
+    });
+
+    // ── Incident management (Phase 11.2) ─────────────────────────────
+    Route::middleware(['feature:incidents', 'permission:view incidents'])->group(function () {
+        Route::resource('incidents', IncidentController::class)->only(['index', 'create', 'store', 'show', 'update']);
+        Route::post('incidents/{incident}/triage', [IncidentController::class, 'triage'])->name('incidents.triage');
+        Route::post('incidents/{incident}/progress', [IncidentController::class, 'progress'])->name('incidents.progress');
+        Route::post('incidents/{incident}/loss', [IncidentController::class, 'recordLoss'])->name('incidents.loss');
+        Route::post('incidents/{incident}/close', [IncidentController::class, 'close'])->name('incidents.close');
+        Route::post('incidents/{incident}/reopen', [IncidentController::class, 'reopen'])->name('incidents.reopen');
+        Route::post('incidents/{incident}/actions', [IncidentController::class, 'storeAction'])
+            ->name('incidents.actions.store');
+        Route::put('incidents/{incident}/actions/{action}', [IncidentController::class, 'updateAction'])
+            ->name('incidents.actions.update');
+        Route::post('incidents/{incident}/controls', [IncidentController::class, 'linkControls'])
+            ->name('incidents.controls.link');
+        Route::post('incidents/{incident}/notifications/refresh', [IncidentController::class, 'refreshNotifications'])
+            ->name('incidents.notifications.refresh');
+        Route::post('incidents/{incident}/notifications/{notification}', [IncidentController::class, 'recordNotification'])
+            ->name('incidents.notifications.record');
+        Route::post('incidents/{incident}/notifications/{notification}/waive', [IncidentController::class, 'waiveNotification'])
+            ->name('incidents.notifications.waive');
+    });
+
+    // ── Consumer complaints (Phase 11.3) ─────────────────────────────
+    Route::middleware(['feature:complaints', 'permission:view complaints'])->group(function () {
+        Route::get('complaints/analysis', [ComplaintController::class, 'analysis'])->name('complaints.analysis');
+        Route::get('complaints/cpd-return.xlsx', [ComplaintController::class, 'cpdReturn'])->name('complaints.cpd-return');
+
+        Route::resource('complaints', ComplaintController::class)->only(['index', 'store', 'show', 'update']);
+        Route::post('complaints/{complaint}/acknowledge', [ComplaintController::class, 'acknowledge'])
+            ->name('complaints.acknowledge');
+        Route::post('complaints/{complaint}/assign', [ComplaintController::class, 'assign'])->name('complaints.assign');
+        Route::post('complaints/{complaint}/progress', [ComplaintController::class, 'progress'])->name('complaints.progress');
+        Route::post('complaints/{complaint}/resolve', [ComplaintController::class, 'resolve'])->name('complaints.resolve');
+        Route::post('complaints/{complaint}/close', [ComplaintController::class, 'close'])->name('complaints.close');
+        Route::post('complaints/{complaint}/reopen', [ComplaintController::class, 'reopen'])->name('complaints.reopen');
+        Route::post('complaints/{complaint}/escalate', [ComplaintController::class, 'escalate'])->name('complaints.escalate');
+        Route::post('complaints/{complaint}/incident', [ComplaintController::class, 'linkIncident'])
+            ->name('complaints.link-incident');
+    });
+
+    // ── Cases & investigations (Phase 11.4) ──────────────────────────
+    // Route middleware is the coarse gate only: every case is additionally
+    // filtered by the allowlist scope and InvestigationCasePolicy, with no
+    // administrator bypass.
+    Route::middleware(['feature:cases', 'permission:view cases'])->group(function () {
+        Route::get('cases/board-extract', [CaseController::class, 'boardExtract'])->name('cases.board-extract');
+
+        Route::resource('cases', CaseController::class)->only(['index', 'store', 'show'])
+            ->parameters(['cases' => 'case']);
+        Route::post('cases/{case}/assess', [CaseController::class, 'assess'])->name('cases.assess');
+        Route::post('cases/{case}/investigate', [CaseController::class, 'investigate'])->name('cases.investigate');
+        Route::post('cases/{case}/conclude', [CaseController::class, 'conclude'])->name('cases.conclude');
+        Route::post('cases/{case}/close', [CaseController::class, 'close'])->name('cases.close');
+        Route::post('cases/{case}/notes', [CaseController::class, 'storeNote'])->name('cases.notes.store');
+        Route::post('cases/{case}/access', [CaseController::class, 'grantAccess'])->name('cases.access.grant');
+        Route::delete('cases/{case}/access', [CaseController::class, 'revokeAccess'])->name('cases.access.revoke');
     });
 
     // ── Evidence (FR-9) ──────────────────────────────────────────────

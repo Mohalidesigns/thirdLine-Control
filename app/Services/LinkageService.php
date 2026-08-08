@@ -30,6 +30,13 @@ class LinkageService
         'requirement' => ['ref' => 'ref_code', 'title' => 'title', 'route' => null],
         'improvement' => ['ref' => 'reference', 'title' => 'title', 'route' => null],
         'process' => ['ref' => 'code', 'title' => 'name', 'route' => null],
+        'policy' => ['ref' => 'policy_ref', 'title' => 'title', 'route' => 'policies.show'],
+        'incident' => ['ref' => 'incident_ref', 'title' => 'title', 'route' => 'incidents.show'],
+        'complaint' => ['ref' => 'complaint_ref', 'title' => 'subject', 'route' => 'complaints.show'],
+        // Cases resolve through the allowlist scope like everything else: a
+        // node the viewer may not see renders as "(removed record)" with no
+        // route, which is the right answer for a confidential case.
+        'case' => ['ref' => 'case_ref', 'title' => 'title', 'route' => 'cases.show'],
     ];
 
     /** Hard cap on the nodes any single graph response may carry. */

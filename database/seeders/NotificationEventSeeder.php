@@ -117,6 +117,63 @@ class NotificationEventSeeder extends Seeder
             'default_channels' => ['in_app', 'email'],
             'is_user_configurable' => true,
         ],
+        // Phase 11 — policy, incident, complaints & case management
+        [
+            'key' => 'policy.review-due',
+            'label' => 'Policy review due',
+            'description' => 'A policy you own is approaching or past its scheduled review date.',
+            'category' => 'policies',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => true,
+        ],
+        [
+            'key' => 'policy.attestation-opened',
+            'label' => 'Policy attestation required',
+            'description' => 'A policy that applies to you has been published and needs your attestation.',
+            'category' => 'policies',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => false,
+        ],
+        [
+            'key' => 'incident.reported',
+            'label' => 'Incident reported',
+            'description' => 'A new incident has been reported in an area you are responsible for.',
+            'category' => 'incidents',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => true,
+        ],
+        [
+            'key' => 'incident.notification-due',
+            'label' => 'Regulatory notification window closing',
+            'description' => 'An incident owes a regulator a notification and the statutory window is closing.',
+            'category' => 'incidents',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => false,
+        ],
+        [
+            'key' => 'complaint.acknowledgement-due',
+            'label' => 'Complaint acknowledgement window closing',
+            'description' => 'A complaint assigned to you has not been acknowledged and its window is closing.',
+            'category' => 'complaints',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => false,
+        ],
+        [
+            'key' => 'complaint.sla-breached',
+            'label' => 'Complaint SLA breached',
+            'description' => 'A complaint has passed its acknowledgement or resolution deadline and is accruing penalty exposure.',
+            'category' => 'complaints',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => false,
+        ],
+        [
+            'key' => 'case.assigned',
+            'label' => 'Case assigned to you',
+            'description' => 'You have been added to a case allowlist or named as its lead investigator.',
+            'category' => 'cases',
+            'default_channels' => ['in_app'],
+            'is_user_configurable' => false,
+        ],
     ];
 
     public function run(): void

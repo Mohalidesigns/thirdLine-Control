@@ -104,6 +104,29 @@ policy → query scoping**, mirrored to the UI via shared Inertia props.
 | Capture readings | ✓ | ✓ | ✓ | ✓ | — | — |
 | Acknowledge / resolve a KRI breach | ✓ | ✓ | ✓ | own metric | — | — |
 | Create and remove relationship links | ✓ | ✓ | ✓ | — | — | — |
+| View the policy library and gap analysis | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Draft and edit a policy | ✓ | ✓ | ✓ | — | — | — |
+| **Approve a policy (owner ≠ approver)** | see note | ✓ | — | — | — | — |
+| **Publish a policy (owner ≠ publisher)** | see note | ✓ | — | — | — | — |
+| Request a policy waiver | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| **Approve / revoke a waiver (requester ≠ approver)** | see note | ✓ | — | — | — | — |
+| View the incident register | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Report an incident (incl. near misses) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Triage, investigate, record loss and actions | ✓ | ✓ | ✓ | — | — | — |
+| Record / waive a regulatory notification | ✓ | ✓ | ✓ | — | — | — |
+| **Close an incident (reporter ≠ closer, gated on actions + notifications)** | see note | ✓ | — | — | — | — |
+| View the complaint register and root-cause analysis | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Log a complaint | ✓ | ✓ | ✓ | ✓ | — | — |
+| Acknowledge, assign, investigate, resolve | ✓ | ✓ | ✓ | — | — | — |
+| Close / escalate a complaint to the regulator | ✓ | ✓ | — | — | — | — |
+| Export the CBN CPD return | ✓ | ✓ | ✓ | — | — | — |
+| **View a case** | allowlist only | allowlist only | allowlist only | allowlist only | allowlist only | allowlist only |
+| Open a case | ✓ | ✓ | ✓ | — | — | — |
+| Investigate, note, manage the allowlist | allowlist only | allowlist only | allowlist only | — | — | — |
+| **Conclude a case (reporter ≠ concluder)** | allowlist only | allowlist only | allowlist only | — | — | — |
+| Read privileged notes | allowlist + lead/permission | ✓ | — | — | — | — |
+| Aggregate case board extract (no case detail) | ✓ | ✓ | — | — | — | ✓ |
+| Raise a Speak-Up report | public — no login required | | | | | |
 
 **Segregation of duties (FR-12.3), enforced in `ExceptionPolicy` + `ExceptionService`
 with no admin bypass:** only a Control Function Head may move an exception to
@@ -141,6 +164,30 @@ explicit failing-path test that puts a System Administrator on the wrong side of
 the gate and asserts it still holds: `tests/Feature/RiskAssessmentTest.php`,
 `tests/Feature/RiskAppetiteTest.php`, `tests/Feature/TreatmentPlanTest.php`.
 
+The Phase 11 gates follow the same pattern — a policy's owner cannot approve or
+publish it, a waiver's requester cannot approve it, an incident's reporter cannot
+close it, an action's owner cannot verify it, and a case's reporter cannot
+conclude it. Failing-path tests: `tests/Feature/PolicyLifecycleTest.php`,
+`tests/Feature/IncidentManagementTest.php`, `tests/Feature/CaseConfidentialityTest.php`.
+
+**Case access is the one deliberate exception to admin reach.** `cases` is
+allowlist-only: `InvestigationCase` carries an `allowlist` global scope with no
+role-based escape hatch, and `InvestigationCasePolicy` starts every method from
+the same membership test. A System Administrator holding *every* permission sees
+zero rows on the index and a **403** on a case they are not named on — asserted
+directly in `CaseConfidentialityTest`. This is required for whistleblowing
+integrity, not an oversight. Access is granted only by someone already on the
+case, and both the grant and every file open are written to the audit trail.
+
+An allowlist is never allowed to end up **empty**, though — that is not maximal
+confidentiality, it is a report nobody can action. A case that names no lead and
+no members (a public Speak-Up report) falls back to the tenant's intake roles
+(`settings.cases.intake_allowlist_roles`, default `Control Function Head`), then
+to anyone holding `investigate cases`; an installation with neither still saves
+the disclosure but logs the misconfiguration at critical. The allowlist is
+notified on intake with the case reference only — a title can name a subject, and
+email is a less controlled channel than the case file.
+
 ## Audit trail
 
 Immutable, append-only `audit_trails` table (updates/deletes throw). Opt any model
@@ -176,6 +223,7 @@ and before/after JSON. A logging failure never breaks the business operation
 | `atheris:remind-document-reviews` | Mondays 08:00 | Notify document owners of governing documents due for review within 30 days |
 | `atheris:refresh-risk-posture` | daily 03:00 | Flag overdue treatment plans and milestones, reopen expired risk acceptances, and re-evaluate every active risk against its appetite statement |
 | `atheris:evaluate-metrics` | daily 03:30 | Compute calculated metrics from their expressions, re-evaluate threshold bands, open KRI breaches (with a linked exception) and escalate them |
+| `atheris:refresh-governance-clocks` | **hourly** | Refresh complaint SLA state and live penalty exposure, recompute every open incident's notification windows from the obligation records, expire policy waivers past their end date, and alert on closing windows. Hourly rather than nightly: a 24-hour acknowledgement clock and a 72-hour breach notification cannot be managed by a job that runs once a day |
 
 Run on demand:
 
@@ -451,6 +499,99 @@ New routes (all named, all behind their feature flag and permission):
 The `/api/v1` surface is unchanged, so `docs/openapi.yaml` needs no revision this
 phase.
 
+## Policy, incident, complaints & case management (Phase 11)
+
+Feature-flagged: `policies`, `incidents`, `complaints`, `cases`, `whistleblowing`.
+
+- **Policy management** — policies, procedures, standards, guidelines, charters and
+  codes through Draft → Under Review → Pending Approval → Approved → Published →
+  Under Revision → Superseded/Withdrawn, structured in `policy_sections` that each
+  name the controls and framework requirements they govern. Publication supersedes
+  the predecessor, sets the next review date from the policy's own frequency, and —
+  where the policy demands it — **opens the attestation campaign automatically**,
+  reusing the Phase 9 campaign machinery (the policy owner creates it, the publisher
+  approves it, so maker-checker is satisfied by the same separation that let the
+  policy be published). **Policy gap analysis** inverts Phase 8's coverage view:
+  framework requirements no *published policy* claims to govern. Waivers
+  (`policy_exceptions`) are time-boxed, never approved by the requester, and expire
+  on the hourly sweep.
+- **Incident management** — intake, triage, investigation, containment, corrective
+  and preventive actions, a material-flagged timeline, root cause and lessons
+  learned. Loss is captured as gross / recovery / **derived** net in integer minor
+  units plus an ISO-4217 code (R7), tagged with the Basel level-1 event type so
+  operational-risk capital work has its taxonomy at source. Naming a failed control
+  flags it for re-testing (materialising this period's test instance immediately)
+  and raises an exception against it with `source_type = 'Incident'`.
+  **The closure gate is real**: an incident cannot close with an open mandatory
+  action or an outstanding regulatory notification, and it reports both at once.
+- **Regulatory notification engine (R1)** — `NotificationObligationResolver` maps an
+  incident type to the *event keys* the seeded obligation records are registered
+  against (`breach_detected`, `cyber_incident_detected`, `suspicion_formed` …),
+  then resolves each due time through `ObligationService::resolveDueDate` in the
+  entity's timezone. **No window is written in PHP**: NDPC's 72 hours is
+  `due_rule.offset_hours` on the NDPA-GAID pack, and editing that record moves every
+  open countdown — asserted directly in `IncidentManagementTest`. Live countdowns
+  render on the incident page beside the obligation's legal reference and its R10
+  verification badge. Near misses are first-class and excluded from loss aggregates.
+- **Complaints (CBN Consumer Protection)** — omni-channel intake with an
+  automatically issued customer-facing tracking ID, a **24-hour acknowledgement
+  clock read from the CBN-CPF obligation record**, and a resolution clock. The
+  acknowledgement timestamp is **server-side only** — `ComplaintService::acknowledge()`
+  takes no time argument at all, and `ComplaintRequest` strips the field from the
+  payload, so a crafted request cannot pre-stop a regulatory clock.
+  **Live penalty exposure** is computed from the obligation records' penalty fields:
+  the per-instance acknowledgement figure when that window is missed, plus one unit
+  of the per-week figure for every *started* week past the resolution deadline
+  (part weeks round up, counted midnight-to-midnight so a sub-second overshoot
+  cannot jump a complaint into its second week). Resolution requires a root cause,
+  which feeds a **complaints-by-root-cause analysis** that links back to the failing
+  control, plus a CBN CPD returns export.
+- **Cases, investigations and whistleblowing** — allowlist-only confidentiality with
+  no admin bypass (see the RBAC section above), genuine anonymity (an anonymous case
+  stores no reporter id, and `auditsAnonymously()` keeps user, IP and agent out of
+  the audit trail while still recording that the event happened), a **one-way
+  reporter token** (only its SHA-256 hash is stored, so a returning reporter can be
+  verified but never named), investigation plan, privileged notes, substantiation
+  outcome, referral, and an **aggregate-only board extract** carrying counts and
+  outcomes but no titles, subjects or notes. A public `/speak-up` intake needs no
+  login — requiring one to report wrongdoing defeats the control — and an
+  anonymising bridge (`openFromAnonymisingBridge`) strips the originating identifier
+  before persistence for channels like WhatsApp, recording that it did so.
+- **Cross-module linkage (11.5)** — `policy`, `incident`, `complaint` and `case` are
+  registered node types on the Phase 10 `entity_links` graph, so
+  incident ↔ control ↔ risk ↔ KRI ↔ policy ↔ obligation ↔ complaint ↔ case is one
+  navigable graph. A case node resolves only for someone on its allowlist; to
+  anyone else it renders as an unavailable node with no route.
+
+Assumptions worth naming: the CBN-CPF pack carries no *per-complaint* resolution
+window (its resolution obligation is a weekly calendar duty on the institution), so
+the window is a tenant setting — `settings.complaints.resolution_days`, default 14 —
+while the penalty amount and basis still come from the obligation record. The
+incident-type → obligation-event map is likewise a default that
+`settings.incidents.event_map` overrides, following the `MetricService` precedent.
+
+New routes (all named, all behind their feature flag and permission):
+
+| Route | Name |
+|---|---|
+| `GET /policies`, `/create`, `/{policy}` (+ `store`, `update`) | `policies.*` |
+| `POST /policies/{policy}/submit`, `/approve`, `/reject`, `/publish`, `/revise`, `/withdraw` | `policies.*` |
+| `GET /policies/gaps` | `policies.gaps` |
+| `GET /policy-exceptions`, `POST /policies/{policy}/exceptions`, `/{exception}/decide`, `/revoke` | `policy-exceptions.*` |
+| `GET /incidents`, `/create`, `/{incident}` (+ `store`, `update`) | `incidents.*` |
+| `POST /incidents/{incident}/triage`, `/progress`, `/loss`, `/close`, `/reopen`, `/controls` | `incidents.*` |
+| `POST /incidents/{incident}/actions`, `PUT .../actions/{action}` | `incidents.actions.*` |
+| `POST /incidents/{incident}/notifications/refresh`, `/{notification}`, `/{notification}/waive` | `incidents.notifications.*` |
+| `GET /complaints`, `/{complaint}` (+ `store`, `update`) | `complaints.*` |
+| `POST /complaints/{complaint}/acknowledge`, `/assign`, `/progress`, `/resolve`, `/close`, `/reopen`, `/escalate`, `/incident` | `complaints.*` |
+| `GET /complaints/analysis`, `GET /complaints/cpd-return.xlsx` | `complaints.analysis`, `complaints.cpd-return` |
+| `GET /cases`, `/{case}` (+ `store`), `/board-extract` | `cases.*` |
+| `POST /cases/{case}/assess`, `/investigate`, `/conclude`, `/close`, `/notes`, `/access` · `DELETE /access` | `cases.*` |
+| `GET|POST /speak-up`, `/speak-up/submitted`, `/speak-up/status`, `/speak-up/reply` | `whistleblowing.*` (public, throttled) |
+
+The `/api/v1` surface is unchanged again this phase, so `docs/openapi.yaml` needs
+no revision.
+
 ## Key business rules (where they live)
 
 - **Maker–checker** on controls, test scripts, ratings, compensating controls — policies + services
@@ -463,18 +604,32 @@ phase.
 - **Second-line review threshold, impact weights, simulation seed** — `tenants.settings['risk']`, defaults in `RiskAssessmentService`
 - **KRI breach action (exception / incident / none) and breach levels** — `tenants.settings['risk']`, read by `MetricService::config()`
 - **Metric expressions are parsed, never executed** — `App\Support\ExpressionEvaluator`; validated at save time by `MetricRequest`
+- **Regulatory notification windows** — `NotificationObligationResolver` resolves them from the seeded obligation records' `due_rule`; never a constant in PHP
+- **Complaint acknowledgement time** — server-stamped in `ComplaintService::acknowledge()`, which takes no time argument; the field is stripped in `ComplaintRequest`
+- **Complaint penalty exposure** — `ComplaintService::penaltyExposure()` from the obligation records' `penalty_amount_minor` / `penalty_basis`; part weeks round up
+- **Incident closure gate** — `IncidentService::close()`: no open mandatory action, no outstanding notification
+- **Case allowlist, no admin bypass** — `InvestigationCase`'s `allowlist` global scope + `InvestigationCasePolicy::grantsAccessTo()`
+- **An intake that names nobody still reaches someone** — `CaseService::intakeAllowlist()`; roles from `tenants.settings['cases']`
+- **Case anonymity** — `InvestigationCase::auditsAnonymously()` and a SHA-256 reporter token; there is deliberately no method that turns a case back into a person
+- **Complaint resolution window, incident event map** — `tenants.settings['complaints']` / `['incidents']`, defaults in the respective services
 
 ## Quality gate
 
 ```bash
-composer test        # 365 feature/unit tests incl. SoD, legal-hold, dual-approval,
+composer test        # 441 feature/unit tests incl. SoD, legal-hold, dual-approval,
                      # due-rule and penalty maths, content-pack idempotency,
                      # API-auth bypass attempts, distribution idempotency,
                      # CSA rating gates, survey anonymity, import rollback,
                      # residual-engine parity and the 20% floor, Monte Carlo
                      # determinism, a custom 4×4 heatmap scale, every threshold
                      # operator, expression-evaluator injection attempts,
-                     # KRI-breach → exception linkage and appetite escalation
+                     # KRI-breach → exception linkage and appetite escalation,
+                     # the 24-hour acknowledgement clock across a DST edge,
+                     # per-week penalty accrual with part weeks rounded up,
+                     # an administrator getting 403 on a case allowlist,
+                     # anonymity proven on the raw row and the audit trail,
+                     # the incident closure gate, and an obligation edit
+                     # moving a live notification countdown
 vendor/bin/pint      # lint
 npm run build
 ```
@@ -513,9 +668,19 @@ quantitative path with VaR and a loss-exceedance curve, configurable N×N heatma
 with a movement view and cell drill-through, versioned board-approved risk appetite
 with live breach escalation, treatment plans with milestones and independent
 verification, the KRI/KPI/KCI engine with configurable threshold bands and safe
-calculated expressions, and the universal linkage graph. Next per the v2 master
-plan: Phase 11 (Policy, Incident, Complaints & Case Management). Still pending from
-v1 backlog:
-Word-format report export, webhook subscriptions, NexusRisk risk-register pull,
-in-place evidence redaction and data-subject-request tooling, continuous controls
-monitoring (v2 Phase 12).
+calculated expressions, and the universal linkage graph.
+
+**v2.0 Phase 11 (Policy, Incident, Complaints & Case Management) is implemented**:
+the policy lifecycle with section-level structure, automatic attestation campaigns
+on publication, time-boxed waivers and policy gap analysis; incident management with
+Basel loss capture, control-failure linkage and a regulatory notification engine
+that reads every window from the obligation register; CBN consumer-protection
+complaint handling with a server-stamped acknowledgement clock, live penalty
+exposure, root-cause analysis and the CPD return; and allowlist-only case management
+with genuine whistleblowing anonymity, a one-way reporter token and a public
+Speak-Up intake.
+
+Next per the v2 master plan: Phase 12 (continuous controls monitoring). Still
+pending from the v1 backlog: Word-format report export, webhook subscriptions,
+NexusRisk risk-register pull, and in-place evidence redaction with
+data-subject-request tooling.

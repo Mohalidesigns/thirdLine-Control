@@ -30,6 +30,9 @@ class DatabaseSeeder extends Seeder
             // Phase 10: the taxonomy and assessment scales must exist before
             // any risk is scored, so they precede the demo register.
             RiskTaxonomySeeder::class,
+            // Phase 11: the policy and complaint taxonomies are reference
+            // data and must exist before any policy or complaint is created.
+            GovernanceTaxonomySeeder::class,
             DemoDataSeeder::class,
             ObligationDemoSeeder::class,
             // Phase 9: distribution, CSA/survey/attestation campaigns,
@@ -38,6 +41,9 @@ class DatabaseSeeder extends Seeder
             // Phase 10 demo data depends on the risks, controls and users
             // created above.
             Phase10DemoSeeder::class,
+            // Phase 11 depends on the controls, entities and users above, and
+            // on the obligation register for its notification countdowns.
+            Phase11DemoSeeder::class,
         ]);
     }
 }

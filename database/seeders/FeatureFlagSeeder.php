@@ -41,6 +41,12 @@ class FeatureFlagSeeder extends Seeder
         'risk-treatments' => 'Treatment plans with milestones, cost/benefit and independent verification',
         'metrics' => 'KRI/KPI/KCI engine with thresholds, breach detection and trend charts',
         'linkage' => 'Universal linkage graph across risks, controls, metrics and obligations',
+        // Phase 11 — policy, incident, complaints & case management
+        'policies' => 'Policy lifecycle with section structure, attestation campaigns, waivers and gap analysis',
+        'incidents' => 'Incident management with Basel loss capture, control-failure linkage and regulatory notification',
+        'complaints' => 'CBN consumer-protection complaint handling with SLA clocks, penalty exposure and CPD returns',
+        'cases' => 'Investigation and case management with allowlist confidentiality and privileged notes',
+        'whistleblowing' => 'Public whistleblowing intake with genuine anonymity and a one-way reporter token',
     ];
 
     public function run(): void
