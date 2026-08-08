@@ -1,3 +1,4 @@
+import AtlasChat from '@/Components/AtlasChat';
 import CommandPalette from '@/Components/CommandPalette';
 import ConnectionBanner from '@/Components/ConnectionBanner';
 import FlashNotification from '@/Components/FlashNotification';
@@ -249,6 +250,14 @@ const NAV_ITEMS = [
         icon: 'M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75',
     },
     {
+        label: 'AI Governance',
+        route: 'admin.ai.index',
+        match: '/admin/ai',
+        allowedRoles: ['System Administrator', 'Control Function Head'],
+        feature: 'ai-governance',
+        icon: 'M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z',
+    },
+    {
         label: 'Integrations',
         route: 'admin.integrations',
         match: '/admin/integrations',
@@ -494,6 +503,9 @@ export default function AuthenticatedLayout({ header, children }) {
             <FlashNotification />
             <CommandPalette />
             <ConnectionBanner />
+            {/* Atlas renders its own launcher and hides itself entirely when
+                the feature is off or the user lacks 'use ai' (Phase 14). */}
+            <AtlasChat />
         </div>
     );
 }

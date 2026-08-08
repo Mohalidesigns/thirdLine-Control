@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\AiGovernanceController;
+use App\Http\Controllers\AiAssistController;
+use App\Http\Controllers\AtlasController;
 use App\Http\Controllers\AttestationController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -637,6 +640,29 @@ Route::middleware('auth')->group(function () {
         ->get('audit-trail/{alias}/{id}', [AuditLogController::class, 'entity'])
         ->name('audit-trail.entity');
 
+    // ── AI layer (Phase 14) ──────────────────────────────────────────
+    // Assist sits next to the record it helps with rather than in an area
+    // users must remember to visit (§C.9), so these are XHR endpoints
+    // called from whatever page the user is already on.
+    //
+    // Throttled at the route as well as in BudgetService: the service
+    // limits are per capability and configurable, this one is a flat
+    // ceiling that holds even if a tenant sets its own limits high.
+    Route::middleware(['feature:ai-assist', 'permission:use ai'])->group(function () {
+        Route::post('ai/assist', [AiAssistController::class, 'store'])
+            ->middleware('throttle:30,1')->name('ai.assist');
+        Route::get('ai/interactions/{interaction}', [AiAssistController::class, 'show'])
+            ->name('ai.interactions.show');
+        Route::post('ai/interactions/{interaction}/decide', [AiAssistController::class, 'decide'])
+            ->name('ai.interactions.decide');
+        Route::post('ai/interactions/{interaction}/feedback', [AiAssistController::class, 'feedback'])
+            ->name('ai.interactions.feedback');
+    });
+
+    Route::middleware(['feature:ai-atlas', 'permission:use ai', 'throttle:30,1'])
+        ->post('ai/atlas', [AtlasController::class, 'ask'])
+        ->name('ai.atlas');
+
     // ── Administration ───────────────────────────────────────────────
     Route::middleware('role:System Administrator|Control Function Head')->prefix('admin')->group(function () {
         Route::get('escalation-matrix', [EscalationMatrixController::class, 'index'])->name('admin.escalation-matrix');
@@ -720,6 +746,31 @@ Route::middleware('auth')->group(function () {
                 ->name('admin.data-sources.datasets.authorise-retention');
             Route::delete('data-sources/{data_source}/datasets/{dataset}/authorise-retention', [DataSourceController::class, 'revokeRetention'])
                 ->name('admin.data-sources.datasets.revoke-retention');
+        });
+
+        // AI governance (Phase 14.4, §C.8). Its own permission rather than
+        // 'manage settings': an organisation demonstrating AI governance to
+        // a regulator needs turning the models on to be a named authority
+        // held by named people, not a line item inside general admin.
+        Route::middleware('feature:ai-governance')->group(function () {
+            Route::get('ai', [AiGovernanceController::class, 'index'])->name('admin.ai.index');
+            Route::get('ai/log', [AiGovernanceController::class, 'log'])
+                ->middleware('permission:view ai-log')->name('admin.ai.log');
+            Route::get('ai/log/export', [AiGovernanceController::class, 'exportLog'])
+                ->middleware('permission:export ai-log')->name('admin.ai.log.export');
+
+            Route::middleware('permission:manage ai')->group(function () {
+                Route::put('ai/capabilities', [AiGovernanceController::class, 'updateCapability'])
+                    ->name('admin.ai.capabilities.update');
+                Route::put('ai/budget', [AiGovernanceController::class, 'updateBudget'])
+                    ->name('admin.ai.budget.update');
+                Route::get('ai/prompts', [AiGovernanceController::class, 'prompts'])
+                    ->name('admin.ai.prompts');
+                Route::post('ai/prompts', [AiGovernanceController::class, 'storePrompt'])
+                    ->name('admin.ai.prompts.store');
+                Route::post('ai/prompts/{prompt}/activate', [AiGovernanceController::class, 'activatePrompt'])
+                    ->name('admin.ai.prompts.activate');
+            });
         });
 
         Route::get('integrations', [IntegrationController::class, 'index'])->name('admin.integrations');

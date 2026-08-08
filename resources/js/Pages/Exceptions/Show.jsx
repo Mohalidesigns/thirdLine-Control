@@ -2,6 +2,7 @@ import ActivityTab from '@/Components/ActivityTab';
 import EvidencePanel from '@/Components/EvidencePanel';
 import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
+import AiAssistButton from '@/Components/AiAssistButton';
 import PageHeader from '@/Components/PageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
@@ -102,6 +103,16 @@ export default function Show({ exception, evidence = [], users = [], can = {} })
                             <SecondaryButton onClick={() => setModal('decide')}>Decide extension</SecondaryButton>
                         )}
                         {can.acceptRisk && <SecondaryButton onClick={() => setModal('risk')}>Accept risk</SecondaryButton>}
+                        {/* Sits with the lifecycle actions because that is where
+                            the work is (§C.9). It drafts a root cause and a
+                            remediation plan for review — it never moves the
+                            exception along its lifecycle. */}
+                        <AiAssistButton
+                            capability="exception.triage"
+                            subjectType="exception"
+                            subjectId={exception.id}
+                            label="Suggest root cause"
+                        />
                     </>
                 }
             />

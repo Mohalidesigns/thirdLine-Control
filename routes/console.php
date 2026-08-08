@@ -41,3 +41,11 @@ Schedule::command('atheris:purge-snapshots')->dailyAt('05:30');
 // due at 06:45 Lagos and a group return due at 06:45 London are different
 // moments, and a once-a-night sweep would file both late.
 Schedule::command('reports:run-scheduled')->everyFifteenMinutes()->withoutOverlapping();
+
+// Phase 14 — AI knowledge index. The queued listener handles the normal
+// path; this sweep is the backstop for a queue outage and runs before the
+// working day so the first Atlas question of the morning is answered from
+// current records. Raw model output ages out weekly under its retention
+// window, leaving the interaction record itself intact (R3).
+Schedule::command('ai:reindex')->dailyAt('05:45')->withoutOverlapping();
+Schedule::command('ai:prune')->weeklyOn(7, '03:45');

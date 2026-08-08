@@ -55,6 +55,14 @@ class FeatureFlagSeeder extends Seeder
         'dashboard-builder' => 'Configurable dashboards with a widget palette, drag-and-drop layout and org-tree rollup',
         'report-designer' => 'Report definitions, section designer, PDF/Word/Excel/PowerPoint output and scheduled distribution',
         'submission-packs' => 'Regulator-shaped submission pack generation with completeness scoring and maker-checker filing',
+        // Phase 14 — AI layer. Three flags rather than one: an institution
+        // may well want the governance surface and the inline assistants
+        // without exposing a free-text chat drawer to every user, or vice
+        // versa, and that is a policy decision it should not need a deploy
+        // to make.
+        'ai-assist' => 'Inline AI drafting, review and triage assistants with a human-approval review panel',
+        'ai-atlas' => 'Atlas conversational assistant, RAG-grounded and permission-filtered over the tenant\'s own records',
+        'ai-governance' => 'AI governance surface: model registry, prompt versions, budgets, acceptance rates and the activity log',
     ];
 
     public function run(): void

@@ -54,6 +54,12 @@ class DatabaseSeeder extends Seeder
             SystemDashboardSeeder::class,
             ReportDefinitionSeeder::class,
             Phase13DemoSeeder::class,
+            // Phase 14: the prompt library is reference data and could seed
+            // anywhere, but the AI demo pack indexes the whole dataset for
+            // retrieval and reads it back, so it must run after every other
+            // seeder has finished writing.
+            AiPromptSeeder::class,
+            Phase14AiSeeder::class,
         ]);
     }
 }

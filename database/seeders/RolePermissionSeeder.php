@@ -73,6 +73,13 @@ class RolePermissionSeeder extends Seeder
             'design reports', 'approve report-definitions', 'schedule reports',
             'view submissions', 'generate submissions', 'review submissions',
             'approve submissions', 'file submissions',
+            // AI layer (Phase 14). 'use ai' is the door; the capability's own
+            // domain permission is the gate behind it, so AI never widens
+            // anyone's reach — drafting a control still needs 'create
+            // controls'. 'manage ai' is separate from 'manage settings'
+            // because turning the models on is a named authority an
+            // organisation has to be able to show its own regulator.
+            'use ai', 'manage ai', 'view ai-log', 'export ai-log',
         ];
 
         foreach ($permissions as $permission) {
@@ -144,6 +151,12 @@ class RolePermissionSeeder extends Seeder
             // person regardless of role (R2).
             'manage dashboards', 'design reports', 'schedule reports',
             'view submissions', 'generate submissions', 'review submissions',
+            // Second line is the heaviest AI user: drafting controls,
+            // triaging exceptions, parsing circulars. Every one of those is
+            // still gated on the domain permission listed above — 'use ai'
+            // opens the door, it does not widen the room. Governance of the
+            // models themselves stays with the Control Function Head.
+            'use ai',
         ]);
 
         Role::findOrCreate('Control Owner', 'web')->syncPermissions([
@@ -166,6 +179,11 @@ class RolePermissionSeeder extends Seeder
             // A private board of one's own controls and actions. Sharing it
             // any wider needs 'publish dashboards', which this role lacks.
             'manage dashboards',
+            // First line gets Atlas and exception triage. Because retrieval
+            // is filtered to the user's own permissions, an owner asking
+            // Atlas a question can only ever be answered from records they
+            // could already open.
+            'use ai',
         ]);
 
         Role::findOrCreate('Line Manager', 'web')->syncPermissions([
@@ -179,6 +197,7 @@ class RolePermissionSeeder extends Seeder
             'view incidents', 'create incidents', 'view complaints',
             'view monitoring', 'view sod',
             'manage dashboards',
+            'use ai',
         ]);
 
         Role::findOrCreate('Executive Viewer', 'web')->syncPermissions([
@@ -204,6 +223,13 @@ class RolePermissionSeeder extends Seeder
             // private board of its own. It never generates, approves or
             // files a submission — that is management's act, not the board's.
             'manage dashboards', 'view submissions',
+            // The board tier holds 'use ai', which in practice means Atlas
+            // and nothing else: every other capability additionally requires
+            // a create or edit permission this role does not have, so those
+            // assist affordances never appear for it. And because retrieval
+            // is permission-filtered per user, an Atlas answer for this role
+            // is built only from records it could already open.
+            'use ai',
         ]);
     }
 }
