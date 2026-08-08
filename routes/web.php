@@ -15,6 +15,7 @@ use App\Http\Controllers\ControlRequirementMapController;
 use App\Http\Controllers\CsaCampaignController;
 use App\Http\Controllers\CsaResponseController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DataSourceController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EscalationMatrixController;
 use App\Http\Controllers\EvidenceController;
@@ -28,6 +29,10 @@ use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\IntegrationController;
 use App\Http\Controllers\LinkageController;
 use App\Http\Controllers\MetricController;
+use App\Http\Controllers\MonitoringDashboardController;
+use App\Http\Controllers\MonitoringFindingController;
+use App\Http\Controllers\MonitoringRuleController;
+use App\Http\Controllers\MonitoringRunController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\ObligationAssignmentController;
@@ -44,6 +49,7 @@ use App\Http\Controllers\RiskController;
 use App\Http\Controllers\RiskTreatmentController;
 use App\Http\Controllers\SavedViewController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SodController;
 use App\Http\Controllers\SpotCheckController;
 use App\Http\Controllers\SsoConfigurationController;
 use App\Http\Controllers\TenantBrandingController;
@@ -464,6 +470,52 @@ Route::middleware('auth')->group(function () {
         Route::delete('cases/{case}/access', [CaseController::class, 'revokeAccess'])->name('cases.access.revoke');
     });
 
+    // ── Continuous controls monitoring (Phase 12.3–12.6) ─────────────
+    // Route middleware is the coarse gate; MonitoringRulePolicy and
+    // MonitoringService both re-check the approval separation, so an
+    // administrator cannot approve their own rule from any surface.
+    Route::middleware(['feature:continuous-monitoring', 'permission:view monitoring'])->group(function () {
+        Route::get('monitoring', MonitoringDashboardController::class)->name('monitoring.dashboard');
+
+        Route::get('monitoring/rules', [MonitoringRuleController::class, 'index'])->name('monitoring-rules.index');
+        Route::post('monitoring/rules', [MonitoringRuleController::class, 'store'])->name('monitoring-rules.store');
+        Route::get('monitoring/rules/{rule}', [MonitoringRuleController::class, 'show'])->name('monitoring-rules.show');
+        Route::put('monitoring/rules/{rule}', [MonitoringRuleController::class, 'update'])->name('monitoring-rules.update');
+        Route::post('monitoring/rules/{rule}/submit', [MonitoringRuleController::class, 'submit'])->name('monitoring-rules.submit');
+        Route::post('monitoring/rules/{rule}/approve', [MonitoringRuleController::class, 'approve'])->name('monitoring-rules.approve');
+        Route::post('monitoring/rules/{rule}/reject', [MonitoringRuleController::class, 'reject'])->name('monitoring-rules.reject');
+        Route::post('monitoring/rules/{rule}/pause', [MonitoringRuleController::class, 'pause'])->name('monitoring-rules.pause');
+        Route::post('monitoring/rules/{rule}/retire', [MonitoringRuleController::class, 'retire'])->name('monitoring-rules.retire');
+        // Running by hand reaches a live source, so it is throttled.
+        Route::post('monitoring/rules/{rule}/run', [MonitoringRuleController::class, 'run'])
+            ->middleware('throttle:20,1')->name('monitoring-rules.run');
+
+        Route::get('monitoring/runs', [MonitoringRunController::class, 'index'])->name('monitoring-runs.index');
+        Route::get('monitoring/runs/{run}', [MonitoringRunController::class, 'show'])->name('monitoring-runs.show');
+
+        Route::get('monitoring/findings', [MonitoringFindingController::class, 'index'])->name('monitoring-findings.index');
+        Route::post('monitoring/findings/bulk-review', [MonitoringFindingController::class, 'bulkReview'])
+            ->name('monitoring-findings.bulk-review');
+        Route::post('monitoring/findings/{finding}/review', [MonitoringFindingController::class, 'review'])
+            ->name('monitoring-findings.review');
+    });
+
+    // ── Segregation-of-duties analysis (Phase 12.3) ──────────────────
+    Route::middleware(['feature:sod-analysis', 'permission:view sod'])->group(function () {
+        Route::get('sod/conflicts', [SodController::class, 'conflicts'])->name('sod.conflicts');
+        Route::post('sod/conflicts', [SodController::class, 'storeConflict'])->name('sod.conflicts.store');
+        Route::put('sod/conflicts/{rule}', [SodController::class, 'updateConflict'])->name('sod.conflicts.update');
+        Route::delete('sod/conflicts/{rule}', [SodController::class, 'destroyConflict'])->name('sod.conflicts.destroy');
+
+        Route::get('sod/violations', [SodController::class, 'violations'])->name('sod.violations');
+        Route::post('sod/violations/{violation}/mitigate', [SodController::class, 'mitigate'])->name('sod.violations.mitigate');
+        Route::post('sod/violations/{violation}/accept', [SodController::class, 'accept'])->name('sod.violations.accept');
+        Route::post('sod/violations/{violation}/remediate', [SodController::class, 'remediate'])->name('sod.violations.remediate');
+        Route::post('sod/violations/{violation}/false-positive', [SodController::class, 'falsePositive'])
+            ->name('sod.violations.false-positive');
+        Route::post('sod/violations/{violation}/escalate', [SodController::class, 'escalate'])->name('sod.violations.escalate');
+    });
+
     // ── Evidence (FR-9) ──────────────────────────────────────────────
     Route::post('evidence', [EvidenceController::class, 'store'])->name('evidence.store');
     Route::get('evidence/{evidence}/download', [EvidenceController::class, 'download'])->name('evidence.download');
@@ -551,6 +603,33 @@ Route::middleware('auth')->group(function () {
             Route::get('import/{resource}/template', [ImportController::class, 'template'])->name('admin.import.template');
             Route::post('import/{resource}/dry-run', [ImportController::class, 'dryRun'])->name('admin.import.dry-run');
             Route::post('import/{resource}', [ImportController::class, 'store'])->name('admin.import.store');
+        });
+
+        // Data sources (Phase 12.1) — a live credential into a client's
+        // core, so registration is administrative and approval is a
+        // second person's act, gated on its own permission.
+        Route::middleware(['feature:data-sources', 'permission:view data-sources'])->group(function () {
+            Route::get('data-sources', [DataSourceController::class, 'index'])->name('admin.data-sources.index');
+            Route::post('data-sources', [DataSourceController::class, 'store'])->name('admin.data-sources.store');
+            Route::get('data-sources/{data_source}', [DataSourceController::class, 'show'])->name('admin.data-sources.show');
+            Route::put('data-sources/{data_source}', [DataSourceController::class, 'update'])->name('admin.data-sources.update');
+            Route::post('data-sources/{data_source}/approve', [DataSourceController::class, 'approve'])
+                ->name('admin.data-sources.approve');
+            Route::post('data-sources/{data_source}/test', [DataSourceController::class, 'test'])
+                ->middleware('throttle:20,1')->name('admin.data-sources.test');
+            Route::post('data-sources/{data_source}/resume', [DataSourceController::class, 'resume'])
+                ->name('admin.data-sources.resume');
+
+            Route::post('data-sources/{data_source}/datasets', [DataSourceController::class, 'storeDataset'])
+                ->name('admin.data-sources.datasets.store');
+            Route::put('data-sources/{data_source}/datasets/{dataset}', [DataSourceController::class, 'updateDataset'])
+                ->name('admin.data-sources.datasets.update');
+            Route::post('data-sources/{data_source}/datasets/{dataset}/capture', [DataSourceController::class, 'capture'])
+                ->middleware('throttle:20,1')->name('admin.data-sources.datasets.capture');
+            Route::post('data-sources/{data_source}/datasets/{dataset}/authorise-retention', [DataSourceController::class, 'authoriseRetention'])
+                ->name('admin.data-sources.datasets.authorise-retention');
+            Route::delete('data-sources/{data_source}/datasets/{dataset}/authorise-retention', [DataSourceController::class, 'revokeRetention'])
+                ->name('admin.data-sources.datasets.revoke-retention');
         });
 
         Route::get('integrations', [IntegrationController::class, 'index'])->name('admin.integrations');

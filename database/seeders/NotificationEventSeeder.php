@@ -174,6 +174,15 @@ class NotificationEventSeeder extends Seeder
             'default_channels' => ['in_app'],
             'is_user_configurable' => false,
         ],
+        [
+            'key' => 'monitoring.source-failed',
+            'label' => 'Data source paused by the circuit breaker',
+            'description' => 'A data source has failed repeatedly and been paused. Every rule reading from it is dormant, '
+                .'so the controls it tests are unmonitored until it is resumed.',
+            'category' => 'monitoring',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => false,
+        ],
     ];
 
     public function run(): void

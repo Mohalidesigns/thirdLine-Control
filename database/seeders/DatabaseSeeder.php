@@ -44,6 +44,9 @@ class DatabaseSeeder extends Seeder
             // Phase 11 depends on the controls, entities and users above, and
             // on the obligation register for its notification countdowns.
             Phase11DemoSeeder::class,
+            // Phase 12 rules point at the controls seeded above and write
+            // real snapshots, so it runs last.
+            Phase12DemoSeeder::class,
         ]);
     }
 }

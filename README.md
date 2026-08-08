@@ -127,6 +127,18 @@ policy → query scoping**, mirrored to the UI via shared Inertia props.
 | Read privileged notes | allowlist + lead/permission | ✓ | — | — | — | — |
 | Aggregate case board extract (no case detail) | ✓ | ✓ | — | — | — | ✓ |
 | Raise a Speak-Up report | public — no login required | | | | | |
+| View data sources and their health | ✓ | ✓ | ✓ | — | — | — |
+| Register / configure a data source (credentials write-only) | ✓ | ✓ | — | — | — | — |
+| **Approve a data source into production (registrant/owner ≠ approver)** | see note | ✓ | — | — | — | — |
+| **Authorise retaining sensitive personal data in clear (DPO act)** | ✓ | ✓ | — | — | — | — |
+| View monitoring rules, runs, findings and coverage | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Author and tune monitoring rules | ✓ | ✓ | ✓ | — | — | — |
+| **Approve a monitoring rule into production (author/owner ≠ approver)** | see note | ✓ | — | — | — | — |
+| Run a rule on demand (reaches a live source) | ✓ | ✓ | ✓ | — | — | — |
+| Review / confirm / dismiss a monitoring finding | ✓ | ✓ | ✓ | — | — | — |
+| View the SoD conflict matrix and violations | ✓ | ✓ | ✓ | — | ✓ | ✓ |
+| Maintain the conflict matrix, mitigate and remediate | ✓ | ✓ | ✓ | — | — | — |
+| **Accept a live SoD conflict (CFH only, expiry mandatory)** | ✓ | ✓ | — | — | — | — |
 
 **Segregation of duties (FR-12.3), enforced in `ExceptionPolicy` + `ExceptionService`
 with no admin bypass:** only a Control Function Head may move an exception to
@@ -169,6 +181,18 @@ publish it, a waiver's requester cannot approve it, an incident's reporter canno
 close it, an action's owner cannot verify it, and a case's reporter cannot
 conclude it. Failing-path tests: `tests/Feature/PolicyLifecycleTest.php`,
 `tests/Feature/IncidentManagementTest.php`, `tests/Feature/CaseConfidentialityTest.php`.
+
+The Phase 12 gates are the newest and the ones with the most reach, because a
+monitoring rule decides whether a control is failing and a data source holds a
+live credential into a bank's core. Neither activates on one person's say-so: a
+rule cannot be approved by its author *or* its owner, a source cannot be approved
+by whoever registered *or* owns it, and **editing what an active rule tests drops
+it straight back to Pending Approval** — a tuning change is a change to the
+control test, so it gets looked at again. Accepting a live segregation-of-duties
+conflict is a Control Function Head decision carrying a mandatory expiry, and the
+acceptance reopens automatically when it lapses. Failing-path tests, including one
+that puts a System Administrator on the wrong side of the rule-approval gate:
+`tests/Feature/ContinuousMonitoringTest.php`, `tests/Feature/MonitoringPagesTest.php`.
 
 **Case access is the one deliberate exception to admin reach.** `cases` is
 allowlist-only: `InvestigationCase` carries an `allowlist` global scope with no
@@ -224,12 +248,18 @@ and before/after JSON. A logging failure never breaks the business operation
 | `atheris:refresh-risk-posture` | daily 03:00 | Flag overdue treatment plans and milestones, reopen expired risk acceptances, and re-evaluate every active risk against its appetite statement |
 | `atheris:evaluate-metrics` | daily 03:30 | Compute calculated metrics from their expressions, re-evaluate threshold bands, open KRI breaches (with a linked exception) and escalate them |
 | `atheris:refresh-governance-clocks` | **hourly** | Refresh complaint SLA state and live penalty exposure, recompute every open incident's notification windows from the obligation records, expire policy waivers past their end date, and alert on closing windows. Hourly rather than nightly: a 24-hour acknowledgement clock and a 72-hour breach notification cannot be managed by a job that runs once a day |
+| `atheris:sync-data-sources` | daily 04:00 | Extract every active dataset from every approved, unpaused data source into a snapshot, applying the dataset's PII treatment at ingestion. Honours the per-source rate limit and trips the circuit breaker after N consecutive failures |
+| `atheris:run-monitoring-rules` | daily 04:30 | Evaluate every due monitoring rule against the night's snapshots, raise findings and exceptions, materialise the linked control's test instance, and expire lapsed SoD acceptances. Runs `--no-capture` on the schedule so it reads what the 04:00 sync produced |
+| `atheris:purge-snapshots` | daily 05:30 | Delete snapshot data past its dataset's retention period and mark the record Purged. Anything under legal hold is skipped and the count is reported, because silence would read as "nothing was due" |
 
 Run on demand:
 
 | Command | Purpose |
 |---|---|
 | `atheris:install-content-pack {code} [--pack-version=] [--dry-run] [--all] [--list]` | Install a versioned regulatory content pack. Idempotent, checksummed, prints a diff report first, never writes a tenant-owned record |
+| `atheris:sync-data-sources [--tenant=] [--source=]` | Extract one source, or all of them, outside the schedule |
+| `atheris:run-monitoring-rules [--rule=] [--no-capture]` | Run one rule, due or not. `--no-capture` re-evaluates the stored snapshot, which is what testing a rule change wants: same data, corrected rule |
+| `atheris:purge-snapshots [--tenant=] [--dry-run]` | Report or enforce snapshot retention |
 
 ## Reports & exports
 
@@ -592,6 +622,117 @@ New routes (all named, all behind their feature flag and permission):
 The `/api/v1` surface is unchanged again this phase, so `docs/openapi.yaml` needs
 no revision.
 
+## Continuous controls monitoring & connectors (Phase 12)
+
+Feature-flagged: `data-sources`, `continuous-monitoring`, `sod-analysis`.
+
+This is the phase that moves control testing from periodic-manual to
+continuous-automated. The organising decision is that **it does not build a
+parallel universe**: a monitoring rule linked to a control produces a real
+`TestInstance`, so an automated result flows into the Phase 3 review, the Phase 7
+effectiveness rating and the residual-risk engine exactly as a person's test does.
+
+- **Connector framework** — one abstract `Connector` (`authenticate`,
+  `testConnection`, `listDatasets`, `extract`, plus a capability descriptor), one
+  class per vendor under `app/Integrations/`, resolved by `ConnectorRegistry` from
+  the source's `vendor_key` with a fall-back to the generic connector for its
+  transport. Credentials and connection settings are encrypted at rest, hidden
+  from serialisation, redacted out of the audit trail, and scrubbed out of any
+  third-party error message before it is logged — a PDO exception happily prints
+  the DSN it just failed to open. A **circuit breaker** pauses a source after its
+  own `failure_threshold` consecutive failures, marks it Failed, notifies the
+  owner and applies exponential backoff; resuming is a deliberate, audited human
+  act. Rate limiting and timeouts are per source, and every extraction writes to
+  the existing `integration_sync_logs` table rather than a parallel one.
+- **Connectors** — Priority 1, exercised and marked verified: generic REST/JSON
+  (configurable auth, pagination and a dot-path to the row array), generic
+  read-only SQL (MySQL / PostgreSQL / SQL Server / Oracle), SFTP or file-drop
+  CSV and fixed-width, Microsoft 365 / Entra ID via Graph (users, groups,
+  privileged roles, MFA registration, sign-in logs), and manual workbook upload.
+  Priority 2, **mapped from vendor documentation but never exercised against a
+  live environment**: Finacle, Oracle FLEXCUBE, Temenos T24, Appzone BankOne,
+  NIBSS (NIP / BVN watch-list / GSI / NQR), SAP OData, Dynamics 365 Dataverse,
+  Sage 300/X3 and the FIRS Merchant Buyer Solution. Every one of them ships with
+  `verified = false`, a field-mapping template, and an explicit list of what it
+  does *not* cover — and the source page says so in a banner rather than hiding
+  it. Confirm the mapping against the institution's own instance before approving
+  a rule that depends on it.
+- **Rule engine** — eleven types, each a pure function of (rows, definition) with
+  its own JSON schema published to the rule builder from the same constant that
+  validates it (R1): `threshold`, `reconciliation`, `duplicate`, `gap`,
+  `sod_conflict`, `exception_list`, `completeness`, `timeliness`, `trend`,
+  `pattern` (Benford, round-number bias, off-hours activity, same-day
+  create-and-approve) and `custom_sql`. Sampling is full population, random,
+  stratified with a floor of one per stratum, or monetary-unit — always driven by
+  a **seed recorded on the run**, because "which forty items did you test in
+  March, and why those?" has to have an answer.
+- **custom_sql is sandboxed three ways.** It never touches the application
+  database: `RuleEngineService` builds a throwaway in-memory SQLite from the
+  snapshot rows and runs the statement against that. `App\Support\SqlGuard`
+  tokenises the statement and *whitelists* — allowed keywords, allowed functions,
+  declared tables, declared named parameters — rather than denylisting words a
+  comment can break up. And the sandbox carries a statement timeout and a row cap.
+  `SqlGuardTest` covers 24 rejection cases including stacked statements, comment
+  obfuscation, `INTO OUTFILE`, `sqlite_master`, cross-database references and
+  `load_file()`.
+- **Continuous testing** — a failing run raises **one** exception summarising the
+  failures through the existing `ExceptionService`, not one per row: a rule that
+  finds four thousand duplicate mandates must not bury the register. The generated
+  test instance stops at `Submitted`, never `Reviewed` — a machine may gather
+  evidence, it may not sign off (R4). Confirming an individual finding raises its
+  own exception; dismissing one as a false positive feeds the rule's
+  false-positive rate, which is surfaced on the rule page with a tuning prompt
+  past 30%.
+- **Segregation of duties** — note this is the *client's* SoD in the systems they
+  run, distinct from R2, which is SecondLine's own. The toxic-combination matrix
+  is seeded data in each system's own vocabulary (a Finacle menu id, an Entra
+  role, an SAP transaction code), so adding a pair is configuration. Re-detecting
+  a known subject refreshes it rather than reopening it. Accepting a conflict
+  needs the `accept sod-violations` permission and a future expiry date, and the
+  acceptance reopens on the daily sweep when it lapses.
+- **Data protection (12.7)** — every dataset declares a `pii_classification` and
+  the fields that carry personal data; a classification with no named fields is
+  rejected at authoring time, because it tells the platform nothing to protect.
+  `sensitive_personal` fields are replaced with a **keyed HMAC at ingestion** —
+  stable, so a subject still joins across snapshots, not reversible — unless the
+  DPO has recorded an explicit authorisation on the dataset. Findings mask
+  personal fields on screen *even where retention was authorised*: authorising
+  storage is not authorising a control officer's screen. Every snapshot path
+  begins with the tenant's declared residency country, so which data plane a file
+  sits in is readable from the path and asserted in `ConnectorFrameworkTest`.
+  Snapshots inherit the Phase 5 retention and legal-hold machinery, and legal hold
+  is enforced twice — the purge scope excludes it and `DataSnapshot::booted()`
+  throws if anything gets that far.
+
+Assumptions worth naming: `custom_sql` runs against a copy of the snapshot rather
+than the source, so it cannot express a query that needs the source's own indexes
+or a table the dataset does not extract — that is a deliberate trade of power for
+containment. The Priority 2 connectors model T24 as REST enquiries and SAP as
+OData because OFS and RFC both need transport this platform will not ship; where a
+client only exposes those, they front them with a gateway. And the FIRS mapping is
+a working model rather than a verified contract, so nothing built on it should
+reach a regulatory output before a human checks it against the taxpayer's own
+onboarding pack (R10 in spirit).
+
+New routes (all named, all behind their feature flag and permission):
+
+| Route | Name |
+|---|---|
+| `GET /monitoring` | `monitoring.dashboard` |
+| `GET /monitoring/rules`, `/{rule}` (+ `store`, `update`) | `monitoring-rules.*` |
+| `POST /monitoring/rules/{rule}/submit`, `/approve`, `/reject`, `/pause`, `/retire`, `/run` | `monitoring-rules.*` |
+| `GET /monitoring/runs`, `/monitoring/runs/{run}` | `monitoring-runs.*` |
+| `GET /monitoring/findings`, `POST /{finding}/review`, `POST /bulk-review` | `monitoring-findings.*` |
+| `GET /sod/conflicts` (+ `store`, `update`, `destroy`) | `sod.conflicts.*` |
+| `GET /sod/violations`, `POST /{violation}/mitigate`, `/accept`, `/remediate`, `/false-positive`, `/escalate` | `sod.violations.*` |
+| `GET /admin/data-sources`, `/{data_source}` (+ `store`, `update`) | `admin.data-sources.*` |
+| `POST /admin/data-sources/{data_source}/approve`, `/test`, `/resume` | `admin.data-sources.*` |
+| `POST|PUT /admin/data-sources/{data_source}/datasets[/{dataset}]`, `/capture`, `/authorise-retention` | `admin.data-sources.datasets.*` |
+
+The `/api/v1` surface is unchanged once more — Phase 12 adds no endpoint, and the
+two new `control_exceptions.source_type` values (`Monitoring`, `SoD`) are not part
+of the published exception payload — so `docs/openapi.yaml` needs no revision.
+
 ## Key business rules (where they live)
 
 - **Maker–checker** on controls, test scripts, ratings, compensating controls — policies + services
@@ -612,11 +753,21 @@ no revision.
 - **An intake that names nobody still reaches someone** — `CaseService::intakeAllowlist()`; roles from `tenants.settings['cases']`
 - **Case anonymity** — `InvestigationCase::auditsAnonymously()` and a SHA-256 reporter token; there is deliberately no method that turns a case back into a person
 - **Complaint resolution window, incident event map** — `tenants.settings['complaints']` / `['incidents']`, defaults in the respective services
+- **A monitoring rule cannot activate on one person's say-so** — `MonitoringService::approveRule()` + `MonitoringRulePolicy`; author ≠ approver, owner ≠ approver, no admin bypass
+- **Editing what an active rule tests invalidates its approval** — `MonitoringService::touchesApproval()` against `MonitoringRule::APPROVAL_SENSITIVE`
+- **Rule definitions are parsed against a per-type schema, never trusted** — `RuleEngineService::schemas()` / `validateDefinition()`, run at save time by `MonitoringRuleRequest`
+- **custom_sql is whitelisted, not denylisted, and never touches the app database** — `App\Support\SqlGuard` + the in-memory SQLite sandbox in `RuleEngineService::sandbox()`
+- **Sampling is reproducible** — `SamplingService` is a deterministic function of (population, config, seed); the seed is written onto `monitoring_runs`
+- **Automated results never sign themselves off** — `MonitoringService::linkTestInstance()` stops at `Submitted`; review and rating stay human and rating still needs a second person
+- **Circuit-breaker threshold, rate limit and timeout** — columns on `data_sources`, applied by `ConnectorManager`; never constants
+- **Sensitive personal data is hashed at ingestion unless the DPO says otherwise** — `DataSourceDataset::requiresHashing()` + `SnapshotService::redactRow()`
+- **Snapshots cannot leave their country's data plane** — `SnapshotService::pathFor()` is the single place that decides, and it always starts with the tenant's residency code
+- **Legal hold beats retention** — `DataSnapshot::purgeable()` excludes it, `SnapshotService::purge()` refuses it, and `DataSnapshot::booted()` throws if anything gets past both
 
 ## Quality gate
 
 ```bash
-composer test        # 441 feature/unit tests incl. SoD, legal-hold, dual-approval,
+composer test        # 542 feature/unit tests incl. SoD, legal-hold, dual-approval,
                      # due-rule and penalty maths, content-pack idempotency,
                      # API-auth bypass attempts, distribution idempotency,
                      # CSA rating gates, survey anonymity, import rollback,
@@ -628,8 +779,15 @@ composer test        # 441 feature/unit tests incl. SoD, legal-hold, dual-approv
                      # per-week penalty accrual with part weeks rounded up,
                      # an administrator getting 403 on a case allowlist,
                      # anonymity proven on the raw row and the audit trail,
-                     # the incident closure gate, and an obligation edit
-                     # moving a live notification countdown
+                     # the incident closure gate, an obligation edit
+                     # moving a live notification countdown, every rule type
+                     # against fixtures with known outcomes, sampling
+                     # reproducibility under a fixed seed, 24 custom_sql
+                     # rejection cases, the circuit breaker opening on the
+                     # Nth failure, credentials absent from the raw row,
+                     # the audit trail and the Inertia props, PII hashed at
+                     # ingestion, snapshots confined to their country's data
+                     # plane, and legal hold defeating the purge sweep
 vendor/bin/pint      # lint
 npm run build
 ```
@@ -680,7 +838,22 @@ exposure, root-cause analysis and the CPD return; and allowlist-only case manage
 with genuine whistleblowing anonymity, a one-way reporter token and a public
 Speak-Up intake.
 
-Next per the v2 master plan: Phase 12 (continuous controls monitoring). Still
-pending from the v1 backlog: Word-format report export, webhook subscriptions,
-NexusRisk risk-register pull, and in-place evidence redaction with
-data-subject-request tooling.
+**v2.0 Phase 12 (Continuous Controls Monitoring & Connectors) is implemented**:
+the read-only connector framework with encrypted credentials, a per-source circuit
+breaker and rate limiting; five exercised Priority 1 connectors and nine
+documented-but-unverified vendor connectors covering the core-banking, ERP,
+payments and tax systems Nigerian and African institutions actually run; an
+eleven-type rule engine with reproducible sampling and a genuinely sandboxed
+`custom_sql`; continuous results that land in the existing test-instance,
+effectiveness-rating and exception machinery rather than beside it;
+segregation-of-duties analysis over entitlement extracts with time-boxed
+acceptance; the CCM dashboard with key-control coverage; and snapshot storage that
+hashes sensitive personal data at ingestion, stays inside its tenant's country
+data plane, and cannot be purged under legal hold.
+
+Still pending from the v1 backlog: Word-format report export, webhook
+subscriptions, NexusRisk risk-register pull, and in-place evidence redaction with
+data-subject-request tooling. Carried forward from this phase: the nine Priority 2
+connectors need a live environment each before their `verified` flag can be
+flipped, and `custom_sql` currently reads a copy of the snapshot rather than the
+source.

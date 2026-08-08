@@ -62,6 +62,12 @@ class RolePermissionSeeder extends Seeder
             'export complaint-returns',
             'view cases', 'create cases', 'investigate cases', 'close cases',
             'view privileged-notes', 'report cases',
+            // Continuous controls monitoring & connectors (Phase 12)
+            'view data-sources', 'manage data-sources', 'approve data-sources',
+            'authorise pii-retention',
+            'view monitoring', 'manage monitoring-rules', 'approve monitoring-rules',
+            'review monitoring-findings',
+            'view sod', 'manage sod-rules', 'accept sod-violations',
         ];
 
         foreach ($permissions as $permission) {
@@ -77,6 +83,13 @@ class RolePermissionSeeder extends Seeder
         // Installing regulatory content packs changes platform-wide data, so
         // it stays with the System Administrator alongside the other
         // platform-level permissions.
+        //
+        // 'authorise pii-retention' sits here because in most Nigerian
+        // institutions the control function head is the officer closest to
+        // the DPO mandate. Where a tenant has a separate Data Protection
+        // Officer, create a role holding only that permission and remove it
+        // from this list — the platform enforces the permission, not the job
+        // title (R1).
         Role::findOrCreate('Control Function Head', 'web')->syncPermissions(array_diff($all, [
             'manage users', 'manage settings', 'manage sso', 'install content-packs',
         ]));
@@ -112,6 +125,13 @@ class RolePermissionSeeder extends Seeder
             'view incidents', 'create incidents', 'investigate incidents', 'notify regulators',
             'view complaints', 'create complaints', 'handle complaints', 'export complaint-returns',
             'view cases', 'create cases', 'investigate cases',
+            // Second line builds and tunes continuous monitoring rules and
+            // maintains the toxic-combination matrix; approving a rule into
+            // production and accepting a live SoD conflict both stay with
+            // the Control Function Head (12.3 business rule, R2).
+            'view data-sources',
+            'view monitoring', 'manage monitoring-rules', 'review monitoring-findings',
+            'view sod', 'manage sod-rules',
         ]);
 
         Role::findOrCreate('Control Owner', 'web')->syncPermissions([
@@ -128,6 +148,9 @@ class RolePermissionSeeder extends Seeder
             'view policies', 'request policy-exceptions',
             'view incidents', 'create incidents',
             'view complaints', 'create complaints',
+            // A control owner sees the continuous results on their own
+            // controls; reviewing a finding is a second-line decision.
+            'view monitoring',
         ]);
 
         Role::findOrCreate('Line Manager', 'web')->syncPermissions([
@@ -139,6 +162,7 @@ class RolePermissionSeeder extends Seeder
             'view appetite', 'view treatments', 'view metrics',
             'view policies', 'request policy-exceptions',
             'view incidents', 'create incidents', 'view complaints',
+            'view monitoring', 'view sod',
         ]);
 
         Role::findOrCreate('Executive Viewer', 'web')->syncPermissions([
@@ -157,6 +181,9 @@ class RolePermissionSeeder extends Seeder
             // still yields nothing without allowlist membership (11.4).
             'view policies', 'view incidents', 'view complaints',
             'view cases', 'report cases',
+            // The board tier reads the monitoring position — coverage, open
+            // findings, SoD exposure — and authors none of it.
+            'view monitoring', 'view sod',
         ]);
     }
 }

@@ -26,3 +26,12 @@ Schedule::command('atheris:evaluate-metrics')->dailyAt('03:30');
 // acknowledgement window and a 72-hour breach notification cannot be
 // managed by a job that runs once a night.
 Schedule::command('atheris:refresh-governance-clocks')->hourly();
+
+// Phase 12 — continuous controls monitoring. Extract first, evaluate
+// second, so a rule always reads the night's data rather than yesterday's;
+// both run before the 07:00 escalation sweep, so an exception raised by a
+// rule at 04:30 escalates on the same morning. Purge last, after the runs
+// that might have needed the snapshot.
+Schedule::command('atheris:sync-data-sources')->dailyAt('04:00')->withoutOverlapping();
+Schedule::command('atheris:run-monitoring-rules --no-capture')->dailyAt('04:30')->withoutOverlapping();
+Schedule::command('atheris:purge-snapshots')->dailyAt('05:30');

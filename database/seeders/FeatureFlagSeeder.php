@@ -47,6 +47,10 @@ class FeatureFlagSeeder extends Seeder
         'complaints' => 'CBN consumer-protection complaint handling with SLA clocks, penalty exposure and CPD returns',
         'cases' => 'Investigation and case management with allowlist confidentiality and privileged notes',
         'whistleblowing' => 'Public whistleblowing intake with genuine anonymity and a one-way reporter token',
+        // Phase 12 — continuous controls monitoring & connectors
+        'data-sources' => 'Connector framework and data source registration with encrypted credentials and a circuit breaker',
+        'continuous-monitoring' => 'Rule engine, scheduled runs, findings review and the CCM dashboard',
+        'sod-analysis' => 'Segregation-of-duties conflict matrix and violation management over entitlement extracts',
     ];
 
     public function run(): void
