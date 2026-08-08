@@ -4,8 +4,11 @@ namespace App\Services;
 
 use App\Models\CaseNote;
 use App\Models\InvestigationCase;
+use App\Models\Tenant;
 use App\Models\User;
+use App\Notifications\GovernanceClockNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -50,7 +53,7 @@ class CaseService
                 'is_anonymous' => $anonymous,
                 'reporter_id' => $anonymous ? null : $reporter?->id,
                 'reporter_token_hash' => $token ? InvestigationCase::hashToken($token) : null,
-                'access_user_ids' => $this->initialAllowlist($data, $reporter, $anonymous),
+                'access_user_ids' => $this->initialAllowlist($data, $reporter, $anonymous, $tenantId),
             ]);
 
             $case->tenant_id = $tenantId;
@@ -64,6 +67,8 @@ class CaseService
                 'case_type' => $case->case_type,
                 'is_anonymous' => $case->is_anonymous,
             ]);
+
+            $this->notifyAllowlist($case);
 
             return ['case' => $case, 'token' => $token];
         });
@@ -111,13 +116,27 @@ class CaseService
     }
 
     /**
+     * Roles that triage an intake nobody named — a public Speak-Up report
+     * arrives with no lead and no allowlist of its own. Tenant-overridable
+     * via `settings.cases.intake_allowlist_roles` (R1).
+     *
+     * @var array<int, string>
+     */
+    public const DEFAULT_INTAKE_ROLES = ['Control Function Head'];
+
+    /**
      * A case starts visible to whoever must act on it and nobody else. A
      * named reporter is on their own case; an anonymous one is not, because
      * there is no identity to put on the list.
      *
+     * An allowlist that ends up empty is not "maximally confidential", it is
+     * a report nobody can ever action — worse than having no channel at all.
+     * So a list that would otherwise be empty falls back to the tenant's
+     * intake roles, then to anyone who may investigate.
+     *
      * @return array<int, int>
      */
-    private function initialAllowlist(array $data, ?User $reporter, bool $anonymous): array
+    private function initialAllowlist(array $data, ?User $reporter, bool $anonymous, int $tenantId): array
     {
         $ids = array_map('intval', $data['access_user_ids'] ?? []);
 
@@ -129,7 +148,77 @@ class CaseService
             $ids[] = $reporter->id;
         }
 
+        if ($ids === []) {
+            $ids = $this->intakeAllowlist($tenantId);
+        }
+
         return array_values(array_unique($ids));
+    }
+
+    /**
+     * Who triages a report that named nobody. Configured roles first, then
+     * anyone holding `investigate cases` as a backstop. An installation with
+     * neither is misconfigured — the report is still saved (never lose a
+     * disclosure) but the failure is logged loudly rather than swallowed.
+     *
+     * @return array<int, int>
+     */
+    public function intakeAllowlist(int $tenantId): array
+    {
+        $roles = Tenant::find($tenantId)?->settings['cases']['intake_allowlist_roles'] ?? null;
+        $roles = is_array($roles) && $roles !== [] ? $roles : self::DEFAULT_INTAKE_ROLES;
+
+        $ids = User::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->where('is_active', true)
+            ->role($roles)
+            ->pluck('id');
+
+        if ($ids->isEmpty()) {
+            $ids = User::withoutGlobalScopes()
+                ->where('tenant_id', $tenantId)
+                ->where('is_active', true)
+                ->permission('investigate cases')
+                ->pluck('id');
+        }
+
+        if ($ids->isEmpty()) {
+            Log::critical('A case was opened with nobody able to see it.', [
+                'tenant_id' => $tenantId,
+                'configured_roles' => $roles,
+                'remedy' => 'Assign a Control Function Head, or set settings.cases.intake_allowlist_roles.',
+            ]);
+        }
+
+        return $ids->map(fn ($id) => (int) $id)->all();
+    }
+
+    /**
+     * Tell the allowlist a case is waiting. The message carries the
+     * reference and nothing else — a case title can name a subject or hint
+     * at a reporter, and email is a less controlled channel than the case
+     * file itself.
+     */
+    private function notifyAllowlist(InvestigationCase $case): void
+    {
+        $recipients = User::withoutGlobalScopes()
+            ->whereIn('id', $case->access_user_ids ?? [])
+            ->get();
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        try {
+            app(NotificationDispatcher::class)->send($recipients, 'case.assigned', new GovernanceClockNotification(
+                'A case needs your attention',
+                "Case {$case->case_ref} has been opened and you are on its access list.",
+                route('cases.show', $case),
+            ));
+        } catch (\Throwable $e) {
+            // A disclosure must never be lost because mail was down (R3 shape).
+            Log::error('Case intake notification failed', ['case' => $case->case_ref, 'error' => $e->getMessage()]);
+        }
     }
 
     // ── Access control (11.4) ────────────────────────────────────────────

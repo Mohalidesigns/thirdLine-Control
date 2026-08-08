@@ -337,6 +337,85 @@ class CaseConfidentialityTest extends TestCase
         $this->assertSame('whistleblowing', $row->case_type);
     }
 
+    /**
+     * The regression this exists for: a public report named nobody, so its
+     * allowlist was empty and the case was invisible to every user in the
+     * system — a disclosure channel that swallows disclosures.
+     */
+    public function test_a_public_report_reaches_someone_who_can_triage_it(): void
+    {
+        $this->post(route('whistleblowing.store'), [
+            'title' => 'Procurement awards concentrated on one vendor',
+            'description' => 'Three consecutive contracts awarded without a competitive process.',
+            'anonymous' => true,
+        ])->assertRedirect();
+
+        $row = DB::table('cases')->latest('id')->first();
+        $allowlist = json_decode((string) $row->access_user_ids, true) ?: [];
+
+        $this->assertNotEmpty($allowlist, 'A report nobody can see is worse than no channel at all.');
+        $this->assertContains($this->cfh->id, $allowlist, 'The Control Function Head triages an unnamed intake.');
+
+        // ...and it is genuinely reachable through the scope, not just stored.
+        $this->actingAs($this->cfh);
+        $this->assertSame(1, InvestigationCase::where('id', $row->id)->count());
+
+        $this->actingAs($this->cfh)
+            ->get(route('cases.show', $row->id))
+            ->assertOk();
+    }
+
+    public function test_the_public_intake_still_stores_no_reporter_identity(): void
+    {
+        $this->actingAs($this->outsider)
+            ->post(route('whistleblowing.store'), [
+                'title' => 'Conflict of interest not declared',
+                'description' => 'A manager sits on the board of a supplier.',
+                'anonymous' => true,
+            ])
+            ->assertRedirect();
+
+        $row = DB::table('cases')->latest('id')->first();
+        $allowlist = json_decode((string) $row->access_user_ids, true) ?: [];
+
+        $this->assertNull($row->reporter_id);
+        $this->assertNotContains(
+            $this->outsider->id,
+            $allowlist,
+            'Triage access must never be a back door to the reporter’s identity.',
+        );
+    }
+
+    public function test_the_intake_allowlist_roles_are_tenant_configurable(): void
+    {
+        $this->tenant->update(['settings' => ['cases' => ['intake_allowlist_roles' => ['Control Officer']]]]);
+
+        $this->post(route('whistleblowing.store'), [
+            'title' => 'Timesheets approved retrospectively',
+            'description' => 'Overtime approved weeks after the fact.',
+            'anonymous' => true,
+        ])->assertRedirect();
+
+        $allowlist = json_decode((string) DB::table('cases')->latest('id')->first()->access_user_ids, true) ?: [];
+
+        $this->assertContains($this->officer->id, $allowlist);
+        $this->assertNotContains($this->cfh->id, $allowlist);
+    }
+
+    public function test_an_explicit_allowlist_is_never_widened_by_the_intake_fallback(): void
+    {
+        $case = $this->openCase(overrides: [
+            'lead_investigator_id' => $this->officer->id,
+            'access_user_ids' => [$this->officer->id],
+        ])['case'];
+
+        $this->assertSame([$this->officer->id], $case->access_user_ids);
+        $this->assertFalse(
+            $case->grantsAccessTo($this->cfh),
+            'The fallback applies only when the case would otherwise reach nobody.',
+        );
+    }
+
     public function test_an_authenticated_anonymous_report_still_stores_no_identity(): void
     {
         $this->actingAs($this->outsider)

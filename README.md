@@ -179,6 +179,15 @@ directly in `CaseConfidentialityTest`. This is required for whistleblowing
 integrity, not an oversight. Access is granted only by someone already on the
 case, and both the grant and every file open are written to the audit trail.
 
+An allowlist is never allowed to end up **empty**, though — that is not maximal
+confidentiality, it is a report nobody can action. A case that names no lead and
+no members (a public Speak-Up report) falls back to the tenant's intake roles
+(`settings.cases.intake_allowlist_roles`, default `Control Function Head`), then
+to anyone holding `investigate cases`; an installation with neither still saves
+the disclosure but logs the misconfiguration at critical. The allowlist is
+notified on intake with the case reference only — a title can name a subject, and
+email is a less controlled channel than the case file.
+
 ## Audit trail
 
 Immutable, append-only `audit_trails` table (updates/deletes throw). Opt any model
@@ -600,6 +609,7 @@ no revision.
 - **Complaint penalty exposure** — `ComplaintService::penaltyExposure()` from the obligation records' `penalty_amount_minor` / `penalty_basis`; part weeks round up
 - **Incident closure gate** — `IncidentService::close()`: no open mandatory action, no outstanding notification
 - **Case allowlist, no admin bypass** — `InvestigationCase`'s `allowlist` global scope + `InvestigationCasePolicy::grantsAccessTo()`
+- **An intake that names nobody still reaches someone** — `CaseService::intakeAllowlist()`; roles from `tenants.settings['cases']`
 - **Case anonymity** — `InvestigationCase::auditsAnonymously()` and a SHA-256 reporter token; there is deliberately no method that turns a case back into a person
 - **Complaint resolution window, incident event map** — `tenants.settings['complaints']` / `['incidents']`, defaults in the respective services
 
