@@ -21,6 +21,12 @@ const LINKABLE_TYPES = [
     ['document', 'Document'],
     ['improvement', 'Improvement'],
     ['process', 'Process'],
+    // Phase 11 nodes. A case only resolves for someone on its allowlist —
+    // to anyone else it renders as an unavailable node with no route.
+    ['policy', 'Policy'],
+    ['incident', 'Incident'],
+    ['complaint', 'Complaint'],
+    ['case', 'Case'],
 ];
 
 /**

@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\CompensatingControl;
 use App\Models\Control;
 use App\Models\ControlException;
+use App\Models\InvestigationCase;
 use App\Models\SsoConfiguration;
 use App\Models\TenantBranding;
 use App\Models\TestInstance;
@@ -15,6 +16,7 @@ use App\Policies\SsoConfigurationPolicy;
 use App\Policies\TestInstancePolicy;
 use App\Services\FeatureService;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
@@ -40,6 +42,14 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ControlException::class, ExceptionPolicy::class);
         Gate::policy(CompensatingControl::class, CompensatingControlPolicy::class);
         Gate::policy(SsoConfiguration::class, SsoConfigurationPolicy::class);
+
+        // Cases resolve without the allowlist scope so the *policy* is what
+        // denies a non-member, giving an explicit 403 rather than a 404 that
+        // could be mistaken for a deleted record. Tenant scoping still
+        // applies, so another tenant's case remains simply not found.
+        Route::bind('case', fn ($value) => InvestigationCase::withoutGlobalScope('allowlist')
+            ->where('id', $value)
+            ->firstOrFail());
 
         Vite::prefetch(concurrency: 3);
 

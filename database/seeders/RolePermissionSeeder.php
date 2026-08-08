@@ -53,6 +53,15 @@ class RolePermissionSeeder extends Seeder
             'view treatments', 'create treatments', 'approve treatments', 'verify treatments',
             'view metrics', 'manage metrics', 'capture metrics', 'acknowledge breaches',
             'manage linkage',
+            // Policy, incident, complaints & case management (Phase 11)
+            'view policies', 'create policies', 'approve policies', 'publish policies',
+            'request policy-exceptions', 'approve policy-exceptions',
+            'view incidents', 'create incidents', 'investigate incidents', 'close incidents',
+            'notify regulators',
+            'view complaints', 'create complaints', 'handle complaints', 'close complaints',
+            'export complaint-returns',
+            'view cases', 'create cases', 'investigate cases', 'close cases',
+            'view privileged-notes', 'report cases',
         ];
 
         foreach ($permissions as $permission) {
@@ -94,6 +103,15 @@ class RolePermissionSeeder extends Seeder
             'view treatments', 'create treatments',
             'view metrics', 'manage metrics', 'capture metrics', 'acknowledge breaches',
             'manage linkage',
+            // Second line authors policy and runs incident, complaint and
+            // case handling; publishing a policy and closing an incident or
+            // complaint stay with the Control Function Head. Case permissions
+            // are necessary but never sufficient — the allowlist still gates
+            // every individual case (11.4).
+            'view policies', 'create policies', 'request policy-exceptions',
+            'view incidents', 'create incidents', 'investigate incidents', 'notify regulators',
+            'view complaints', 'create complaints', 'handle complaints', 'export complaint-returns',
+            'view cases', 'create cases', 'investigate cases',
         ]);
 
         Role::findOrCreate('Control Owner', 'web')->syncPermissions([
@@ -105,6 +123,11 @@ class RolePermissionSeeder extends Seeder
             'view documents', 'view improvements', 'create improvements',
             'view treatments', 'create treatments',
             'view metrics', 'capture metrics',
+            // First line reads policy, asks for waivers, and reports what
+            // went wrong — reporting an incident is never gated on seniority.
+            'view policies', 'request policy-exceptions',
+            'view incidents', 'create incidents',
+            'view complaints', 'create complaints',
         ]);
 
         Role::findOrCreate('Line Manager', 'web')->syncPermissions([
@@ -114,6 +137,8 @@ class RolePermissionSeeder extends Seeder
             'view distributions', 'respond campaigns',
             'view documents', 'view improvements',
             'view appetite', 'view treatments', 'view metrics',
+            'view policies', 'request policy-exceptions',
+            'view incidents', 'create incidents', 'view complaints',
         ]);
 
         Role::findOrCreate('Executive Viewer', 'web')->syncPermissions([
@@ -126,6 +151,12 @@ class RolePermissionSeeder extends Seeder
             // register and approves the statement, but authors nothing.
             'view appetite', 'approve appetite',
             'view treatments', 'view metrics',
+            // The board tier reads policy and the incident/complaint position,
+            // and takes the aggregate case extract. It never gets case detail:
+            // 'report cases' returns counts and outcomes only, and 'view cases'
+            // still yields nothing without allowlist membership (11.4).
+            'view policies', 'view incidents', 'view complaints',
+            'view cases', 'report cases',
         ]);
     }
 }

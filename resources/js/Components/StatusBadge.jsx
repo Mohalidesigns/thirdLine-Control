@@ -63,6 +63,25 @@ const STATUS_CLASSES = {
     'Impact Assessed': 'badge-status-pending',
     Actioned: 'badge-status-completed',
     'Not Applicable': 'badge-status-draft',
+    // Policy, incident, complaints & cases (Phase 11)
+    'Under Revision': 'badge-status-pending',
+    Requested: 'badge-status-pending',
+    Revoked: 'badge-status-draft',
+    Reported: 'badge-status-overdue',
+    Triaged: 'badge-status-pending',
+    'Under Investigation': 'badge-status-pending',
+    Contained: 'badge-status-pending',
+    Received: 'badge-status-overdue',
+    Acknowledged: 'badge-status-pending',
+    'Awaiting Customer': 'badge-status-draft',
+    Resolved: 'badge-status-completed',
+    'Escalated to Regulator': 'badge-critical',
+    Assessed: 'badge-status-pending',
+    Substantiated: 'badge-critical',
+    Unsubstantiated: 'badge-status-completed',
+    Referred: 'badge-high',
+    Notified: 'badge-status-completed',
+    'Not Required': 'badge-status-draft',
 };
 
 export default function StatusBadge({ status, className = '' }) {
