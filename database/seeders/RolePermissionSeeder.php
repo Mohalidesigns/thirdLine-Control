@@ -68,6 +68,11 @@ class RolePermissionSeeder extends Seeder
             'view monitoring', 'manage monitoring-rules', 'approve monitoring-rules',
             'review monitoring-findings',
             'view sod', 'manage sod-rules', 'accept sod-violations',
+            // Dashboards, reporting & regulatory submissions (Phase 13)
+            'manage dashboards', 'publish dashboards',
+            'design reports', 'approve report-definitions', 'schedule reports',
+            'view submissions', 'generate submissions', 'review submissions',
+            'approve submissions', 'file submissions',
         ];
 
         foreach ($permissions as $permission) {
@@ -132,6 +137,13 @@ class RolePermissionSeeder extends Seeder
             'view data-sources',
             'view monitoring', 'manage monitoring-rules', 'review monitoring-findings',
             'view sod', 'manage sod-rules',
+            // Second line composes dashboards and designs reports, and both
+            // generates and reviews regulatory submission packs — but never
+            // the same pack twice: approving and filing stay with the Control
+            // Function Head, and the service refuses a second act by the same
+            // person regardless of role (R2).
+            'manage dashboards', 'design reports', 'schedule reports',
+            'view submissions', 'generate submissions', 'review submissions',
         ]);
 
         Role::findOrCreate('Control Owner', 'web')->syncPermissions([
@@ -151,6 +163,9 @@ class RolePermissionSeeder extends Seeder
             // A control owner sees the continuous results on their own
             // controls; reviewing a finding is a second-line decision.
             'view monitoring',
+            // A private board of one's own controls and actions. Sharing it
+            // any wider needs 'publish dashboards', which this role lacks.
+            'manage dashboards',
         ]);
 
         Role::findOrCreate('Line Manager', 'web')->syncPermissions([
@@ -163,6 +178,7 @@ class RolePermissionSeeder extends Seeder
             'view policies', 'request policy-exceptions',
             'view incidents', 'create incidents', 'view complaints',
             'view monitoring', 'view sod',
+            'manage dashboards',
         ]);
 
         Role::findOrCreate('Executive Viewer', 'web')->syncPermissions([
@@ -184,6 +200,10 @@ class RolePermissionSeeder extends Seeder
             // The board tier reads the monitoring position — coverage, open
             // findings, SoD exposure — and authors none of it.
             'view monitoring', 'view sod',
+            // The board reads what was filed with the regulator and keeps a
+            // private board of its own. It never generates, approves or
+            // files a submission — that is management's act, not the board's.
+            'manage dashboards', 'view submissions',
         ]);
     }
 }

@@ -183,6 +183,22 @@ class NotificationEventSeeder extends Seeder
             'default_channels' => ['in_app', 'email'],
             'is_user_configurable' => false,
         ],
+        [
+            'key' => 'report.ready',
+            'label' => 'Scheduled report ready',
+            'description' => 'A report you are a distribution recipient of has been generated and is available to download.',
+            'category' => 'reporting',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => true,
+        ],
+        [
+            'key' => 'submission.awaiting-action',
+            'label' => 'Regulatory submission needs you',
+            'description' => 'A submission pack is waiting for your review, approval or filing before its deadline.',
+            'category' => 'submissions',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => false,
+        ],
     ];
 
     public function run(): void

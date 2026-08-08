@@ -51,6 +51,10 @@ class FeatureFlagSeeder extends Seeder
         'data-sources' => 'Connector framework and data source registration with encrypted credentials and a circuit breaker',
         'continuous-monitoring' => 'Rule engine, scheduled runs, findings review and the CCM dashboard',
         'sod-analysis' => 'Segregation-of-duties conflict matrix and violation management over entitlement extracts',
+        // Phase 13 — dashboards, analytics & reporting v2
+        'dashboard-builder' => 'Configurable dashboards with a widget palette, drag-and-drop layout and org-tree rollup',
+        'report-designer' => 'Report definitions, section designer, PDF/Word/Excel/PowerPoint output and scheduled distribution',
+        'submission-packs' => 'Regulator-shaped submission pack generation with completeness scoring and maker-checker filing',
     ];
 
     public function run(): void

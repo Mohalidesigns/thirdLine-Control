@@ -33,8 +33,18 @@ class HeatmapService
         $impact = $this->axis($tenantId, 'impact');
         $colours = $this->assessments->bandColours($tenantId);
 
+        // Band resolution is memoised by SCORE for the length of this build.
+        // A 5×5 grid has at most 25 distinct scores, so the number of band
+        // lookups is bounded by the grid rather than by the size of the
+        // register — which is what stops a dashboard heatmap issuing a query
+        // per risk on a full register (R6).
+        $bandMemo = [];
+        $bandFor = function (float $score) use (&$bandMemo, $tenantId): string {
+            return $bandMemo[(string) $score] ??= $this->assessments->bandFor($score, $tenantId);
+        };
+
         $risks = $this->risks($tenantId, $filters);
-        $plotted = $risks->map(fn (Risk $risk) => $this->plot($risk, $view, $tenantId))->filter();
+        $plotted = $risks->map(fn (Risk $risk) => $this->plot($risk, $view, $tenantId, $bandFor))->filter();
 
         $cells = [];
 
@@ -44,7 +54,7 @@ class HeatmapService
                     && $point['impact'] === $impactLevel['level']);
 
                 $score = $likelihoodLevel['level'] * $impactLevel['level'];
-                $band = $this->assessments->bandFor($score, $tenantId);
+                $band = $bandFor((float) $score);
 
                 $cells[] = [
                     'likelihood' => $likelihoodLevel['level'],
@@ -168,8 +178,10 @@ class HeatmapService
     }
 
     /** @return array<string, mixed>|null */
-    private function plot(Risk $risk, string $view, int $tenantId): ?array
+    private function plot(Risk $risk, string $view, int $tenantId, ?callable $bandFor = null): ?array
     {
+        $bandFor ??= fn (float $score): string => $this->assessments->bandFor($score, $tenantId);
+
         [$likelihood, $impact, $score] = match ($view) {
             'inherent' => [$risk->inherent_likelihood, $risk->inherent_impact, (float) $risk->inherent_rating],
             'target' => [$risk->target_likelihood, $risk->target_impact, (float) $risk->target_rating],
@@ -191,7 +203,7 @@ class HeatmapService
             'likelihood' => (int) $likelihood,
             'impact' => (int) $impact,
             'score' => round((float) $score, 2),
-            'band' => $risk->current_rating_band ?? $this->assessments->bandFor((float) $score, $tenantId),
+            'band' => $risk->current_rating_band ?? $bandFor((float) $score),
             'appetite_breached' => (bool) $risk->appetite_breached,
             'financial_impact_minor' => $risk->financial_impact_minor,
             'currency' => $risk->loss_currency,

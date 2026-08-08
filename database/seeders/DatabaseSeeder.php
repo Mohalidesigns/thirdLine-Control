@@ -47,6 +47,13 @@ class DatabaseSeeder extends Seeder
             // Phase 12 rules point at the controls seeded above and write
             // real snapshots, so it runs last.
             Phase12DemoSeeder::class,
+            // Phase 13: the shipped dashboards and report definitions are
+            // reference data, but their widgets and sections name live
+            // datasets, so they seed after the domain data they describe.
+            // The demo packs run last of all — they read the whole dataset.
+            SystemDashboardSeeder::class,
+            ReportDefinitionSeeder::class,
+            Phase13DemoSeeder::class,
         ]);
     }
 }

@@ -35,3 +35,9 @@ Schedule::command('atheris:refresh-governance-clocks')->hourly();
 Schedule::command('atheris:sync-data-sources')->dailyAt('04:00')->withoutOverlapping();
 Schedule::command('atheris:run-monitoring-rules --no-capture')->dailyAt('04:30')->withoutOverlapping();
 Schedule::command('atheris:purge-snapshots')->dailyAt('05:30');
+
+// Phase 13 — scheduled reporting. Every fifteen minutes rather than nightly,
+// because a schedule carries its own cron and its own timezone: a board pack
+// due at 06:45 Lagos and a group return due at 06:45 London are different
+// moments, and a once-a-night sweep would file both late.
+Schedule::command('reports:run-scheduled')->everyFifteenMinutes()->withoutOverlapping();

@@ -26,6 +26,60 @@
 
     --sidebar-width: 260px;
     --sidebar-collapsed-width: 72px;
+
+    /* ── Chart palette (Phase 13) ──────────────────────────────────────
+       Validated for colour-vision separation against the AEGIS card
+       surface (#FFFFFF): worst adjacent pair ΔE 9.1 under protanopia and
+       19.6 unsimulated — both above the gates. The ORDER is the safety
+       mechanism, not decoration: slots are assigned in sequence and never
+       cycled, and colour follows the series, never its rank.
+
+       Three slots (3, 4, 5) sit below 3:1 contrast on white. That is legal
+       here only because every chart in this product ships a table view and
+       direct labels — the relief is a requirement, not a nicety.
+
+       config/charts.php mirrors these values for dompdf, PhpWord and the
+       PowerPoint writer, which cannot read CSS. Change one, change both. */
+    --chart-1: #2A78D6;
+    --chart-2: #EB6834;
+    --chart-3: #1BAF7A;
+    --chart-4: #EDA100;
+    --chart-5: #E87BA4;
+    --chart-6: #008300;
+    --chart-7: #4A3AA7;
+    --chart-8: #E34948;
+
+    /* One hue, light → dark. Magnitude only, never identity. */
+    --chart-seq-1: #CDE2FB;
+    --chart-seq-2: #9EC5F4;
+    --chart-seq-3: #6DA7EC;
+    --chart-seq-4: #3987E5;
+    --chart-seq-5: #256ABF;
+    --chart-seq-6: #184F95;
+    --chart-seq-7: #0D366B;
+
+    /* Ordered buckets (ageing bands, tiers). The light end still clears 2:1. */
+    --chart-ord-1: #86B6EF;
+    --chart-ord-2: #5598E7;
+    --chart-ord-3: #2A78D6;
+    --chart-ord-4: #1C5CAB;
+    --chart-ord-5: #104281;
+
+    /* Reserved state scale. Never used for series identity, and never
+       carried by colour alone — every status mark ships with its label. */
+    --chart-good: #0CA30C;
+    --chart-warning: #FAB219;
+    --chart-serious: #EC835A;
+    --chart-critical: #D03B3B;
+    --chart-muted: #A0AEC0;
+
+    /* Chrome. Gridlines are solid hairlines one step off the surface —
+       never dashed, which reads as "threshold" when it is just a grid. */
+    --chart-surface: #FFFFFF;
+    --chart-grid: #E2E8F0;
+    --chart-axis: #CBD5E0;
+    --chart-ink: #2D3748;
+    --chart-ink-muted: #718096;
 }
 
 body {
@@ -178,6 +232,21 @@ body {
     }
     .progress-bar-fill {
         @apply h-full rounded-full transition-all duration-500;
+    }
+}
+
+/* Dashboard grid (Phase 13). The column span is data — it comes off the
+   widget — so it arrives as a custom property rather than a class, and it
+   only takes effect from the large breakpoint up. Below that every tile is
+   full width: a "quarter width" tile on a 375px phone is four characters
+   per line, which is how a dashboard becomes unreadable on the device most
+   of its users actually hold (R6). */
+.dash-tile {
+    grid-column: span 1 / span 1;
+}
+@media (min-width: 1024px) {
+    .dash-tile {
+        grid-column: span var(--tile-span, 4) / span var(--tile-span, 4);
     }
 }
 

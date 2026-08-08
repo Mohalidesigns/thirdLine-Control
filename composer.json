@@ -14,6 +14,7 @@
         "laravel/tinker": "^3.0",
         "onelogin/php-saml": "^4.3",
         "phpoffice/phpspreadsheet": "^5.9",
+        "phpoffice/phpword": "^1.4",
         "pragmarx/google2fa": "^9.0",
         "spatie/laravel-permission": "^8.3",
         "tightenco/ziggy": "^2.6"

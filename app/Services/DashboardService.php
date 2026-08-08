@@ -7,6 +7,7 @@ use App\Models\ControlException;
 use App\Models\EffectivenessRating;
 use App\Models\Risk;
 use App\Models\TestInstance;
+use App\Support\SqlDialect;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -39,12 +40,17 @@ class DashboardService
             ')
             ->first();
 
+        // The overdue comparison is spelled per driver: this aggregate runs on
+        // MySQL in production and SQLite under test, and curdate() exists in
+        // only one of them.
+        $today = SqlDialect::today();
+
         $testTotals = TestInstance::query()
             ->selectRaw("
                 count(*) as total,
                 sum(case when status in ('Reviewed','Closed') then 1 else 0 end) as completed,
                 sum(case when status in ('In Progress','Submitted','Reopened') then 1 else 0 end) as in_progress,
-                sum(case when status not in ('Reviewed','Closed') and due_date < curdate() then 1 else 0 end) as overdue
+                sum(case when status not in ('Reviewed','Closed') and due_date < {$today} then 1 else 0 end) as overdue
             ")
             ->first();
 

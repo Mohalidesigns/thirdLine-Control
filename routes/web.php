@@ -14,6 +14,7 @@ use App\Http\Controllers\ControlDistributionController;
 use App\Http\Controllers\ControlRequirementMapController;
 use App\Http\Controllers\CsaCampaignController;
 use App\Http\Controllers\CsaResponseController;
+use App\Http\Controllers\DashboardBuilderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataSourceController;
 use App\Http\Controllers\DocumentController;
@@ -43,6 +44,9 @@ use App\Http\Controllers\PolicyExceptionController;
 use App\Http\Controllers\PwaController;
 use App\Http\Controllers\RegulatoryChangeController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportDefinitionController;
+use App\Http\Controllers\ReportRunController;
+use App\Http\Controllers\ReportScheduleController;
 use App\Http\Controllers\RiskAppetiteController;
 use App\Http\Controllers\RiskAssessmentController;
 use App\Http\Controllers\RiskController;
@@ -52,6 +56,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SodController;
 use App\Http\Controllers\SpotCheckController;
 use App\Http\Controllers\SsoConfigurationController;
+use App\Http\Controllers\SubmissionPackController;
 use App\Http\Controllers\TenantBrandingController;
 use App\Http\Controllers\TenantSecurityController;
 use App\Http\Controllers\TestInstanceController;
@@ -273,6 +278,91 @@ Route::middleware('auth')->group(function () {
         Route::get('testing-summary.pdf', [ReportController::class, 'testingSummaryPdf'])->name('reports.testing-summary');
         Route::get('test-instances.xlsx', [ReportController::class, 'testInstancesXlsx'])->name('reports.test-instances.xlsx');
         Route::get('board-pack', [ReportController::class, 'boardPack'])->name('reports.board-pack');
+    });
+
+    // ── Configurable dashboards (Phase 13.2) ─────────────────────────
+    Route::middleware('feature:dashboard-builder')->group(function () {
+        Route::middleware('permission:view dashboards')
+            ->get('dashboards', [DashboardController::class, 'library'])->name('dashboards.index');
+
+        // Static segments first so they are not captured as {dashboard}.
+        Route::middleware('permission:manage dashboards')->group(function () {
+            Route::get('dashboards/new', [DashboardBuilderController::class, 'create'])->name('dashboards.create');
+            Route::post('dashboards', [DashboardBuilderController::class, 'store'])->name('dashboards.store');
+        });
+
+        Route::middleware('permission:view dashboards')
+            ->get('dashboards/{dashboard}', [DashboardController::class, 'show'])->name('dashboards.show');
+
+        Route::middleware('permission:manage dashboards')->group(function () {
+            Route::get('dashboards/{dashboard}/edit', [DashboardBuilderController::class, 'edit'])->name('dashboards.edit');
+            Route::put('dashboards/{dashboard}', [DashboardBuilderController::class, 'update'])->name('dashboards.update');
+            Route::delete('dashboards/{dashboard}', [DashboardBuilderController::class, 'destroy'])->name('dashboards.destroy');
+            Route::post('dashboards/{dashboard}/duplicate', [DashboardBuilderController::class, 'duplicate'])->name('dashboards.duplicate');
+            Route::put('dashboards/{dashboard}/layout', [DashboardBuilderController::class, 'layout'])->name('dashboards.layout');
+            Route::post('dashboards/{dashboard}/widgets', [DashboardBuilderController::class, 'storeWidget'])->name('dashboards.widgets.store');
+            Route::put('dashboards/{dashboard}/widgets/{widget}', [DashboardBuilderController::class, 'updateWidget'])->name('dashboards.widgets.update');
+            Route::delete('dashboards/{dashboard}/widgets/{widget}', [DashboardBuilderController::class, 'destroyWidget'])->name('dashboards.widgets.destroy');
+        });
+    });
+
+    // ── Report designer, schedules & runs (Phase 13.3) ───────────────
+    Route::middleware('feature:report-designer')->group(function () {
+        Route::middleware('permission:export reports')->group(function () {
+            Route::get('report-library', [ReportDefinitionController::class, 'index'])->name('reports.library');
+            Route::get('report-library/{definition}', [ReportDefinitionController::class, 'show'])->name('reports.definitions.show');
+            Route::post('report-library/{definition}/run', [ReportRunController::class, 'store'])->name('reports.definitions.run');
+            Route::get('report-runs', [ReportRunController::class, 'index'])->name('reports.runs');
+            Route::get('report-runs/{run}/download', [ReportRunController::class, 'download'])->name('reports.runs.download');
+        });
+
+        Route::middleware('permission:design reports')->group(function () {
+            Route::get('report-designer/new', [ReportDefinitionController::class, 'create'])->name('reports.definitions.create');
+            Route::post('report-designer', [ReportDefinitionController::class, 'store'])->name('reports.definitions.store');
+            Route::get('report-designer/{definition}', [ReportDefinitionController::class, 'edit'])->name('reports.definitions.edit');
+            Route::put('report-designer/{definition}', [ReportDefinitionController::class, 'update'])->name('reports.definitions.update');
+            Route::delete('report-designer/{definition}', [ReportDefinitionController::class, 'destroy'])->name('reports.definitions.destroy');
+        });
+
+        Route::middleware('permission:approve report-definitions')
+            ->post('report-designer/{definition}/approve', [ReportDefinitionController::class, 'approve'])
+            ->name('reports.definitions.approve');
+
+        Route::middleware('permission:schedule reports')->group(function () {
+            Route::get('report-schedules', [ReportScheduleController::class, 'index'])->name('reports.schedules');
+            Route::post('report-schedules', [ReportScheduleController::class, 'store'])->name('reports.schedules.store');
+            Route::put('report-schedules/{schedule}', [ReportScheduleController::class, 'update'])->name('reports.schedules.update');
+            Route::delete('report-schedules/{schedule}', [ReportScheduleController::class, 'destroy'])->name('reports.schedules.destroy');
+            Route::post('report-schedules/{schedule}/run-now', [ReportScheduleController::class, 'runNow'])->name('reports.schedules.run-now');
+        });
+    });
+
+    // ── Regulatory submission packs (Phase 13.4) ─────────────────────
+    Route::middleware('feature:submission-packs')->group(function () {
+        Route::middleware('permission:view submissions')->group(function () {
+            Route::get('submissions', [SubmissionPackController::class, 'index'])->name('submissions.index');
+            Route::get('submissions/{pack}', [SubmissionPackController::class, 'show'])->name('submissions.show');
+            Route::get('submissions/{pack}/document', [SubmissionPackController::class, 'download'])->name('submissions.download');
+        });
+
+        Route::middleware('permission:generate submissions')->group(function () {
+            Route::post('submissions', [SubmissionPackController::class, 'store'])->name('submissions.store');
+            Route::put('submissions/{pack}', [SubmissionPackController::class, 'update'])->name('submissions.update');
+            Route::post('submissions/{pack}/regenerate', [SubmissionPackController::class, 'regenerate'])->name('submissions.regenerate');
+            Route::post('submissions/{pack}/send-for-review', [SubmissionPackController::class, 'sendForReview'])->name('submissions.send-for-review');
+        });
+
+        Route::middleware('permission:review submissions')
+            ->post('submissions/{pack}/review', [SubmissionPackController::class, 'review'])->name('submissions.review');
+
+        Route::middleware('permission:approve submissions')
+            ->post('submissions/{pack}/approve', [SubmissionPackController::class, 'approve'])->name('submissions.approve');
+
+        Route::middleware('permission:file submissions')->group(function () {
+            Route::post('submissions/{pack}/file', [SubmissionPackController::class, 'file'])->name('submissions.file');
+            Route::post('submissions/{pack}/acknowledge', [SubmissionPackController::class, 'acknowledge'])->name('submissions.acknowledge');
+            Route::post('submissions/{pack}/reject', [SubmissionPackController::class, 'reject'])->name('submissions.reject');
+        });
     });
 
     // ── Frameworks & requirement mapping (Phase 8) ───────────────────

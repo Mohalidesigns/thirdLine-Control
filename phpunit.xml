@@ -18,6 +18,11 @@
         </include>
     </source>
     <php>
+        <!-- Rendering a full board pack through dompdf is genuinely memory
+             hungry, and the report suite renders every shipped report in
+             every format it publishes in one process. Production runs these
+             on a worker sized the same way. -->
+        <ini name="memory_limit" value="512M"/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
