@@ -25,6 +25,8 @@ export default function ControlForm({
     natures = [],
     frequencies = [],
     cosoComponents = [],
+    functionGroupings = [],
+    controlLevels = [],
     requireChangeReason = false,
 }) {
     const { data, setData, processing, errors } = form;
@@ -123,6 +125,45 @@ export default function ControlForm({
                             <InputError message={errors.frequency} className="mt-1" />
                         </div>
                     </div>
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        <div>
+                            <InputLabel htmlFor="library_level" value="Library Level" />
+                            <SelectInput id="library_level" value={data.library_level ?? 'entity'} onChange={(e) => setData('library_level', e.target.value)}>
+                                <option value="entity">Entity control</option>
+                                <option value="group">Group control (master)</option>
+                            </SelectInput>
+                            <InputError message={errors.library_level} className="mt-1" />
+                        </div>
+                        <div>
+                            <InputLabel htmlFor="function_grouping" value="Function Grouping" />
+                            <SelectInput id="function_grouping" value={data.function_grouping ?? ''} onChange={(e) => setData('function_grouping', e.target.value || null)}>
+                                <option value="">Select function…</option>
+                                {functionGroupings.map((g) => <option key={g} value={g}>{g}</option>)}
+                            </SelectInput>
+                            <InputError message={errors.function_grouping} className="mt-1" />
+                        </div>
+                        <div>
+                            <InputLabel htmlFor="control_level" value="Control Level" />
+                            <SelectInput id="control_level" value={data.control_level ?? ''} onChange={(e) => setData('control_level', e.target.value || null)}>
+                                <option value="">Select level…</option>
+                                {controlLevels.map((l) => <option key={l} value={l}>{l}</option>)}
+                            </SelectInput>
+                            <InputError message={errors.control_level} className="mt-1" />
+                        </div>
+                    </div>
+
+                    {data.library_level === 'group' && (
+                        <label className="flex items-center gap-2">
+                            <Checkbox
+                                checked={!!data.is_distributable}
+                                onChange={(e) => setData('is_distributable', e.target.checked)}
+                            />
+                            <span className="text-sm text-[var(--color-text-primary)]">
+                                Distributable — entities receive their own instance of this control
+                            </span>
+                        </label>
+                    )}
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>

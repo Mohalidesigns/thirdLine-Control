@@ -26,6 +26,14 @@ class FeatureFlagSeeder extends Seeder
         'obligations' => 'Regulatory obligation register and compliance calendar',
         'regulatory-changes' => 'Regulator publication feed and impact-assessment workflow',
         'content-packs' => 'Versioned regulatory content pack installation',
+        // Phase 9 — control library v2, CSA & surveys
+        'control-distribution' => 'Group→entity control distribution with implementation tracking',
+        'csa' => 'Control self-assessment campaigns with questionnaires and reviewer workflow',
+        'surveys' => 'General survey engine with anonymous response support',
+        'attestations' => 'Policy and code-of-conduct attestation campaigns',
+        'documents' => 'Document management with folders, versioning and maker-checker approval',
+        'improvements' => 'Improvement action database across all sources',
+        'bulk-import' => 'Bulk Excel import with dry-run validation',
     ];
 
     public function run(): void

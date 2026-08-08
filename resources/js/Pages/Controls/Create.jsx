@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
 import ControlForm from './Form';
 
-export default function Create({ nextRef, categories, processes, units, users, types, natures, frequencies, cosoComponents }) {
+export default function Create({ nextRef, categories, processes, units, users, types, natures, frequencies, cosoComponents, functionGroupings, controlLevels }) {
     const form = useForm({
         title: '',
         objective: '',
@@ -13,6 +13,10 @@ export default function Create({ nextRef, categories, processes, units, users, t
         frequency: 'Monthly',
         test_frequency: null,
         is_key_control: false,
+        library_level: 'entity',
+        function_grouping: null,
+        control_level: null,
+        is_distributable: false,
         category_id: null,
         coso_component: null,
         process_id: null,
@@ -41,7 +45,7 @@ export default function Create({ nextRef, categories, processes, units, users, t
                 onSubmit={submit}
                 submitLabel="Create Control"
                 controlRef={nextRef}
-                {...{ categories, processes, units, users, types, natures, frequencies, cosoComponents }}
+                {...{ categories, processes, units, users, types, natures, frequencies, cosoComponents, functionGroupings, controlLevels }}
             />
         </AuthenticatedLayout>
     );

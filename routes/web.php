@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttestationController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\MfaController;
@@ -7,14 +8,20 @@ use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\CompensatingControlController;
 use App\Http\Controllers\ContentPackController;
 use App\Http\Controllers\ControlController;
+use App\Http\Controllers\ControlDistributionController;
 use App\Http\Controllers\ControlRequirementMapController;
+use App\Http\Controllers\CsaCampaignController;
+use App\Http\Controllers\CsaResponseController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EscalationMatrixController;
 use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\ExceptionController;
 use App\Http\Controllers\FeatureFlagController;
 use App\Http\Controllers\FrameworkController;
 use App\Http\Controllers\FrameworkRequirementController;
+use App\Http\Controllers\ImportController;
+use App\Http\Controllers\ImprovementActionController;
 use App\Http\Controllers\IntegrationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
@@ -33,6 +40,7 @@ use App\Http\Controllers\TenantBrandingController;
 use App\Http\Controllers\TenantSecurityController;
 use App\Http\Controllers\TestInstanceController;
 use App\Http\Controllers\TestScriptController;
+use App\Http\Controllers\VersionController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
@@ -86,6 +94,20 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:System Administrator|Control Function Head|Control Officer')->group(function () {
         Route::get('controls/templates', [ControlController::class, 'templates'])->name('controls.templates');
         Route::post('controls/templates/{template}/adopt', [ControlController::class, 'adopt'])->name('controls.adopt');
+    });
+
+    // ── Control distribution (Phase 9.1/9.2) — before the resource so
+    // 'distribution' isn't captured as a {control}.
+    Route::middleware('feature:control-distribution')->group(function () {
+        Route::get('controls/distribution', [ControlDistributionController::class, 'index'])->name('distributions.index');
+        Route::get('distributions/{distribution}', [ControlDistributionController::class, 'show'])->name('distributions.show');
+        Route::post('controls/{control}/distribute', [ControlDistributionController::class, 'store'])->name('controls.distribute');
+        Route::post('distributions/{distribution}/acknowledge', [ControlDistributionController::class, 'acknowledge'])->name('distributions.acknowledge');
+        Route::put('distributions/{distribution}/tasks/{task}', [ControlDistributionController::class, 'updateTask'])->name('distributions.tasks.update');
+        Route::post('distributions/{distribution}/request-decline', [ControlDistributionController::class, 'requestDecline'])->name('distributions.request-decline');
+        Route::post('distributions/{distribution}/decide-decline', [ControlDistributionController::class, 'decideDecline'])->name('distributions.decide-decline');
+        Route::post('controls/{control}/propagation-preview', [ControlDistributionController::class, 'propagationPreview'])->name('controls.propagation-preview');
+        Route::post('controls/{control}/propagate', [ControlDistributionController::class, 'propagate'])->name('controls.propagate');
     });
 
     Route::resource('controls', ControlController::class);
@@ -215,6 +237,54 @@ Route::middleware('auth')->group(function () {
             ->name('obligation-assignments.approve-non-applicability');
     });
 
+    // ── CSA, surveys & attestation campaigns (Phase 9.3–9.5) ─────────
+    Route::middleware('feature:csa')->group(function () {
+        Route::get('csa/my-responses', [CsaResponseController::class, 'index'])->name('csa-responses.mine');
+        Route::resource('csa-campaigns', CsaCampaignController::class)->only(['index', 'create', 'store', 'show']);
+        Route::put('csa-campaigns/{csa_campaign}/questions', [CsaCampaignController::class, 'syncQuestions'])->name('csa-campaigns.questions');
+        Route::post('csa-campaigns/{csa_campaign}/approve', [CsaCampaignController::class, 'approve'])->name('csa-campaigns.approve');
+        Route::post('csa-campaigns/{csa_campaign}/open', [CsaCampaignController::class, 'open'])->name('csa-campaigns.open');
+        Route::post('csa-campaigns/{csa_campaign}/close', [CsaCampaignController::class, 'close'])->name('csa-campaigns.close');
+
+        Route::get('csa-responses/{response}', [CsaResponseController::class, 'show'])->name('csa-responses.show');
+        Route::post('csa-responses/{response}/answers', [CsaResponseController::class, 'save'])->name('csa-responses.answers');
+        Route::post('csa-responses/{response}/review', [CsaResponseController::class, 'review'])->name('csa-responses.review');
+        Route::post('csa-responses/{response}/approve-rating', [CsaResponseController::class, 'approveRating'])->name('csa-responses.approve-rating');
+    });
+
+    Route::middleware('feature:surveys')
+        ->post('surveys/{campaign}/respond-anonymously', [CsaResponseController::class, 'submitAnonymous'])
+        ->name('surveys.respond-anonymously');
+
+    // ── Improvement database (Phase 9.9)
+    Route::middleware('feature:improvements')->group(function () {
+        Route::get('improvements', [ImprovementActionController::class, 'index'])->name('improvements.index');
+        Route::post('improvements', [ImprovementActionController::class, 'store'])->name('improvements.store');
+        Route::post('improvements/{improvement}/decide', [ImprovementActionController::class, 'decide'])->name('improvements.decide');
+        Route::post('improvements/{improvement}/progress', [ImprovementActionController::class, 'progress'])->name('improvements.progress');
+        Route::post('improvements/{improvement}/verify', [ImprovementActionController::class, 'verify'])->name('improvements.verify');
+    });
+
+    // ── Document management (Phase 9.6)
+    Route::middleware('feature:documents')->group(function () {
+        Route::get('documents', [DocumentController::class, 'index'])->name('documents.index');
+        Route::post('documents', [DocumentController::class, 'store'])->name('documents.store');
+        Route::post('document-folders', [DocumentController::class, 'storeFolder'])->name('document-folders.store');
+        Route::get('documents/{document}', [DocumentController::class, 'show'])->name('documents.show');
+        Route::post('documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
+        Route::post('documents/{document}/submit', [DocumentController::class, 'submit'])->name('documents.submit');
+        Route::post('documents/{document}/approve', [DocumentController::class, 'approve'])->name('documents.approve');
+        Route::post('documents/{document}/reject', [DocumentController::class, 'reject'])->name('documents.reject');
+        Route::post('documents/{document}/publish', [DocumentController::class, 'publish'])->name('documents.publish');
+        Route::get('documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
+    });
+
+    // ── Attestations (Phase 9.5)
+    Route::middleware('feature:attestations')->group(function () {
+        Route::get('attestations', [AttestationController::class, 'index'])->name('attestations.index');
+        Route::post('attestations/{campaign}', [AttestationController::class, 'store'])->name('attestations.store');
+    });
+
     // ── Regulatory change feed (Phase 8) ─────────────────────────────
     Route::middleware('feature:regulatory-changes')->group(function () {
         Route::get('regulatory-changes', [RegulatoryChangeController::class, 'index'])->name('regulatory-changes.index');
@@ -248,6 +318,9 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['feature:global-search', 'throttle:60,1'])
         ->get('search', SearchController::class)
         ->name('search');
+
+    // ── Version comparison (Phase 9.8) — access mirrors the record's policy
+    Route::get('versions/{alias}/{id}/diff', [VersionController::class, 'diff'])->name('versions.diff');
 
     // ── Record activity history (Phase 7.5) — access mirrors the record's policy
     Route::middleware('feature:audit-log-ui')
@@ -302,6 +375,14 @@ Route::middleware('auth')->group(function () {
                 Route::post('content-packs/preview', [ContentPackController::class, 'preview'])->name('admin.content-packs.preview');
                 Route::post('content-packs/install', [ContentPackController::class, 'install'])->name('admin.content-packs.install');
             });
+        });
+
+        // Bulk Excel import (Phase 9.7) — dry-run first, all-or-nothing write.
+        Route::middleware(['permission:import data', 'feature:bulk-import'])->group(function () {
+            Route::get('import', [ImportController::class, 'index'])->name('admin.import');
+            Route::get('import/{resource}/template', [ImportController::class, 'template'])->name('admin.import.template');
+            Route::post('import/{resource}/dry-run', [ImportController::class, 'dryRun'])->name('admin.import.dry-run');
+            Route::post('import/{resource}', [ImportController::class, 'store'])->name('admin.import.store');
         });
 
         Route::get('integrations', [IntegrationController::class, 'index'])->name('admin.integrations');

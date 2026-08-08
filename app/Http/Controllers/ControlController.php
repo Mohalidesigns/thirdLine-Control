@@ -6,6 +6,7 @@ use App\Http\Requests\ControlRequest;
 use App\Models\BusinessProcess;
 use App\Models\Control;
 use App\Models\ControlCategory;
+use App\Models\ImprovementAction;
 use App\Models\OrganisationUnit;
 use App\Models\User;
 use App\Services\ControlService;
@@ -26,6 +27,7 @@ class ControlController extends Controller
         $query = Control::query()
             ->where('is_template', false)
             ->with(['category', 'process', 'unit', 'owner'])
+            ->withCount('entityInstances')
             ->when($request->search, fn ($q, $s) => $q->where(fn ($w) => $w
                 ->where('title', 'like', "%{$s}%")
                 ->orWhere('control_ref', 'like', "%{$s}%")))
@@ -35,7 +37,11 @@ class ControlController extends Controller
             ->when($request->design, fn ($q, $d) => $q->where('design_effectiveness', $d))
             ->when($request->operating, fn ($q, $o) => $q->where('operating_effectiveness', $o))
             ->when($request->category_id, fn ($q, $c) => $q->where('category_id', $c))
-            ->when($request->unit_id, fn ($q, $u) => $q->where('unit_id', $u));
+            ->when($request->unit_id, fn ($q, $u) => $q->where('unit_id', $u))
+            ->when($request->library_level, fn ($q, $l) => $q->where('library_level', $l))
+            ->when($request->function_grouping, fn ($q, $g) => $q->where('function_grouping', $g))
+            ->when($request->control_level, fn ($q, $l) => $q->where('control_level', $l))
+            ->when($request->implementation_status, fn ($q, $s) => $q->where('implementation_status', $s));
 
         $user = $request->user();
 
@@ -47,7 +53,8 @@ class ControlController extends Controller
 
         return Inertia::render('Controls/Index', [
             'controls' => $query->orderBy('control_ref')->paginate(15)->withQueryString(),
-            'filters' => $request->only(['search', 'status', 'type', 'nature', 'design', 'operating', 'category_id', 'unit_id']),
+            'filters' => $request->only(['search', 'status', 'type', 'nature', 'design', 'operating', 'category_id', 'unit_id',
+                'library_level', 'function_grouping', 'control_level', 'implementation_status']),
             'categories' => ControlCategory::available()->orderBy('name')->get(['id', 'name']),
             'units' => OrganisationUnit::orderBy('name')->get(['id', 'name']),
             'statuses' => Control::STATUSES,
@@ -55,6 +62,9 @@ class ControlController extends Controller
             'natures' => Control::NATURES,
             'designRatings' => Control::DESIGN_RATINGS,
             'operatingRatings' => Control::OPERATING_RATINGS,
+            'functionGroupings' => Control::FUNCTION_GROUPINGS,
+            'controlLevels' => Control::CONTROL_LEVELS,
+            'implementationStatuses' => Control::IMPLEMENTATION_STATUSES,
             'stats' => [
                 'total' => (clone $statsBase)->count(),
                 'designAdequate' => (clone $statsBase)->where('design_effectiveness', 'Adequate')->count(),
@@ -100,6 +110,11 @@ class ControlController extends Controller
             'recentTests' => $control->testInstances()->with('tester')->latest('period_start')->limit(10)->get(),
             'openExceptions' => $control->exceptions()->open()->latest('date_raised')->limit(10)->get(),
             'ratings' => $control->effectivenessRatings()->where('status', 'Published')->latest('approved_at')->limit(12)->get(),
+            'improvements' => ImprovementAction::where('control_id', $control->id)
+                ->with(['owner:id,name'])
+                ->latest()
+                ->limit(10)
+                ->get(),
             'assessments' => $control->assessments()->with('assessor')->limit(24)->get(),
             'designRatings' => array_values(array_diff(Control::DESIGN_RATINGS, ['Not Assessed'])),
             'operatingRatings' => array_values(array_diff(Control::OPERATING_RATINGS, ['Not Tested'])),
@@ -228,6 +243,8 @@ class ControlController extends Controller
             'natures' => Control::NATURES,
             'frequencies' => Control::FREQUENCIES,
             'cosoComponents' => Control::COSO_COMPONENTS,
+            'functionGroupings' => Control::FUNCTION_GROUPINGS,
+            'controlLevels' => Control::CONTROL_LEVELS,
         ];
     }
 }

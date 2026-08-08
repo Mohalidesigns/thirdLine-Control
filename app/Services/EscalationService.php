@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\ControlException;
+use App\Models\CsaCampaign;
 use App\Models\EscalationEvent;
 use App\Models\EscalationMatrix;
 use App\Models\TestInstance;
@@ -40,6 +41,7 @@ class EscalationService
                             ->whereNotIn('status', ['Remediated'])
                             ->where('updated_at', '<=', now()->subDays($rule->days_threshold))),
                         'test_overdue' => $this->escalateOverdueTests($rule),
+                        'attestation_overdue' => $this->escalateOverdueAttestations($rule),
                         default => 0,
                     };
                 }
@@ -106,6 +108,62 @@ class EscalationService
         return $count;
     }
 
+    /**
+     * Overdue attestations (9.5): every user still outstanding on an
+     * attestation campaign past its close date + threshold is escalated —
+     * to themselves at tier 1 (a reminder) or up the recipient_role chain.
+     */
+    private function escalateOverdueAttestations(EscalationMatrix $rule): int
+    {
+        $count = 0;
+
+        $campaigns = CsaCampaign::withoutGlobalScopes()
+            ->where('tenant_id', $rule->tenant_id)
+            ->where('campaign_type', 'attestation')
+            ->whereIn('status', ['Open', 'Closed'])
+            ->whereNotNull('closes_at')
+            ->whereDate('closes_at', '<=', now()->subDays($rule->days_threshold))
+            ->get();
+
+        foreach ($campaigns as $campaign) {
+            foreach (app(AttestationService::class)->outstanding($campaign) as $outstanding) {
+                $subjectId = $outstanding['user']['id'] ?? null;
+
+                if (! $subjectId) {
+                    continue;
+                }
+
+                $already = EscalationEvent::withoutGlobalScopes()
+                    ->where('campaign_id', $campaign->id)
+                    ->where('subject_user_id', $subjectId)
+                    ->where('matrix_id', $rule->id)
+                    ->exists();
+
+                if ($already) {
+                    continue;
+                }
+
+                $subject = User::find($subjectId);
+
+                $recipient = match ($rule->recipient_role) {
+                    'Self' => $subject,
+                    'Line Manager' => $subject?->manager,
+                    default => $rule->recipient_user_id
+                        ? User::find($rule->recipient_user_id)
+                        : User::withoutGlobalScopes()
+                            ->where('tenant_id', $rule->tenant_id)
+                            ->role($rule->recipient_role)
+                            ->first(),
+                };
+
+                $this->fire($rule, $recipient, campaign: $campaign, subject: $subject);
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
     private function resolveRecipient(EscalationMatrix $rule, ControlException $exception): ?User
     {
         if ($rule->recipient_user_id) {
@@ -122,16 +180,26 @@ class EscalationService
         };
     }
 
-    private function fire(EscalationMatrix $rule, ?User $recipient, ?ControlException $exception = null, ?TestInstance $testInstance = null): void
-    {
-        $summary = $exception
-            ? "{$exception->reference} [{$exception->severity}] {$exception->title}"
-            : "{$testInstance->reference} overdue test — {$testInstance->control?->title}";
+    private function fire(
+        EscalationMatrix $rule,
+        ?User $recipient,
+        ?ControlException $exception = null,
+        ?TestInstance $testInstance = null,
+        ?CsaCampaign $campaign = null,
+        ?User $subject = null,
+    ): void {
+        $summary = match (true) {
+            $exception !== null => "{$exception->reference} [{$exception->severity}] {$exception->title}",
+            $testInstance !== null => "{$testInstance->reference} overdue test — {$testInstance->control?->title}",
+            default => "{$campaign->reference} attestation outstanding — {$subject?->name}",
+        };
 
         $event = EscalationEvent::create([
             'tenant_id' => $rule->tenant_id,
             'exception_id' => $exception?->id,
             'test_instance_id' => $testInstance?->id,
+            'campaign_id' => $campaign?->id,
+            'subject_user_id' => $subject?->id,
             'matrix_id' => $rule->id,
             'tier_no' => $rule->tier_no,
             'recipient_user_id' => $recipient?->id,

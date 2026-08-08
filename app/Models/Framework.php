@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenantOrGlobal;
+use App\Models\Concerns\HasVersions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Framework extends Model
 {
-    use Auditable, BelongsToTenantOrGlobal, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenantOrGlobal, HasFactory, HasVersions, SoftDeletes;
 
     public const CATEGORIES = [
         'internal_control', 'risk', 'security', 'privacy', 'governance',

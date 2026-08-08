@@ -76,6 +76,11 @@ class User extends Authenticatable
         return $this->hasMany(User::class, 'reports_to');
     }
 
+    public function csaResponses(): HasMany
+    {
+        return $this->hasMany(CsaResponse::class, 'respondent_id');
+    }
+
     /**
      * Second-line control function membership — the only users who may
      * verify and close exceptions or approve controls and ratings.

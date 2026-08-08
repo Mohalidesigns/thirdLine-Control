@@ -29,6 +29,9 @@ class DatabaseSeeder extends Seeder
             RegulatoryContentSeeder::class,
             DemoDataSeeder::class,
             ObligationDemoSeeder::class,
+            // Phase 9: distribution, CSA/survey/attestation campaigns,
+            // documents and improvements build on the demo dataset above.
+            Phase9DemoSeeder::class,
         ]);
     }
 }

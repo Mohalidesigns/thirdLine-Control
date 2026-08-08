@@ -12,7 +12,8 @@ class EscalationEvent extends Model
     use BelongsToTenant, HasFactory;
 
     protected $fillable = [
-        'tenant_id', 'exception_id', 'test_instance_id', 'matrix_id', 'tier_no',
+        'tenant_id', 'exception_id', 'test_instance_id', 'campaign_id', 'subject_user_id',
+        'matrix_id', 'tier_no',
         'recipient_user_id', 'channel', 'triggered_at', 'delivery_status', 'payload_summary',
     ];
 

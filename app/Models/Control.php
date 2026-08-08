@@ -36,6 +36,14 @@ class Control extends Model
 
     public const OVERALL_RATINGS = ['Strong', 'Moderate', 'Weak'];
 
+    public const FUNCTION_GROUPINGS = ['Identify', 'Protect', 'Detect', 'Respond', 'Recover', 'Govern'];
+
+    public const CONTROL_LEVELS = ['Strategic', 'Operational', 'Transactional'];
+
+    public const IMPLEMENTATION_STATUSES = [
+        'Not Started', 'In Progress', 'Implemented', 'Partially Implemented', 'Not Applicable',
+    ];
+
     protected $fillable = [
         'tenant_id', 'control_ref', 'external_ref', 'title', 'description', 'objective',
         'type', 'nature', 'category_id', 'coso_component', 'process_id', 'unit_id',
@@ -43,16 +51,20 @@ class Control extends Model
         'framework_refs', 'control_documentation', 'notes',
         'design_effectiveness', 'operating_effectiveness', 'overall_rating', 'last_assessed_at',
         'status', 'current_version',
+        'library_level', 'parent_control_id', 'function_grouping', 'control_level',
+        'implementation_status', 'implementation_progress', 'is_distributable',
         'is_template', 'created_by', 'approved_by', 'approved_at', 'sync_status',
     ];
 
     protected $casts = [
         'is_key_control' => 'boolean',
         'is_template' => 'boolean',
+        'is_distributable' => 'boolean',
         'framework_refs' => 'array',
         'approved_at' => 'datetime',
         'last_assessed_at' => 'datetime',
         'current_version' => 'integer',
+        'implementation_progress' => 'integer',
     ];
 
     public function category(): BelongsTo
@@ -182,5 +194,34 @@ class Control extends Model
     public function scopeOrphans(Builder $query): Builder
     {
         return $query->whereDoesntHave('risks')->where('is_template', false);
+    }
+
+    // ── Group vs entity library (Phase 9.1) ──────────────────────────
+
+    /** The group master this entity control was distributed from. */
+    public function parentControl(): BelongsTo
+    {
+        return $this->belongsTo(Control::class, 'parent_control_id');
+    }
+
+    /** Entity instances created by distributing this group control. */
+    public function entityInstances(): HasMany
+    {
+        return $this->hasMany(Control::class, 'parent_control_id');
+    }
+
+    public function distributions(): HasMany
+    {
+        return $this->hasMany(ControlDistribution::class);
+    }
+
+    public function isGroupControl(): bool
+    {
+        return $this->library_level === 'group';
+    }
+
+    public function scopeGroupLevel(Builder $query): Builder
+    {
+        return $query->where('library_level', 'group');
     }
 }

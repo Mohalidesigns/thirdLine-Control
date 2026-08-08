@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
 import ControlForm from './Form';
 
-export default function Edit({ control, categories, processes, units, users, types, natures, frequencies, cosoComponents }) {
+export default function Edit({ control, categories, processes, units, users, types, natures, frequencies, cosoComponents, functionGroupings, controlLevels }) {
     const form = useForm({
         title: control.title ?? '',
         objective: control.objective ?? '',
@@ -13,6 +13,10 @@ export default function Edit({ control, categories, processes, units, users, typ
         frequency: control.frequency,
         test_frequency: control.test_frequency,
         is_key_control: !!control.is_key_control,
+        library_level: control.library_level ?? 'entity',
+        function_grouping: control.function_grouping,
+        control_level: control.control_level,
+        is_distributable: !!control.is_distributable,
         category_id: control.category_id,
         coso_component: control.coso_component,
         process_id: control.process_id,
@@ -47,7 +51,7 @@ export default function Edit({ control, categories, processes, units, users, typ
                 submitLabel="Save amendment"
                 controlRef={control.control_ref}
                 requireChangeReason
-                {...{ categories, processes, units, users, types, natures, frequencies, cosoComponents }}
+                {...{ categories, processes, units, users, types, natures, frequencies, cosoComponents, functionGroupings, controlLevels }}
             />
         </AuthenticatedLayout>
     );

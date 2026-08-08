@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Control;
 use App\Models\ControlException;
+use App\Models\Document;
 use App\Models\Finding;
 use App\Models\Risk;
 use App\Models\SpotCheck;
@@ -160,6 +161,31 @@ class SearchService
                     'title' => $spotCheck->title,
                     'meta' => $spotCheck->status,
                     'url' => route('spot-checks.show', $spotCheck->id, false),
+                ],
+            ],
+            'documents' => [
+                'label' => 'Documents',
+                'permission' => 'view documents',
+                'fields' => ['reference', 'title', 'description'],
+                // Confidential documents only surface for roles on the record
+                // (mirrors DocumentPolicy); non-authors see published only.
+                'query' => Document::query()
+                    ->select(['id', 'reference', 'title', 'document_type', 'status'])
+                    ->where(function ($q) use ($user) {
+                        $q->where('is_confidential', false)->orWhere('owner_id', $user->id);
+
+                        foreach ($user->roles->pluck('id') as $roleId) {
+                            $q->orWhereJsonContains('access_role_ids', $roleId);
+                        }
+                    })
+                    ->when(! $user->can('create documents') && ! $user->can('approve documents'),
+                        fn ($q) => $q->whereIn('status', ['Published', 'Superseded', 'Archived'])),
+                'map' => fn (Document $document) => [
+                    'id' => $document->id,
+                    'reference' => $document->reference,
+                    'title' => $document->title,
+                    'meta' => "{$document->document_type} · {$document->status}",
+                    'url' => route('documents.show', $document->id, false),
                 ],
             ],
             'findings' => [

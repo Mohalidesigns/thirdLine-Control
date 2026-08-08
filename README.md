@@ -69,6 +69,25 @@ policy → query scoping**, mirrored to the UI via shared Inertia props.
 | Log & impact-assess a regulatory publication | ✓ | ✓ | ✓ | — | — | — |
 | **Sign a regulatory change off as Actioned (assessor ≠ signer)** | see note | ✓ | — | — | — | — |
 | Install regulatory content packs | ✓ | — | — | — | — | — |
+| View control distributions | ✓ | ✓ | ✓ | own entity | ✓ | ✓ |
+| Distribute a group control to entities | ✓ | ✓ | ✓ | — | — | — |
+| Acknowledge a distribution / progress tasks | — | — | — | assigned owner | — | — |
+| **Approve an entity's decline of a control (requester ≠ approver)** | — | ✓ | — | — | — | — |
+| View campaigns (CSA / attestation / survey) | ✓ | ✓ | ✓ | assigned | assigned | ✓ |
+| Create & manage campaigns, build questionnaires | ✓ | ✓ | ✓ | — | — | — |
+| **Approve a campaign (creator ≠ approver)** | see note | ✓ | ✓ | — | — | — |
+| Respond to assigned campaign / attest / answer survey | ✓ | ✓ | ✓ | ✓ | ✓ | — |
+| **Review a CSA response (respondent ≠ reviewer)** | see note | ✓ | ✓ | — | — | — |
+| **Apply a CSA-proposed rating to a control (CFH only, never own control)** | — | ✓ | — | — | — | — |
+| View attestation register | ✓ | ✓ | ✓ | own only | own only | ✓ |
+| View documents (published; confidential by role list) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Create documents & manage folders | ✓ | ✓ | ✓ | — | — | — |
+| **Approve / publish a document (owner ≠ approver)** | see note | ✓ | — | — | — | — |
+| View improvements | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Propose improvements | ✓ | ✓ | ✓ | ✓ | — | — |
+| Approve improvements | ✓ | ✓ | — | — | — | — |
+| **Verify an improvement (owner ≠ verifier)** | see note | ✓ | — | — | — | — |
+| Bulk Excel import (dry-run + all-or-nothing) | ✓ | ✓ | — | — | — | — |
 
 **Segregation of duties (FR-12.3), enforced in `ExceptionPolicy` + `ExceptionService`
 with no admin bypass:** only a Control Function Head may move an exception to
@@ -85,6 +104,17 @@ tests: `tests/Feature/FrameworkCoverageTest.php`,
 `tests/Feature/ObligationSubmissionTest.php`,
 `tests/Feature/RegulatoryChangeWorkflowTest.php`,
 `tests/Feature/ObligationEngineTest.php` (non-applicability declarations).
+
+The Phase 9 gates follow the same pattern: a campaign's creator cannot approve
+it, a respondent cannot review their own CSA response, a CSA result never
+touches a control rating until a Control Function Head applies the proposal, a
+document's owner cannot approve it, an entity owner cannot approve their own
+decline of a distributed control, and an improvement's owner cannot verify it.
+Failing-path tests: `tests/Feature/ControlDistributionTest.php`,
+`tests/Feature/CsaEngineTest.php`, `tests/Feature/DocumentWorkflowTest.php`,
+`tests/Feature/ImprovementActionTest.php`,
+`tests/Feature/SurveyAnonymityTest.php` (anonymity is provable on the raw row
+and in the audit trail).
 
 ## Audit trail
 
@@ -118,6 +148,7 @@ and before/after JSON. A logging failure never breaks the business operation
 | `secondline:send-owner-digests` | Mondays 07:30 | Open/overdue digest per control owner |
 | `atheris:generate-obligation-instances` | daily 02:30 | Materialise the compliance calendar within a rolling 400-day horizon, recompute overdue status and penalty exposure, fire graduated reminders at T-90/-60/-30/-14/-7/-3/-1/0 and daily once overdue (idempotent) |
 | `atheris:poll-regulatory-feeds` | daily 06:00 | Poll regulator publication feeds; new items land as `New` regulatory changes, deduplicated on the feed GUID |
+| `atheris:remind-document-reviews` | Mondays 08:00 | Notify document owners of governing documents due for review within 30 days |
 
 Run on demand:
 
@@ -263,6 +294,58 @@ the regulator's primary document. The 13 known-unverified research items are
 recorded in each pack's `changelog`. Verifying them is the phase-8 research backlog,
 not a code change.
 
+## Control library v2, CSA & surveys (Phase 9)
+
+All Phase 9 modules are feature-flagged (`control-distribution`, `csa`, `surveys`,
+`attestations`, `documents`, `improvements`, `bulk-import`).
+
+- **Group vs entity libraries** — a control carries `library_level`; distributing a
+  distributable, Active group control creates one entity child per entity
+  (`parent_control_id`), idempotently, each with its own owner, testing and rating.
+  Changing a group control goes through `DistributionService::propagate()`:
+  preview → propagate or notify-only, and a field an entity has locally adapted is
+  **never silently overwritten**. Declining a distributed control requires a reason
+  and Control Function Head approval; a declined control still reports as a
+  coverage gap.
+- **Distribution overview** — Corporater-style org-tree screen with the stat tiles
+  (entities distributed to · tasks completed · outstanding · implementation %),
+  per-entity task lists that roll progress up into the entity control's
+  `implementation_status`.
+- **CSA engine** — campaigns (`csa_campaigns`, one engine for CSA, attestations and
+  surveys) with maker-checker approval before opening, questionnaire builder with
+  sections, weights, conditional visibility (`condition`) and exception triggers
+  (`triggers_exception_on` → an auto-raised `CSA`-sourced exception), weighted /
+  maturity scoring, reviewer workflow with variance flagging beyond the campaign
+  threshold, and a live response-rate gauge. **CSA never auto-rates**: results
+  surface as `proposed_design_rating`, applied only by a Control Function Head
+  through `CsaService::approveProposedRating()`.
+- **Surveys** — same machinery with `is_anonymous`: an anonymous response stores no
+  respondent, no entity, no IP — and its audit-trail rows are unattributed
+  (`auditsAnonymously()` in `AuditTrailService`). No role can open the row; only
+  aggregates are exposed. Proven in `SurveyAnonymityTest`.
+- **Attestations** — the exact text signed is snapshotted verbatim with timestamp,
+  IP, method and source version; editing the source later cannot change what was
+  signed. Non-attestation escalates through the existing escalation matrix via the
+  new `attestation_overdue` trigger.
+- **Documents** — governing artefacts, distinct from Evidence: folder tree,
+  SHA-256-hashed files on a non-public disk, maker-checker approval
+  (owner ≠ approver), publish with supersession chain, review-due scheduling with
+  reminders, confidential documents gated by role list at both query and policy
+  level, download logging, and global-search integration.
+- **Bulk Excel import** — `ImportService` for controls, risks, obligations, org
+  units and users: template download with data-validated dropdowns, dry-run
+  row-level error report that writes nothing, then an all-or-nothing transactional
+  import with a tenant-level audit entry. Imported obligations arrive
+  `unverified` (R10).
+- **Version control everywhere** — the shared `HasVersions` trait snapshots
+  versioned attributes into `object_versions` on create and change; test scripts,
+  documents, questionnaires, frameworks and report templates are wired in, with a
+  field-level diff endpoint (`/versions/{alias}/{id}/diff`) and side-by-side UI.
+- **Improvement database** — actions from any source through
+  Proposed → Approved → In Progress → Implemented → Verified with independent
+  verification (owner ≠ verifier), surfaced on control pages as "known
+  improvements".
+
 ## Key business rules (where they live)
 
 - **Maker–checker** on controls, test scripts, ratings, compensating controls — policies + services
@@ -275,9 +358,10 @@ not a code change.
 ## Quality gate
 
 ```bash
-composer test        # 211 feature/unit tests incl. SoD, legal-hold, dual-approval,
+composer test        # 265 feature/unit tests incl. SoD, legal-hold, dual-approval,
                      # due-rule and penalty maths, content-pack idempotency,
-                     # and API-auth bypass attempts
+                     # API-auth bypass attempts, distribution idempotency,
+                     # CSA rating gates, survey anonymity and import rollback
 vendor/bin/pint      # lint
 npm run build
 ```
@@ -299,8 +383,15 @@ framework and requirement-tree engine with maker-checker control mapping and
 coverage heatmaps, the regulatory obligation register with due-rule resolution,
 applicability and live penalty exposure, the compliance calendar with evidence-backed
 submission and second-person acceptance, the regulatory change feed, and 45 versioned
-content packs covering international, Nigerian and pan-African regulation. Next per
-the v2 master plan: Phase 9 — Control Library v2, CSA & Surveys. Still pending from v1 backlog: Excel bulk control
-import, Word-format report export, webhook subscriptions, NexusRisk risk-register
-pull, in-place evidence redaction and data-subject-request tooling, continuous
-controls monitoring (v2 Phase 12).
+content packs covering international, Nigerian and pan-African regulation.
+
+**v2.0 Phase 9 (Control Library v2, CSA & Surveys) is implemented**: group/entity
+control libraries with distribution and implementation tracking, the CSA engine
+with conditional questionnaires and CFH-gated proposed ratings, anonymous-capable
+surveys, attestation campaigns with verbatim text snapshots, document management
+with maker-checker and supersession, bulk Excel import with dry-run validation,
+the shared `HasVersions` version store with field-level diffs, and the improvement
+database. Next per the v2 master plan: Phase 10. Still pending from v1 backlog:
+Word-format report export, webhook subscriptions, NexusRisk risk-register pull,
+in-place evidence redaction and data-subject-request tooling, continuous controls
+monitoring (v2 Phase 12).

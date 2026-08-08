@@ -76,6 +76,47 @@ class NotificationEventSeeder extends Seeder
             'default_channels' => ['in_app', 'email'],
             'is_user_configurable' => false,
         ],
+        // Phase 9 — control library v2, CSA & surveys
+        [
+            'key' => 'document.review-due',
+            'label' => 'Document review due',
+            'description' => 'A governing document you own is approaching or past its review date.',
+            'category' => 'documents',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => true,
+        ],
+        [
+            'key' => 'distribution.assigned',
+            'label' => 'Control distributed to your entity',
+            'description' => 'A group control was distributed to an entity you own — acknowledge and implement it.',
+            'category' => 'distribution',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => true,
+        ],
+        [
+            'key' => 'campaign.assigned',
+            'label' => 'Assessment or survey assigned',
+            'description' => 'A CSA, attestation or survey response has been assigned to you.',
+            'category' => 'campaigns',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => true,
+        ],
+        [
+            'key' => 'campaign.variance-flagged',
+            'label' => 'CSA rating variance flagged',
+            'description' => 'A self-rating differed from the reviewer rating beyond the campaign threshold.',
+            'category' => 'campaigns',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => true,
+        ],
+        [
+            'key' => 'improvement.assigned',
+            'label' => 'Improvement action assigned',
+            'description' => 'An improvement action has been assigned to you or needs your verification.',
+            'category' => 'improvements',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => true,
+        ],
     ];
 
     public function run(): void

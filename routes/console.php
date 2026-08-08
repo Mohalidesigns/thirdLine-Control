@@ -12,3 +12,6 @@ Schedule::command('secondline:queue-evidence-disposal')->dailyAt('02:00');
 // Phase 8 — regulatory obligation engine
 Schedule::command('atheris:generate-obligation-instances')->dailyAt('02:30');
 Schedule::command('atheris:poll-regulatory-feeds')->dailyAt('06:00');
+
+// Phase 9 — control library v2
+Schedule::command('atheris:remind-document-reviews')->weeklyOn(1, '08:00');

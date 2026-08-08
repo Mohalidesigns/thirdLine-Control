@@ -42,6 +42,7 @@ export default function Show({
     control,
     recentTests = [],
     openExceptions = [],
+    improvements = [],
     ratings = [],
     assessments = [],
     designRatings = [],
@@ -308,6 +309,25 @@ export default function Show({
                                 )}
                             </div>
                         </div>
+
+                        {improvements.length > 0 && (
+                            <div className="card">
+                                <div className="card-header"><h3 className="text-sm font-semibold">Known improvements</h3></div>
+                                <div className="card-body">
+                                    <ul className="space-y-2">
+                                        {improvements.map((improvement) => (
+                                            <li key={improvement.id} className="flex items-center justify-between gap-2 text-sm">
+                                                <span className="truncate">
+                                                    <span className="font-mono text-xs text-[var(--color-primary)]">{improvement.reference}</span>{' '}
+                                                    {improvement.title}
+                                                </span>
+                                                <StatusBadge status={improvement.status} />
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="card">
                             <div className="card-header"><h3 className="text-sm font-semibold">Version history</h3></div>

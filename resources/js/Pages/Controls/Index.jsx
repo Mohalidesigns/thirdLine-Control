@@ -23,6 +23,9 @@ export default function Index({
     natures = [],
     designRatings = [],
     operatingRatings = [],
+    functionGroupings = [],
+    controlLevels = [],
+    implementationStatuses = [],
     stats = {},
 }) {
     const { auth } = usePage().props;
@@ -51,21 +54,43 @@ export default function Index({
                 <span className={`badge ${TYPE_BADGES[row.type] ?? 'badge-status-draft'}`}>{row.type}</span>
             ),
         },
-        { field: 'nature', label: 'Nature' },
+        { field: 'category', label: 'Category', render: (row) => row.category?.name ?? '—' },
+        {
+            field: 'control_level',
+            label: 'Level',
+            render: (row) => (
+                <span>
+                    {row.control_level ?? '—'}
+                    {row.library_level === 'group' && (
+                        <span className="ml-1 rounded bg-[var(--color-primary)]/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-[var(--color-primary)]">
+                            Group
+                        </span>
+                    )}
+                </span>
+            ),
+        },
+        { field: 'function_grouping', label: 'Function', render: (row) => row.function_grouping ?? '—' },
         { field: 'frequency', label: 'Frequency' },
         {
-            field: 'design_effectiveness',
-            label: 'Design',
-            render: (row) => <StatusBadge status={row.design_effectiveness} />,
+            field: 'entity_instances_count',
+            label: 'Entities',
+            render: (row) => (row.library_level === 'group' ? row.entity_instances_count : '—'),
         },
         {
-            field: 'operating_effectiveness',
-            label: 'Operating',
-            render: (row) => <StatusBadge status={row.operating_effectiveness} />,
+            field: 'implementation_progress',
+            label: 'Implementation',
+            render: (row) => (
+                <div className="w-24">
+                    <div className="progress-bar">
+                        <div className="progress-bar-fill bg-[var(--color-secondary)]" style={{ width: `${row.implementation_progress ?? 0}%` }} />
+                    </div>
+                    <p className="mt-0.5 text-[10px] text-gray-400">{row.implementation_status}</p>
+                </div>
+            ),
         },
         {
             field: 'overall_rating',
-            label: 'Overall Rating',
+            label: 'Rating',
             render: (row) => (row.overall_rating ? <StatusBadge status={row.overall_rating} /> : '—'),
         },
         { field: 'owner', label: 'Owner', render: (row) => row.owner?.name ?? '—' },
@@ -81,6 +106,11 @@ export default function Index({
                 subtitle="Manage and assess organizational controls"
                 actions={
                     <>
+                        {auth.permissions.includes('view distributions') && (
+                            <Link href={route('distributions.index')} className="btn-secondary">
+                                Distribution
+                            </Link>
+                        )}
                         {auth.permissions.includes('export reports') && (
                             <a href={route('reports.controls.xlsx')} className="btn-secondary">Excel</a>
                         )}
@@ -121,6 +151,10 @@ export default function Index({
                     { name: 'status', type: 'select', label: 'Status', options: statuses },
                     { name: 'category_id', type: 'select', label: 'Category', options: categories.map((c) => ({ value: c.id, label: c.name })) },
                     { name: 'unit_id', type: 'select', label: 'Entity', options: units.map((u) => ({ value: u.id, label: u.name })) },
+                    { name: 'library_level', type: 'select', label: 'Library', options: [{ value: 'group', label: 'Group' }, { value: 'entity', label: 'Entity' }] },
+                    { name: 'function_grouping', type: 'select', label: 'Function', options: functionGroupings },
+                    { name: 'control_level', type: 'select', label: 'Level', options: controlLevels },
+                    { name: 'implementation_status', type: 'select', label: 'Implementation', options: implementationStatuses },
                 ]}
             />
 

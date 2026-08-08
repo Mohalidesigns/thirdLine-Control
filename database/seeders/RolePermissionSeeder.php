@@ -40,6 +40,13 @@ class RolePermissionSeeder extends Seeder
             'approve obligation-submissions', 'waive obligations',
             'view regulatory-changes', 'assess regulatory-changes', 'action regulatory-changes',
             'install content-packs',
+            // Control library v2, CSA & surveys (Phase 9)
+            'view distributions', 'distribute controls', 'manage distributions',
+            'view campaigns', 'manage campaigns', 'respond campaigns', 'review campaigns',
+            'view attestations', 'manage attestations',
+            'view documents', 'create documents', 'approve documents', 'manage document-folders',
+            'view improvements', 'create improvements', 'approve improvements', 'verify improvements',
+            'import data',
         ];
 
         foreach ($permissions as $permission) {
@@ -70,6 +77,11 @@ class RolePermissionSeeder extends Seeder
             'view frameworks', 'map controls',
             'view obligations', 'submit obligations',
             'view regulatory-changes', 'assess regulatory-changes',
+            'view distributions', 'distribute controls',
+            'view campaigns', 'manage campaigns', 'respond campaigns', 'review campaigns',
+            'view attestations',
+            'view documents', 'create documents', 'manage document-folders',
+            'view improvements', 'create improvements',
         ]);
 
         Role::findOrCreate('Control Owner', 'web')->syncPermissions([
@@ -77,18 +89,24 @@ class RolePermissionSeeder extends Seeder
             'view compensating-controls', 'create compensating-controls',
             'view dashboards',
             'view frameworks', 'view obligations', 'submit obligations',
+            'view distributions', 'respond campaigns',
+            'view documents', 'view improvements', 'create improvements',
         ]);
 
         Role::findOrCreate('Line Manager', 'web')->syncPermissions([
             'view controls', 'view risks', 'view tests', 'view exceptions',
             'view compensating-controls', 'view spot-checks', 'view dashboards',
             'view frameworks', 'view obligations', 'view regulatory-changes',
+            'view distributions', 'respond campaigns',
+            'view documents', 'view improvements',
         ]);
 
         Role::findOrCreate('Executive Viewer', 'web')->syncPermissions([
             'view controls', 'view risks', 'view tests', 'view exceptions',
             'view compensating-controls', 'view spot-checks', 'view dashboards', 'export reports',
             'view frameworks', 'view obligations', 'view regulatory-changes',
+            'view distributions', 'view campaigns', 'view attestations',
+            'view documents', 'view improvements',
         ]);
     }
 }
