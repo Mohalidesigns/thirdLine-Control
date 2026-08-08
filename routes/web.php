@@ -23,6 +23,8 @@ use App\Http\Controllers\FrameworkRequirementController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\ImprovementActionController;
 use App\Http\Controllers\IntegrationController;
+use App\Http\Controllers\LinkageController;
+use App\Http\Controllers\MetricController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\ObligationAssignmentController;
@@ -31,7 +33,10 @@ use App\Http\Controllers\ObligationInstanceController;
 use App\Http\Controllers\PwaController;
 use App\Http\Controllers\RegulatoryChangeController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\RiskAppetiteController;
+use App\Http\Controllers\RiskAssessmentController;
 use App\Http\Controllers\RiskController;
+use App\Http\Controllers\RiskTreatmentController;
 use App\Http\Controllers\SavedViewController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SpotCheckController;
@@ -119,10 +124,74 @@ Route::middleware('auth')->group(function () {
 
     // ── Risk register & mapping ──────────────────────────────────────
     Route::middleware('role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager')->group(function () {
+        // Static segments first so they are not captured as a {risk}.
         Route::get('risks/gaps', [RiskController::class, 'gaps'])->name('risks.gaps');
+
+        Route::middleware('feature:risk-heatmap')->group(function () {
+            Route::get('risks/heatmap', [RiskController::class, 'heatmap'])->name('risks.heatmap');
+            Route::get('risks/heatmap/cell', [RiskController::class, 'heatmapCell'])->name('risks.heatmap.cell');
+        });
+
         Route::resource('risks', RiskController::class)->only(['index', 'store', 'show', 'update']);
         Route::post('risks/{risk}/controls', [RiskController::class, 'attachControl'])->name('risks.controls.attach');
         Route::delete('risks/{risk}/controls/{control}', [RiskController::class, 'detachControl'])->name('risks.controls.detach');
+
+        // ── Risk assessments (Phase 10.1) ────────────────────────────
+        Route::middleware('feature:risk-assessments')->group(function () {
+            Route::post('risks/{risk}/assessments', [RiskAssessmentController::class, 'store'])
+                ->name('risks.assessments.store');
+            Route::post('risks/{risk}/assessments/{assessment}/publish', [RiskAssessmentController::class, 'publish'])
+                ->name('risks.assessments.publish');
+            Route::post('risks/{risk}/assessments/{assessment}/reject', [RiskAssessmentController::class, 'reject'])
+                ->name('risks.assessments.reject');
+            Route::post('risks/{risk}/assessments/{assessment}/simulate', [RiskAssessmentController::class, 'simulate'])
+                ->name('risks.assessments.simulate');
+        });
+
+        // ── Risk treatments (Phase 10.4) ─────────────────────────────
+        Route::middleware('feature:risk-treatments')->group(function () {
+            Route::get('treatments', [RiskTreatmentController::class, 'index'])->name('treatments.index');
+            Route::get('treatments/{treatment}', [RiskTreatmentController::class, 'show'])->name('treatments.show');
+            Route::post('risks/{risk}/treatments', [RiskTreatmentController::class, 'store'])->name('risks.treatments.store');
+            Route::post('treatments/{treatment}/approve', [RiskTreatmentController::class, 'approve'])->name('treatments.approve');
+            Route::post('treatments/{treatment}/progress', [RiskTreatmentController::class, 'progress'])->name('treatments.progress');
+            Route::post('treatments/{treatment}/verify', [RiskTreatmentController::class, 'verify'])->name('treatments.verify');
+            Route::post('treatments/{treatment}/cancel', [RiskTreatmentController::class, 'cancel'])->name('treatments.cancel');
+            Route::post('treatments/{treatment}/milestones', [RiskTreatmentController::class, 'storeMilestone'])
+                ->name('treatments.milestones.store');
+            Route::post('treatments/{treatment}/milestones/{milestone}/complete', [RiskTreatmentController::class, 'completeMilestone'])
+                ->name('treatments.milestones.complete');
+        });
+    });
+
+    // ── Risk appetite (Phase 10.3) ───────────────────────────────────
+    Route::middleware(['feature:risk-appetite', 'permission:view appetite'])->group(function () {
+        Route::get('risk-appetite', [RiskAppetiteController::class, 'index'])->name('appetite.index');
+        Route::post('risk-appetite', [RiskAppetiteController::class, 'store'])->name('appetite.store');
+        Route::post('risk-appetite/{appetite}/submit', [RiskAppetiteController::class, 'submit'])->name('appetite.submit');
+        Route::post('risk-appetite/{appetite}/approve', [RiskAppetiteController::class, 'approve'])->name('appetite.approve');
+        Route::post('risk-appetite/{appetite}/supersede', [RiskAppetiteController::class, 'supersede'])->name('appetite.supersede');
+    });
+
+    // ── KRI / KPI engine (Phase 10.5) ────────────────────────────────
+    Route::middleware(['feature:metrics', 'permission:view metrics'])->group(function () {
+        Route::get('metrics', [MetricController::class, 'index'])->name('metrics.index');
+        Route::post('metrics', [MetricController::class, 'store'])->name('metrics.store');
+        Route::get('metrics/{metric}', [MetricController::class, 'show'])->name('metrics.show');
+        Route::put('metrics/{metric}', [MetricController::class, 'update'])->name('metrics.update');
+        Route::post('metrics/{metric}/values', [MetricController::class, 'capture'])->name('metrics.capture');
+        Route::post('metrics/{metric}/breaches/{breach}/acknowledge', [MetricController::class, 'acknowledgeBreach'])
+            ->name('metrics.breaches.acknowledge');
+        Route::post('metrics/{metric}/breaches/{breach}/resolve', [MetricController::class, 'resolveBreach'])
+            ->name('metrics.breaches.resolve');
+    });
+
+    // ── Linkage graph (Phase 10.6) ───────────────────────────────────
+    Route::middleware('feature:linkage')->group(function () {
+        Route::post('links', [LinkageController::class, 'store'])->name('links.store');
+        Route::delete('links/{link}', [LinkageController::class, 'destroy'])->name('links.destroy');
+        Route::get('links/candidates', [LinkageController::class, 'candidates'])->name('links.candidates');
+        Route::get('links/graph/{type}/{id}', [LinkageController::class, 'graph'])->name('links.graph');
     });
 
     // ── Test scripts ─────────────────────────────────────────────────

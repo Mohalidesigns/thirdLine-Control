@@ -13,7 +13,7 @@ class EscalationEvent extends Model
 
     protected $fillable = [
         'tenant_id', 'exception_id', 'test_instance_id', 'campaign_id', 'subject_user_id',
-        'matrix_id', 'tier_no',
+        'risk_id', 'metric_id', 'treatment_id', 'matrix_id', 'tier_no',
         'recipient_user_id', 'channel', 'triggered_at', 'delivery_status', 'payload_summary',
     ];
 

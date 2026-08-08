@@ -88,6 +88,22 @@ policy → query scoping**, mirrored to the UI via shared Inertia props.
 | Approve improvements | ✓ | ✓ | — | — | — | — |
 | **Verify an improvement (owner ≠ verifier)** | see note | ✓ | — | — | — | — |
 | Bulk Excel import (dry-run + all-or-nothing) | ✓ | ✓ | — | — | — | — |
+| View the risk register, heatmap and taxonomy | ✓ | ✓ | ✓ | — | ✓ | ✓ |
+| Record a risk assessment (inherent / residual / target) | ✓ | ✓ | ✓ | own risk | — | — |
+| **Publish a high-scoring assessment (assessor ≠ reviewer)** | see note | ✓ | ✓ | — | — | — |
+| View risk appetite statements & the board position | ✓ | ✓ | ✓ | — | ✓ | ✓ |
+| Author / supersede an appetite statement | ✓ | ✓ | — | — | — | — |
+| **Approve an appetite statement (author ≠ approver)** | see note | ✓ | — | — | — | ✓ |
+| View treatment plans | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Propose a treatment plan, record progress | ✓ | ✓ | ✓ | own plan | — | — |
+| **Approve a treatment plan (owner ≠ approver)** | see note | ✓ | — | — | — | — |
+| **Accept a risk (CFH only, expiry mandatory)** | — | ✓ | — | — | — | — |
+| **Verify a treatment (owner ≠ verifier)** | see note | ✓ | — | — | — | — |
+| View KRI / KPI / KCI indicators and trends | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Define indicators, thresholds and calculations | ✓ | ✓ | ✓ | — | — | — |
+| Capture readings | ✓ | ✓ | ✓ | ✓ | — | — |
+| Acknowledge / resolve a KRI breach | ✓ | ✓ | ✓ | own metric | — | — |
+| Create and remove relationship links | ✓ | ✓ | ✓ | — | — | — |
 
 **Segregation of duties (FR-12.3), enforced in `ExceptionPolicy` + `ExceptionService`
 with no admin bypass:** only a Control Function Head may move an exception to
@@ -115,6 +131,15 @@ Failing-path tests: `tests/Feature/ControlDistributionTest.php`,
 `tests/Feature/ImprovementActionTest.php`,
 `tests/Feature/SurveyAnonymityTest.php` (anonymity is provable on the raw row
 and in the audit trail).
+
+The Phase 10 gates are the same shape and equally bypass-free: a risk assessment
+scoring at or above the tenant's review threshold cannot be published by the
+person who made it, an appetite statement cannot be approved by its author, a
+treatment plan cannot be approved or verified by its owner, and accepting a risk
+is a Control Function Head decision that must carry an expiry date. Each has an
+explicit failing-path test that puts a System Administrator on the wrong side of
+the gate and asserts it still holds: `tests/Feature/RiskAssessmentTest.php`,
+`tests/Feature/RiskAppetiteTest.php`, `tests/Feature/TreatmentPlanTest.php`.
 
 ## Audit trail
 
@@ -149,6 +174,8 @@ and before/after JSON. A logging failure never breaks the business operation
 | `atheris:generate-obligation-instances` | daily 02:30 | Materialise the compliance calendar within a rolling 400-day horizon, recompute overdue status and penalty exposure, fire graduated reminders at T-90/-60/-30/-14/-7/-3/-1/0 and daily once overdue (idempotent) |
 | `atheris:poll-regulatory-feeds` | daily 06:00 | Poll regulator publication feeds; new items land as `New` regulatory changes, deduplicated on the feed GUID |
 | `atheris:remind-document-reviews` | Mondays 08:00 | Notify document owners of governing documents due for review within 30 days |
+| `atheris:refresh-risk-posture` | daily 03:00 | Flag overdue treatment plans and milestones, reopen expired risk acceptances, and re-evaluate every active risk against its appetite statement |
+| `atheris:evaluate-metrics` | daily 03:30 | Compute calculated metrics from their expressions, re-evaluate threshold bands, open KRI breaches (with a linked exception) and escalate them |
 
 Run on demand:
 
@@ -346,6 +373,84 @@ All Phase 9 modules are feature-flagged (`control-distribution`, `csa`, `surveys
   verification (owner ≠ verifier), surfaced on control pages as "known
   improvements".
 
+## Risk management v2 (Phase 10)
+
+Feature-flagged: `risk-assessments`, `risk-heatmap`, `risk-appetite`,
+`risk-treatments`, `metrics`, `linkage`.
+
+- **Taxonomy & scales as data (R1)** — a 12-branch risk taxonomy ships globally
+  (`risk_categories`, `tenant_id` NULL); every likelihood level, impact level,
+  impact-dimension level, velocity level and rating band lives in
+  `risk_assessment_scales` per tenant. The grid size *is* the row count: deleting a
+  level turns the 5×5 matrix into a 4×4 one, and the band cut-offs and heatmap
+  colours are columns on the band rows. No matrix dimension, label, threshold or
+  colour is written in PHP — proven by `RiskHeatmapTest::test_a_custom_four_by_four_scale_needs_no_code_change`.
+- **Assessment chain** — `risk_assessments` holds dated inherent / residual / target
+  rows with likelihood and impact rationales, per-dimension impact scores
+  (financial, regulatory, reputational, operational, customer, people) aggregated by
+  a configurable weighting that **keeps the driving dimension visible** and never
+  averages a Critical dimension away. Publishing pushes the position onto the risk;
+  above the tenant's `review_threshold` it needs a second-line reviewer who is not
+  the assessor.
+- **Residual is unchanged (R8)** — `ResidualRiskService` still owns the
+  control-driven number and the 20%-of-inherent floor.
+  `RiskAssessmentService::recomputeResidual()` wraps it, derives the residual grid
+  cell so the heatmap has somewhere to plot, and re-checks appetite. Parity with the
+  phase 0-6 engine is asserted directly in `RiskAssessmentTest`.
+- **Quantitative path** — expected loss, VaR 95/99 and a loss-exceedance curve from
+  a 10,000-iteration Monte Carlo over triangular or PERT severity with a Bernoulli
+  occurrence draw. Pure PHP (`App\Support\LossSimulator`), cached on an input
+  fingerprint, and **deterministic**: a self-contained xorshift32 generator seeded
+  per run, so a published VaR is reproducible and the global `mt_rand` state is
+  never touched.
+- **Heatmaps** — inherent, residual, target and a residual→target movement view,
+  filterable by taxonomy, entity, owner, process, framework and appetite breach.
+  Bubble size is total financial impact; a cell click drills through to the risks
+  behind it. Every cell carries its **band label beside its colour**, the legend
+  names each band with its score window, and a table view renders the same numbers
+  without colour at all.
+- **Risk appetite** — board-approved statements per category and entity with
+  tolerance bands and capacity, resolved down the taxonomy so a risk filed under
+  *Fraud* is governed by the *Operational* statement. Statements are versioned:
+  a change supersedes rather than edits, and the author never approves. Crossing
+  tolerance flags the risk and fires the `appetite_breach` escalation immediately,
+  not at the next nightly sweep.
+- **Treatment plans** — Avoid / Reduce / Transfer / Accept / Exploit with
+  milestones, cost and benefit, progress, configurable overdue alerting
+  (`treatment_overdue`), and verification by someone other than the owner.
+  Acceptance reuses the exception pattern: Control Function Head approval plus a
+  mandatory expiry, after which the plan returns to the register.
+- **KRI / KPI engine** — definitions, threshold bands (`gt`, `gte`, `lt`, `lte`,
+  `between`, `outside` — the last two are exact complements), manual, integration
+  and calculated capture, breach detection, sparklines in the list and a full trend
+  chart with threshold bands on the metric page. A Red or Critical reading opens a
+  breach, escalates it and — per tenant configuration — raises a linked exception.
+  Calculated metrics run through `App\Support\ExpressionEvaluator`: a whitelisted
+  recursive-descent parser over `+ - * / % ^`, comparisons, parentheses,
+  `[metric.CODE]` references and ten named functions. **`eval()` is never called**;
+  unsafe input fails to tokenise before evaluation begins.
+- **Linkage graph** — `entity_links` is polymorphic by alias across risk, control,
+  metric, exception, treatment, obligation, requirement, document, improvement and
+  process. A Relationships panel sits on every major record, with a two-hop
+  force-relaxed graph view behind a toggle. Adjacency is computed server-side, node
+  labels resolve one query per type, and the node cap is **reported** rather than
+  silently applied.
+
+New routes (all named, all behind their feature flag and permission):
+
+| Route | Name |
+|---|---|
+| `GET /risks/heatmap`, `GET /risks/heatmap/cell` | `risks.heatmap`, `risks.heatmap.cell` |
+| `POST /risks/{risk}/assessments` (+ `/publish`, `/reject`, `/simulate`) | `risks.assessments.*` |
+| `GET /risk-appetite` (+ `store`, `/submit`, `/approve`, `/supersede`) | `appetite.*` |
+| `GET /treatments`, `GET /treatments/{treatment}` | `treatments.index`, `treatments.show` |
+| `POST /risks/{risk}/treatments`, `/approve`, `/progress`, `/verify`, `/cancel`, `/milestones` | `risks.treatments.store`, `treatments.*` |
+| `GET /metrics`, `GET /metrics/{metric}` (+ `store`, `update`, `/values`, `/breaches/{breach}/acknowledge`, `/resolve`) | `metrics.*` |
+| `POST /links`, `DELETE /links/{link}`, `GET /links/candidates`, `GET /links/graph/{type}/{id}` | `links.*` |
+
+The `/api/v1` surface is unchanged, so `docs/openapi.yaml` needs no revision this
+phase.
+
 ## Key business rules (where they live)
 
 - **Maker–checker** on controls, test scripts, ratings, compensating controls — policies + services
@@ -354,14 +459,22 @@ All Phase 9 modules are feature-flagged (`control-distribution`, `csa`, `surveys
 - **Configurable rating matrix** — `rating_matrix_entries` (seeded BRD §7.3 defaults, tenant-overridable), resolved by `RatingMatrixEntry::resolve()` — never hard-coded
 - **Residual risk** — `ResidualRiskService`: inherent × weighted control effectiveness + approved compensating controls; floored so no risk falls below 20% of inherent without effective controls
 - **Recurrence detection** — same control failing across periods links and flags (FR-5.9)
+- **Risk grid, bands and colours** — `risk_assessment_scales` rows, per tenant; resolved by `RiskAssessmentService::bandFor()` / `HeatmapService::axis()` — never hard-coded
+- **Second-line review threshold, impact weights, simulation seed** — `tenants.settings['risk']`, defaults in `RiskAssessmentService`
+- **KRI breach action (exception / incident / none) and breach levels** — `tenants.settings['risk']`, read by `MetricService::config()`
+- **Metric expressions are parsed, never executed** — `App\Support\ExpressionEvaluator`; validated at save time by `MetricRequest`
 
 ## Quality gate
 
 ```bash
-composer test        # 265 feature/unit tests incl. SoD, legal-hold, dual-approval,
+composer test        # 365 feature/unit tests incl. SoD, legal-hold, dual-approval,
                      # due-rule and penalty maths, content-pack idempotency,
                      # API-auth bypass attempts, distribution idempotency,
-                     # CSA rating gates, survey anonymity and import rollback
+                     # CSA rating gates, survey anonymity, import rollback,
+                     # residual-engine parity and the 20% floor, Monte Carlo
+                     # determinism, a custom 4×4 heatmap scale, every threshold
+                     # operator, expression-evaluator injection attempts,
+                     # KRI-breach → exception linkage and appetite escalation
 vendor/bin/pint      # lint
 npm run build
 ```
@@ -391,7 +504,18 @@ with conditional questionnaires and CFH-gated proposed ratings, anonymous-capabl
 surveys, attestation campaigns with verbatim text snapshots, document management
 with maker-checker and supersession, bulk Excel import with dry-run validation,
 the shared `HasVersions` version store with field-level diffs, and the improvement
-database. Next per the v2 master plan: Phase 10. Still pending from v1 backlog:
+database.
+
+**v2.0 Phase 10 (Risk Management v2) is implemented**: the risk taxonomy and fully
+configurable assessment scales, inherent/residual/target assessment with
+multi-dimensional impact and second-line review, a deterministic Monte Carlo
+quantitative path with VaR and a loss-exceedance curve, configurable N×N heatmaps
+with a movement view and cell drill-through, versioned board-approved risk appetite
+with live breach escalation, treatment plans with milestones and independent
+verification, the KRI/KPI/KCI engine with configurable threshold bands and safe
+calculated expressions, and the universal linkage graph. Next per the v2 master
+plan: Phase 11 (Policy, Incident, Complaints & Case Management). Still pending from
+v1 backlog:
 Word-format report export, webhook subscriptions, NexusRisk risk-register pull,
 in-place evidence redaction and data-subject-request tooling, continuous controls
 monitoring (v2 Phase 12).

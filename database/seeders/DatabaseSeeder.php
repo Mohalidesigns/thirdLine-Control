@@ -27,11 +27,17 @@ class DatabaseSeeder extends Seeder
             // obligations to point at).
             PublicHolidaySeeder::class,
             RegulatoryContentSeeder::class,
+            // Phase 10: the taxonomy and assessment scales must exist before
+            // any risk is scored, so they precede the demo register.
+            RiskTaxonomySeeder::class,
             DemoDataSeeder::class,
             ObligationDemoSeeder::class,
             // Phase 9: distribution, CSA/survey/attestation campaigns,
             // documents and improvements build on the demo dataset above.
             Phase9DemoSeeder::class,
+            // Phase 10 demo data depends on the risks, controls and users
+            // created above.
+            Phase10DemoSeeder::class,
         ]);
     }
 }

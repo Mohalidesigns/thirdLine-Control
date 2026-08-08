@@ -6,9 +6,15 @@ use App\Models\ControlException;
 use App\Models\CsaCampaign;
 use App\Models\EscalationEvent;
 use App\Models\EscalationMatrix;
+use App\Models\Metric;
+use App\Models\MetricBreach;
+use App\Models\Risk;
+use App\Models\RiskAppetite;
+use App\Models\RiskTreatment;
 use App\Models\TestInstance;
 use App\Models\User;
 use App\Notifications\EscalationNotification;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 class EscalationService
@@ -42,6 +48,9 @@ class EscalationService
                             ->where('updated_at', '<=', now()->subDays($rule->days_threshold))),
                         'test_overdue' => $this->escalateOverdueTests($rule),
                         'attestation_overdue' => $this->escalateOverdueAttestations($rule),
+                        'treatment_overdue' => $this->escalateOverdueTreatments($rule),
+                        'appetite_breach' => $this->escalateStandingAppetiteBreaches($rule),
+                        'kri_breach' => $this->escalateStandingMetricBreaches($rule),
                         default => 0,
                     };
                 }
@@ -164,6 +173,174 @@ class EscalationService
         return $count;
     }
 
+    // ── Phase 10: risk appetite, KRI breaches and treatment plans ────
+
+    /**
+     * Fired the moment a risk crosses its tolerance (10.3) rather than
+     * waiting for the nightly sweep — a board-level breach should not sit
+     * unannounced for up to 24 hours. Each (risk, rule) pair fires once.
+     */
+    public function escalateAppetiteBreach(Risk $risk, ?RiskAppetite $appetite = null): int
+    {
+        $severity = $this->severityForBand($risk->current_rating_band);
+        $count = 0;
+
+        foreach ($this->rulesFor($risk->tenant_id, 'appetite_breach', $severity) as $rule) {
+            if ($this->alreadyFired($rule, ['risk_id' => $risk->id])) {
+                continue;
+            }
+
+            $this->fire($rule, $this->roleRecipient($rule, $risk->owner), risk: $risk, appetite: $appetite);
+            $count++;
+        }
+
+        return $count;
+    }
+
+    /** A Red or Critical KRI reading escalates immediately (10.5). */
+    public function escalateMetricBreach(MetricBreach $breach): int
+    {
+        $metric = $breach->metric()->withoutGlobalScopes()->first();
+        $severity = match ($breach->level) {
+            'Critical' => 'Critical',
+            'Red' => 'High',
+            default => 'Medium',
+        };
+
+        $count = 0;
+
+        foreach ($this->rulesFor($breach->tenant_id, 'kri_breach', $severity) as $rule) {
+            if ($this->alreadyFired($rule, ['metric_id' => $breach->metric_id])) {
+                continue;
+            }
+
+            $event = $this->fire($rule, $this->roleRecipient($rule, $metric?->owner), metric: $metric, breach: $breach);
+            $breach->update(['escalation_event_id' => $event?->id]);
+            $count++;
+        }
+
+        return $count;
+    }
+
+    /** Nightly sweep for breaches that were still standing at the threshold. */
+    private function escalateStandingAppetiteBreaches(EscalationMatrix $rule): int
+    {
+        $count = 0;
+
+        Risk::withoutGlobalScopes()
+            ->where('tenant_id', $rule->tenant_id)
+            ->where('status', 'active')
+            ->where('appetite_breached', true)
+            ->whereNotNull('appetite_breach_at')
+            ->where('appetite_breach_at', '<=', now()->subDays($rule->days_threshold))
+            ->each(function (Risk $risk) use ($rule, &$count) {
+                if ($this->severityForBand($risk->current_rating_band) !== $rule->severity
+                    || $this->alreadyFired($rule, ['risk_id' => $risk->id])) {
+                    return;
+                }
+
+                $this->fire($rule, $this->roleRecipient($rule, $risk->owner), risk: $risk);
+                $count++;
+            });
+
+        return $count;
+    }
+
+    private function escalateStandingMetricBreaches(EscalationMatrix $rule): int
+    {
+        $count = 0;
+
+        MetricBreach::withoutGlobalScopes()
+            ->where('tenant_id', $rule->tenant_id)
+            ->unresolved()
+            ->where('detected_at', '<=', now()->subDays($rule->days_threshold))
+            ->with('metric')
+            ->each(function (MetricBreach $breach) use ($rule, &$count) {
+                if ($this->alreadyFired($rule, ['metric_id' => $breach->metric_id])) {
+                    return;
+                }
+
+                $this->fire($rule, $this->roleRecipient($rule, $breach->metric?->owner), metric: $breach->metric, breach: $breach);
+                $count++;
+            });
+
+        return $count;
+    }
+
+    /**
+     * Treatment alerting (10.4) — configurable per treatment: an owner can
+     * mute alerts on a plan, and the lead time before the due date is a
+     * per-treatment field, not a constant.
+     */
+    private function escalateOverdueTreatments(EscalationMatrix $rule): int
+    {
+        $count = 0;
+
+        RiskTreatment::withoutGlobalScopes()
+            ->where('tenant_id', $rule->tenant_id)
+            ->where('alerts_enabled', true)
+            ->open()
+            ->whereNotNull('due_at')
+            ->whereDate('due_at', '<=', now()->subDays($rule->days_threshold))
+            ->with(['risk', 'owner'])
+            ->each(function (RiskTreatment $treatment) use ($rule, &$count) {
+                if ($this->severityForBand($treatment->risk?->current_rating_band) !== $rule->severity
+                    || $this->alreadyFired($rule, ['treatment_id' => $treatment->id])) {
+                    return;
+                }
+
+                $this->fire($rule, $this->roleRecipient($rule, $treatment->owner), treatment: $treatment);
+                $treatment->updateQuietly(['last_alert_at' => now(), 'status' => 'Overdue']);
+                $count++;
+            });
+
+        return $count;
+    }
+
+    /** @return Collection<int, EscalationMatrix> */
+    private function rulesFor(int $tenantId, string $trigger, string $severity)
+    {
+        return EscalationMatrix::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->where('is_active', true)
+            ->where('trigger_condition', $trigger)
+            ->where('severity', $severity)
+            ->orderBy('tier_no')
+            ->get();
+    }
+
+    private function alreadyFired(EscalationMatrix $rule, array $subject): bool
+    {
+        return EscalationEvent::withoutGlobalScopes()
+            ->where('matrix_id', $rule->id)
+            ->where($subject)
+            ->exists();
+    }
+
+    private function roleRecipient(EscalationMatrix $rule, ?User $fallback): ?User
+    {
+        if ($rule->recipient_user_id) {
+            return User::find($rule->recipient_user_id);
+        }
+
+        return User::withoutGlobalScopes()
+            ->where('tenant_id', $rule->tenant_id)
+            ->role($rule->recipient_role)
+            ->first() ?? $fallback;
+    }
+
+    /** Risk rating band → the matrix's severity vocabulary. */
+    private function severityForBand(?string $band): string
+    {
+        return match ($band) {
+            'Critical' => 'Critical',
+            'High' => 'High',
+            'Moderate' => 'Medium',
+            'Low' => 'Low',
+            default => 'Medium',
+        };
+    }
+
     private function resolveRecipient(EscalationMatrix $rule, ControlException $exception): ?User
     {
         if ($rule->recipient_user_id) {
@@ -187,10 +364,19 @@ class EscalationService
         ?TestInstance $testInstance = null,
         ?CsaCampaign $campaign = null,
         ?User $subject = null,
-    ): void {
+        ?Risk $risk = null,
+        ?RiskAppetite $appetite = null,
+        ?Metric $metric = null,
+        ?MetricBreach $breach = null,
+        ?RiskTreatment $treatment = null,
+    ): ?EscalationEvent {
         $summary = match (true) {
             $exception !== null => "{$exception->reference} [{$exception->severity}] {$exception->title}",
             $testInstance !== null => "{$testInstance->reference} overdue test — {$testInstance->control?->title}",
+            $risk !== null => "{$risk->code} outside risk appetite — score {$risk->currentScore()}"
+                .($appetite ? " vs tolerance {$appetite->tolerance_upper}" : ''),
+            $metric !== null => "{$metric->code} {$breach?->level} breach — {$metric->name}",
+            $treatment !== null => "{$treatment->reference} overdue treatment — {$treatment->title}",
             default => "{$campaign->reference} attestation outstanding — {$subject?->name}",
         };
 
@@ -200,6 +386,9 @@ class EscalationService
             'test_instance_id' => $testInstance?->id,
             'campaign_id' => $campaign?->id,
             'subject_user_id' => $subject?->id,
+            'risk_id' => $risk?->id,
+            'metric_id' => $metric?->id,
+            'treatment_id' => $treatment?->id,
             'matrix_id' => $rule->id,
             'tier_no' => $rule->tier_no,
             'recipient_user_id' => $recipient?->id,
@@ -212,7 +401,7 @@ class EscalationService
         if (! $recipient) {
             $event->update(['delivery_status' => 'Failed']);
 
-            return;
+            return $event;
         }
 
         try {
@@ -223,5 +412,7 @@ class EscalationService
             Log::error('Escalation delivery failed', ['event' => $event->id, 'error' => $e->getMessage()]);
             $event->update(['delivery_status' => 'Failed']);
         }
+
+        return $event;
     }
 }

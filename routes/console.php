@@ -15,3 +15,9 @@ Schedule::command('atheris:poll-regulatory-feeds')->dailyAt('06:00');
 
 // Phase 9 — control library v2
 Schedule::command('atheris:remind-document-reviews')->weeklyOn(1, '08:00');
+
+// Phase 10 — risk management v2. Posture first (treatments and appetite),
+// then the KRI engine, so a breach opened this morning escalates on the
+// same run as the escalation sweep at 07:00.
+Schedule::command('atheris:refresh-risk-posture')->dailyAt('03:00');
+Schedule::command('atheris:evaluate-metrics')->dailyAt('03:30');

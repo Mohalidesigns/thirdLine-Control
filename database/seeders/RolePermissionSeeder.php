@@ -47,6 +47,12 @@ class RolePermissionSeeder extends Seeder
             'view documents', 'create documents', 'approve documents', 'manage document-folders',
             'view improvements', 'create improvements', 'approve improvements', 'verify improvements',
             'import data',
+            // Risk management v2 (Phase 10)
+            'assess risks', 'review risk-assessments',
+            'view appetite', 'manage appetite', 'approve appetite',
+            'view treatments', 'create treatments', 'approve treatments', 'verify treatments',
+            'view metrics', 'manage metrics', 'capture metrics', 'acknowledge breaches',
+            'manage linkage',
         ];
 
         foreach ($permissions as $permission) {
@@ -82,6 +88,12 @@ class RolePermissionSeeder extends Seeder
             'view attestations',
             'view documents', 'create documents', 'manage document-folders',
             'view improvements', 'create improvements',
+            // Second line assesses risk and runs the KRI engine; publishing a
+            // high-scoring assessment stays with the Control Function Head.
+            'assess risks', 'view appetite',
+            'view treatments', 'create treatments',
+            'view metrics', 'manage metrics', 'capture metrics', 'acknowledge breaches',
+            'manage linkage',
         ]);
 
         Role::findOrCreate('Control Owner', 'web')->syncPermissions([
@@ -91,6 +103,8 @@ class RolePermissionSeeder extends Seeder
             'view frameworks', 'view obligations', 'submit obligations',
             'view distributions', 'respond campaigns',
             'view documents', 'view improvements', 'create improvements',
+            'view treatments', 'create treatments',
+            'view metrics', 'capture metrics',
         ]);
 
         Role::findOrCreate('Line Manager', 'web')->syncPermissions([
@@ -99,6 +113,7 @@ class RolePermissionSeeder extends Seeder
             'view frameworks', 'view obligations', 'view regulatory-changes',
             'view distributions', 'respond campaigns',
             'view documents', 'view improvements',
+            'view appetite', 'view treatments', 'view metrics',
         ]);
 
         Role::findOrCreate('Executive Viewer', 'web')->syncPermissions([
@@ -107,6 +122,10 @@ class RolePermissionSeeder extends Seeder
             'view frameworks', 'view obligations', 'view regulatory-changes',
             'view distributions', 'view campaigns', 'view attestations',
             'view documents', 'view improvements',
+            // Appetite is a board artefact: the executive tier reads the
+            // register and approves the statement, but authors nothing.
+            'view appetite', 'approve appetite',
+            'view treatments', 'view metrics',
         ]);
     }
 }

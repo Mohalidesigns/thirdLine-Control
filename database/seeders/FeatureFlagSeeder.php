@@ -34,6 +34,13 @@ class FeatureFlagSeeder extends Seeder
         'documents' => 'Document management with folders, versioning and maker-checker approval',
         'improvements' => 'Improvement action database across all sources',
         'bulk-import' => 'Bulk Excel import with dry-run validation',
+        // Phase 10 — risk management v2
+        'risk-assessments' => 'Inherent/residual/target risk assessment with multi-dimensional impact and Monte Carlo',
+        'risk-heatmap' => 'Configurable N×N risk heatmaps with movement view and cell drill-through',
+        'risk-appetite' => 'Board-approved appetite statements, tolerance bands and breach escalation',
+        'risk-treatments' => 'Treatment plans with milestones, cost/benefit and independent verification',
+        'metrics' => 'KRI/KPI/KCI engine with thresholds, breach detection and trend charts',
+        'linkage' => 'Universal linkage graph across risks, controls, metrics and obligations',
     ];
 
     public function run(): void
