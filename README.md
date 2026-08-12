@@ -155,6 +155,9 @@ policy → query scoping**, mirrored to the UI via shared Inertia props.
 | **Accept an AI draft** (creates the record) | — | per capability | per capability | per capability | — | — |
 | AI governance: enable capabilities, models, prompts, budgets (`manage ai`) | ✓ | ✓ | — | — | — | — |
 | View / export the AI activity log | ✓ | ✓ | — | own only | — | — |
+| My-tasks mobile view, offline outbox, chunked uploads, push subscription | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| **Approvals / SoD transitions from the offline queue** | never — rejected server-side for every role | | | | | |
+| Messaging admin: templates, Meta sync, delivery log, channel costs (`manage messaging`) | ✓ | ✓ | — | — | — | — |
 
 **Segregation of duties (FR-12.3), enforced in `ExceptionPolicy` + `ExceptionService`
 with no admin bypass:** only a Control Function Head may move an exception to
@@ -1110,6 +1113,98 @@ acceptance test is "mock the HTTP client and inspect the outbound body", which
 `AnthropicClient` is the single class that reads the key, which is what makes
 "the key never leaks" one place to check rather than a codebase-wide audit.
 
+## Mobile, offline & omnichannel (Phase 15)
+
+Makes the platform usable by a control owner in a branch on a mid-range Android
+over 4G with unreliable power — and reachable on WhatsApp, SMS, push and USSD.
+Every channel ships **dormant**: with the `.env` credentials blank the drivers
+record `skipped` message-log rows instead of calling out, so go-live is
+configuration, not code.
+
+### Offline PWA (15.1)
+
+`resources/js/offline/` holds an IndexedDB store (no library), a durable outbox
+and the sync engine. `GET /offline/bootstrap` returns the trimmed working set —
+open test instances with their check items, outstanding attestations *with the
+signable text*, pending CSA questionnaires, my controls — which the device
+caches. Offline-capable actions (complete an attestation, answer a CSA, record a
+check result, capture compressed photo evidence, add an exception comment) queue
+with a client-generated UUID and replay **in order** through `POST
+/offline/outbox`, where `OfflineSyncService` validates each exactly as if
+submitted online: same policies, same services, same audit trail.
+
+Three structural rules: the action whitelist means approvals, reviews and
+SoD-gated transitions are not blocked but *unhandleable* — rejected with a reason
+the UI shows (R2); the client UUID makes every replay idempotent (a retry after a
+dropped response returns the recorded outcome); and a payload carrying an
+`expected_updated_at` older than the server copy parks as `conflict` with the
+server state attached — the sync indicator shows a "server changed this" prompt,
+never a silent overwrite.
+
+### Mobile interfaces (15.2)
+
+`/my-tasks` is the one-card-per-item, one-tap task view (44px+ targets, works
+offline from the cached feed). `CameraCapture` re-encodes photos through a
+canvas — which strips EXIF including embedded GPS — and compresses to ≤500KB;
+geotagging is an explicit, tenant-enabled option that attaches coordinates as
+metadata, never inside the file. Files over 2MB go through resumable chunked
+uploads (`chunked_uploads` table; assembly hands off to `EvidenceService::store`
+so a chunked upload is indistinguishable from a direct one). Forms autosave to
+localStorage via `useAutosave`.
+
+### WhatsApp Business Cloud API (15.3)
+
+`WhatsAppService` enforces the two channel laws architecturally: every outbound
+payload passes `OutboundContentGuard` (notification + platform link only — long
+digit runs, emails and off-platform links are blocked before any HTTP call,
+because message content traverses Meta infrastructure, NDPA), and the 24-hour
+session window (free-form inside it, **Meta-approved template only** outside it —
+`whatsapp_templates.approval_status` mirrors Meta's review state and seeds as
+`draft`; "Sync from Meta" on `/admin/messaging` pulls real statuses). The inbound
+webhook is signature-verified (`X-Hub-Signature-256`); delivery statuses update
+`message_logs`; and a message opening with the tenant's Speak-Up keyword
+(`settings.cases.whatsapp_intake_keyword`, default `REPORT`) goes through the
+**anonymising bridge**: `CaseService::openFromAnonymisingBridge` persists the
+case with no identifier at all, the reporter token is replied over the still-open
+session without ever logging the number (NCCG RP 19, CBN whistleblowing
+guidance), and the log row records that anonymisation happened.
+
+### SMS, USSD & push (15.4/15.5)
+
+SMS goes through a driver abstraction (Termii, Africa's Talking, or the default
+`log` driver) with the same content guard, templated bodies (`sms_templates`),
+delivery-receipt webhook and per-tenant cost tracking in minor units + ISO
+currency (R7). USSD is the one flow worth a menu — confirming an outstanding
+attestation from any handset — behind the `ussd` feature flag (off by default)
+plus a gateway token, recorded with `method = 'ussd'`. Web Push is deliberately
+**payload-free**: the push wakes the service worker, which fetches
+`/notifications/latest` over the authenticated session — no notification content
+ever rests on a push relay, and no RFC 8291 payload encryption to maintain.
+Subscriptions are per-device rows in `push_subscriptions`; VAPID keys live in
+`.env`.
+
+### Low-bandwidth mode & the bundle budget (15.6)
+
+The Phase 7 toggle now kills webfonts (system stack), animations and chart
+transitions via the `low-bandwidth` root class, and the offline bootstrap trims
+every list to what renders. `npm run build` runs `scripts/bundle-budget.mjs`,
+which **fails the build** if any chunk exceeds 250KB gzipped (R6) — the budget is
+CI-enforced, not aspirational.
+
+### Routes
+
+`GET /my-tasks`, `GET /offline/bootstrap`, `POST /offline/outbox`,
+`GET /notifications/latest`, `POST|DELETE /push/subscriptions`,
+`POST /uploads/chunked` (+ `/chunks`, `/complete`, `DELETE`);
+`GET /admin/messaging`, `POST /admin/messaging/sync-templates`;
+public webhooks (each with its own auth): `GET|POST /webhooks/whatsapp`,
+`POST /webhooks/sms/receipts`, `POST /webhooks/ussd`.
+
+Permissions: `manage messaging`. Feature flags: `ussd` (ships off).
+New tables: `whatsapp_templates`, `sms_templates`, `message_logs`,
+`whatsapp_sessions`, `push_subscriptions`, `offline_actions`,
+`chunked_uploads`; `users.phone` added.
+
 ## Key business rules (where they live)
 
 - **Maker–checker** on controls, test scripts, ratings, compensating controls — policies + services
@@ -1274,6 +1369,26 @@ in-country embedding model is the natural next step (a driver plus a re-index);
 streaming is not wired, so Atlas answers arrive whole rather than progressively;
 and `narrative.generate` returns text for a human to paste rather than writing
 into a report section, which is deliberate but does mean an extra step.
+
+**v2.0 Phase 15 (Mobile, Offline & Omnichannel) is implemented**: the offline
+PWA with an IndexedDB working set and a durable, idempotent, ordered outbox
+whose whitelist makes approvals and SoD transitions structurally unreachable
+from a queue; conflict surfacing instead of silent overwrite; the `/my-tasks`
+one-tap mobile view; EXIF-stripping ≤500KB camera capture and resumable chunked
+uploads that feed the normal evidence pipeline; WhatsApp Cloud API with the
+notification-and-link-only content guard, Meta template approval gating, the
+24-hour session window, signed inbound webhooks and the anonymising bridge for
+Speak-Up reports; SMS drivers with receipts and minor-unit cost tracking;
+feature-flagged USSD attestation; payload-free VAPID Web Push; and a CI-enforced
+250KB-gzipped route-chunk budget. Every channel is dormant until its `.env`
+credentials exist — go-live is configuration, not code.
+
+Carried forward from this phase: WhatsApp templates must be created and approved
+in Meta Business Manager before the channel is honest about sending (the seeder
+ships them as drafts); offline evidence blobs replay without a server-side
+idempotency key, so an interrupted sync can in principle duplicate an upload
+(the checksum makes duplicates detectable); and the outbox replays when the app
+is next opened online rather than via background sync while closed.
 
 Still pending from the v1 backlog: webhook
 subscriptions, NexusRisk risk-register pull, and in-place evidence redaction with

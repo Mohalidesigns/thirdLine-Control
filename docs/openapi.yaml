@@ -154,6 +154,115 @@ paths:
                   data:
                     type: array
                     items: { $ref: '#/components/schemas/ObligationInstance' }
+
+  # ── Omnichannel webhooks (Phase 15) ─────────────────────────────────
+  # These live on the web root (not /api/v1) and authenticate per channel:
+  # Meta signs WhatsApp payloads (X-Hub-Signature-256 over the raw body,
+  # HMAC-SHA256 with the app secret); the SMS aggregator and USSD gateway
+  # present a shared token. Outbound message content is architecturally
+  # limited to a notification and a platform link — never personal data or
+  # case content.
+  /webhooks/whatsapp:
+    servers:
+      - url: https://{host}
+        variables:
+          host:
+            default: secondline.client.example
+    get:
+      summary: Meta webhook verification handshake
+      security: []
+      parameters:
+        - name: hub.mode
+          in: query
+          schema: { type: string }
+        - name: hub.verify_token
+          in: query
+          schema: { type: string }
+        - name: hub.challenge
+          in: query
+          schema: { type: string }
+      responses:
+        '200': { description: Echoes hub.challenge when the verify token matches }
+        '403': { description: Token mismatch }
+    post:
+      summary: WhatsApp Cloud API events (statuses + inbound messages)
+      description: >
+        Signature-verified. Delivery statuses update the message log. An
+        inbound message opening with the tenant's Speak-Up keyword passes
+        through the anonymising bridge: the case persists with no reporter
+        identifier in any form (NCCG RP 19, CBN whistleblowing guidance).
+      security: []
+      parameters:
+        - name: X-Hub-Signature-256
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Acknowledged }
+        '403': { description: Missing or invalid signature }
+  /webhooks/sms/receipts:
+    servers:
+      - url: https://{host}
+        variables:
+          host:
+            default: secondline.client.example
+    post:
+      summary: SMS delivery receipt (normalised aggregator callback)
+      security: []
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message_id, status]
+              properties:
+                message_id: { type: string }
+                status: { type: string, enum: [delivered, failed] }
+                cost_minor: { type: integer, minimum: 0 }
+                cost_currency: { type: string, minLength: 3, maxLength: 3 }
+      responses:
+        '200': { description: Receipt applied }
+        '403': { description: Missing or invalid token }
+  /webhooks/ussd:
+    servers:
+      - url: https://{host}
+        variables:
+          host:
+            default: secondline.client.example
+    post:
+      summary: USSD attestation menu (Africa's Talking conventions)
+      description: >
+        Behind the `ussd` feature flag AND a gateway token. Only attestation
+        signing is reachable from this channel; approvals and SoD-gated
+        transitions are not.
+      security: []
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                sessionId: { type: string }
+                phoneNumber: { type: string }
+                text: { type: string }
+      responses:
+        '200':
+          description: Plain-text CON/END menu response
+          content:
+            text/plain:
+              schema: { type: string }
 components:
   securitySchemes:
     ApiKeyAuth:

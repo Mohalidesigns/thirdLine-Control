@@ -262,6 +262,21 @@ body {
 .low-bandwidth .stat-card {
     box-shadow: none;
 }
+/* Phase 15.6 completes the stub: system fonts (no webfont fetch),
+   reduced image quality via downscaling hints, charts render without
+   entrance animation (the components read the same root class). */
+.low-bandwidth body,
+.low-bandwidth .font-sans {
+    font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif !important;
+}
+.low-bandwidth img {
+    image-rendering: auto;
+    filter: none;
+}
+.low-bandwidth svg * {
+    animation: none !important;
+    transition: none !important;
+}
 
 /* Animations */
 @keyframes bell-ring {

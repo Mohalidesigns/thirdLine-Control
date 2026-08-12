@@ -31,6 +31,29 @@ class GovernanceClockNotification extends PreferenceRoutedNotification
             : $message->line('Please act before the window closes.');
     }
 
+    /**
+     * WhatsApp/SMS carry the title and a link back into the platform,
+     * never the summary — the substance stays behind authentication
+     * (NDPA; OutboundContentGuard is the backstop).
+     */
+    public function toWhatsapp(object $notifiable): ?array
+    {
+        return [
+            'template_key' => 'task_reminder',
+            'variables' => ['title' => $this->title],
+            'link' => $this->url ?? route('dashboard'),
+        ];
+    }
+
+    public function toSms(object $notifiable): ?array
+    {
+        return [
+            'template_key' => 'task_reminder',
+            'variables' => ['title' => $this->title],
+            'link' => $this->url ?? route('dashboard'),
+        ];
+    }
+
     public function toArray(object $notifiable): array
     {
         return [

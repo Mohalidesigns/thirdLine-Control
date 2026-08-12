@@ -4,7 +4,7 @@ import ConnectionBanner from '@/Components/ConnectionBanner';
 import FlashNotification from '@/Components/FlashNotification';
 import Dropdown from '@/Components/Dropdown';
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 const NAV_ITEMS = [
     {
@@ -12,6 +12,14 @@ const NAV_ITEMS = [
         route: 'dashboard',
         match: 'dashboard',
         icon: 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z',
+    },
+    {
+        // Phase 15.2: the mobile-first "what do I owe" view — every role
+        // has tasks, so no role gate.
+        label: 'My Tasks',
+        route: 'tasks.mine',
+        match: '/my-tasks',
+        icon: 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
     },
     {
         label: 'Control Library',
@@ -258,6 +266,14 @@ const NAV_ITEMS = [
         icon: 'M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z',
     },
     {
+        // Phase 15.3/15.4: template catalogue, delivery log, channel costs.
+        label: 'Messaging',
+        route: 'admin.messaging',
+        match: '/admin/messaging',
+        allowedRoles: ['System Administrator', 'Control Function Head'],
+        icon: 'M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z',
+    },
+    {
         label: 'Integrations',
         route: 'admin.integrations',
         match: '/admin/integrations',
@@ -312,9 +328,70 @@ function NavIcon({ d }) {
     );
 }
 
+// Scroll offset is ephemeral, so it lives in sessionStorage; the collapsed state
+// is a lasting preference, so it lives in localStorage.
+const NAV_SCROLL_KEY = 'sidebar-nav-scroll';
+const SIDEBAR_COLLAPSED_KEY = 'sidebar-collapsed';
+
+function readStored(storage, key) {
+    try {
+        return window[storage].getItem(key);
+    } catch {
+        return null;
+    }
+}
+
+function writeStored(storage, key, value) {
+    try {
+        window[storage].setItem(key, value);
+    } catch {
+        // Storage disabled — the sidebar just falls back to its defaults.
+    }
+}
+
+/**
+ * The layout is not a persistent Inertia layout, so it remounts on every visit
+ * and the scrollable nav would otherwise snap back to the top each time. Keep
+ * the scroll offset in session storage and restore it before the browser paints.
+ */
+function SidebarNav({ children }) {
+    const navRef = useRef(null);
+
+    useLayoutEffect(() => {
+        const nav = navRef.current;
+        if (!nav) {
+            return undefined;
+        }
+
+        const saved = readStored('sessionStorage', NAV_SCROLL_KEY);
+        if (saved !== null) {
+            nav.scrollTop = Number(saved);
+        } else {
+            // First visit of the session: bring the current page into view rather
+            // than leaving a deep-linked item scrolled off the bottom.
+            const active = nav.querySelector('[data-active="true"]');
+            if (active) {
+                const offset = active.getBoundingClientRect().top - nav.getBoundingClientRect().top;
+                nav.scrollTop += offset - (nav.clientHeight - active.offsetHeight) / 2;
+            }
+        }
+
+        const onScroll = () => writeStored('sessionStorage', NAV_SCROLL_KEY, String(nav.scrollTop));
+        nav.addEventListener('scroll', onScroll, { passive: true });
+        return () => nav.removeEventListener('scroll', onScroll);
+    }, []);
+
+    return (
+        <nav ref={navRef} className="sidebar-scroll flex-1 space-y-0.5 overflow-y-auto px-2 py-4">
+            {children}
+        </nav>
+    );
+}
+
 export default function AuthenticatedLayout({ header, children }) {
-    const { auth, unreadNotifications, branding, features = [], lowBandwidth } = usePage().props;
-    const [collapsed, setCollapsed] = useState(false);
+    const { props: { auth, unreadNotifications, branding, features = [], lowBandwidth }, url } = usePage();
+    // Read synchronously so a collapsed sidebar never flashes open on remount.
+    const [collapsed, setCollapsed] = useState(() => readStored('localStorage', SIDEBAR_COLLAPSED_KEY) === '1');
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const userRoles = auth?.roles ?? [];
@@ -324,9 +401,20 @@ export default function AuthenticatedLayout({ header, children }) {
             (!item.feature || features.includes(item.feature)),
     );
 
-    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
-    const isActive = (item) =>
-        item.match === 'dashboard' ? currentPath.startsWith('/dashboard') : currentPath.startsWith(item.match);
+    // usePage().url is the path + query string of the current Inertia visit.
+    const currentPath = (url ?? '/').split(/[?#]/)[0];
+    const basePath = (item) => (item.match === 'dashboard' ? '/dashboard' : item.match);
+    // Match on segment boundaries so /risks never swallows /risks/heatmap, and
+    // keep only the longest match so the deepest item is the one highlighted.
+    const matches = (item) => {
+        const base = basePath(item);
+        return currentPath === base || currentPath.startsWith(`${base}/`);
+    };
+    const activeItem = visibleItems.reduce(
+        (best, item) => (matches(item) && (!best || basePath(item).length > basePath(best).length) ? item : best),
+        null,
+    );
+    const isActive = (item) => item === activeItem;
 
     const sidebarWidth = collapsed ? 72 : 260;
 
@@ -356,7 +444,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 </Link>
             </div>
 
-            <nav className="sidebar-scroll flex-1 space-y-0.5 overflow-y-auto px-2 py-4">
+            <SidebarNav>
                 {visibleItems.map((item) => {
                     const active = isActive(item);
                     return (
@@ -364,6 +452,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             key={item.route}
                             href={route(item.route)}
                             title={collapsed ? item.label : undefined}
+                            data-active={active}
                             className={`flex items-center gap-3 rounded-lg py-2.5 text-sm font-medium transition-colors duration-200 ${
                                 collapsed ? 'justify-center px-2' : 'px-3'
                             } ${
@@ -377,11 +466,15 @@ export default function AuthenticatedLayout({ header, children }) {
                         </Link>
                     );
                 })}
-            </nav>
+            </SidebarNav>
 
             <button
                 type="button"
-                onClick={() => setCollapsed((c) => !c)}
+                onClick={() => {
+                    const next = !collapsed;
+                    setCollapsed(next);
+                    writeStored('localStorage', SIDEBAR_COLLAPSED_KEY, next ? '1' : '0');
+                }}
                 className="hidden shrink-0 items-center justify-center border-t border-white/10 py-3 text-white/60 transition-colors hover:text-white lg:flex"
             >
                 <svg className={`h-5 w-5 transition-transform duration-200 ${collapsed ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" strokeWidth={1.7} stroke="currentColor">

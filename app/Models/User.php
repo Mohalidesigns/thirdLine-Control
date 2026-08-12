@@ -21,6 +21,7 @@ class User extends Authenticatable
         'tenant_id',
         'name',
         'email',
+        'phone',
         'password',
         'position',
         'unit_id',
@@ -49,6 +50,16 @@ class User extends Authenticatable
             'mfa_confirmed_at' => 'datetime',
             'mfa_recovery_codes' => 'encrypted:array',
         ];
+    }
+
+    public function routeNotificationForWhatsapp(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function routeNotificationForSms(): ?string
+    {
+        return $this->phone;
     }
 
     public function hasMfaEnabled(): bool

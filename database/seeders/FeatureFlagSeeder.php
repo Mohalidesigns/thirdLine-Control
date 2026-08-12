@@ -63,14 +63,26 @@ class FeatureFlagSeeder extends Seeder
         'ai-assist' => 'Inline AI drafting, review and triage assistants with a human-approval review panel',
         'ai-atlas' => 'Atlas conversational assistant, RAG-grounded and permission-filtered over the tenant\'s own records',
         'ai-governance' => 'AI governance surface: model registry, prompt versions, budgets, acceptance rates and the activity log',
+        // Phase 15 — mobile, offline & omnichannel
+        'ussd' => 'USSD attestation confirmation flow via a gateway webhook (needs USSD_WEBHOOK_TOKEN)',
     ];
+
+    /**
+     * Flags that ship OFF: optional integrations a tenant opts into, not
+     * modules a deployment turns off.
+     */
+    private const DISABLED_BY_DEFAULT = ['ussd'];
 
     public function run(): void
     {
         foreach (self::FLAGS as $key => $description) {
             FeatureFlag::updateOrCreate(
                 ['tenant_id' => null, 'key' => $key],
-                ['is_enabled' => true, 'rollout_percentage' => 100, 'description' => $description],
+                [
+                    'is_enabled' => ! in_array($key, self::DISABLED_BY_DEFAULT, true),
+                    'rollout_percentage' => 100,
+                    'description' => $description,
+                ],
             );
         }
     }

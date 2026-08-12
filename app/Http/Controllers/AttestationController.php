@@ -90,11 +90,7 @@ class AttestationController extends Controller
 
     private function resolveSubject(CsaCampaign $campaign): ?Model
     {
-        $type = $campaign->scope_definition['attestable_type'] ?? null;
-        $id = $campaign->scope_definition['attestable_id'] ?? null;
-        $class = self::ATTESTABLES[$type] ?? null;
-
-        return $class && $id ? $class::find($id) : null;
+        return $this->attestationService->resolveSubject($campaign);
     }
 
     private function subjectLabel(CsaCampaign $campaign): ?string

@@ -60,6 +60,9 @@ class DatabaseSeeder extends Seeder
             // seeder has finished writing.
             AiPromptSeeder::class,
             Phase14AiSeeder::class,
+            // Phase 15: WhatsApp/SMS template catalogue (drafts until Meta
+            // approves the WhatsApp set).
+            Phase15MessagingSeeder::class,
         ]);
     }
 }

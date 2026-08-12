@@ -80,6 +80,10 @@ class RolePermissionSeeder extends Seeder
             // because turning the models on is a named authority an
             // organisation has to be able to show its own regulator.
             'use ai', 'manage ai', 'view ai-log', 'export ai-log',
+            // Mobile, offline & omnichannel (Phase 15). One permission: the
+            // template catalogue, the delivery log and channel cost tracking
+            // are a single governance surface.
+            'manage messaging',
         ];
 
         foreach ($permissions as $permission) {

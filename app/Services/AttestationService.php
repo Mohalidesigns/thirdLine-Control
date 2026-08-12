@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Http\Controllers\AttestationController;
 use App\Models\Attestation;
 use App\Models\CsaCampaign;
 use App\Models\User;
@@ -94,6 +95,20 @@ class AttestationService
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * The campaign's attestable subject, from its scope definition. Shared
+     * by the web controller, the offline sync engine (15.1) and the USSD
+     * flow (15.4) so every channel signs the same registry of types.
+     */
+    public function resolveSubject(CsaCampaign $campaign): ?Model
+    {
+        $type = $campaign->scope_definition['attestable_type'] ?? null;
+        $id = $campaign->scope_definition['attestable_id'] ?? null;
+        $class = AttestationController::ATTESTABLES[$type] ?? null;
+
+        return $class && $id ? $class::find($id) : null;
     }
 
     private function snapshotText(Model $attestable): string

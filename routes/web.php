@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AiGovernanceController;
+use App\Http\Controllers\Admin\MessagingController;
 use App\Http\Controllers\AiAssistController;
 use App\Http\Controllers\AtlasController;
 use App\Http\Controllers\AttestationController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\MfaController;
 use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\CaseController;
+use App\Http\Controllers\ChunkedUploadController;
 use App\Http\Controllers\CompensatingControlController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\ContentPackController;
@@ -33,6 +35,7 @@ use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\IntegrationController;
 use App\Http\Controllers\LinkageController;
 use App\Http\Controllers\MetricController;
+use App\Http\Controllers\MobileTaskController;
 use App\Http\Controllers\MonitoringDashboardController;
 use App\Http\Controllers\MonitoringFindingController;
 use App\Http\Controllers\MonitoringRuleController;
@@ -42,8 +45,10 @@ use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\ObligationAssignmentController;
 use App\Http\Controllers\ObligationController;
 use App\Http\Controllers\ObligationInstanceController;
+use App\Http\Controllers\OfflineSyncController;
 use App\Http\Controllers\PolicyController;
 use App\Http\Controllers\PolicyExceptionController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\PwaController;
 use App\Http\Controllers\RegulatoryChangeController;
 use App\Http\Controllers\ReportController;
@@ -65,6 +70,9 @@ use App\Http\Controllers\TenantSecurityController;
 use App\Http\Controllers\TestInstanceController;
 use App\Http\Controllers\TestScriptController;
 use App\Http\Controllers\VersionController;
+use App\Http\Controllers\Webhooks\SmsReceiptController;
+use App\Http\Controllers\Webhooks\UssdController;
+use App\Http\Controllers\Webhooks\WhatsappWebhookController;
 use App\Http\Controllers\WhistleblowingController;
 use Illuminate\Support\Facades\Route;
 
@@ -85,6 +93,20 @@ Route::middleware(['feature:whistleblowing', 'throttle:10,1'])->group(function (
     Route::get('speak-up/status', [WhistleblowingController::class, 'status'])->name('whistleblowing.status');
     Route::post('speak-up/status', [WhistleblowingController::class, 'checkStatus'])->name('whistleblowing.check');
     Route::post('speak-up/reply', [WhistleblowingController::class, 'reply'])->name('whistleblowing.reply');
+});
+
+// ── Omnichannel webhooks (Phase 15.3/15.4) — public by design, each
+// authenticated by its own mechanism: Meta signature, aggregator token,
+// USSD gateway token. CSRF-exempt in bootstrap/app.php.
+Route::prefix('webhooks')->group(function () {
+    Route::get('whatsapp', [WhatsappWebhookController::class, 'verify'])->name('webhooks.whatsapp.verify');
+    Route::post('whatsapp', [WhatsappWebhookController::class, 'receive'])
+        ->middleware('throttle:120,1')->name('webhooks.whatsapp');
+    Route::post('sms/receipts', [SmsReceiptController::class, 'receive'])
+        ->middleware('throttle:120,1')->name('webhooks.sms.receipts');
+    // USSD attestation (15.4) — optional, behind its feature flag.
+    Route::post('ussd', [UssdController::class, 'handle'])
+        ->middleware(['feature:ussd', 'throttle:120,1'])->name('webhooks.ussd');
 });
 
 // ── Guest ────────────────────────────────────────────────────────────
@@ -110,6 +132,20 @@ Route::middleware('auth')->group(function () {
     // ── Notifications ────────────────────────────────────────────────
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+
+    // ── Mobile, offline & omnichannel (Phase 15) ─────────────────────
+    // The task view and offline endpoints carry no feature flag: a stale
+    // cached device must always be able to sync its outbox back in.
+    Route::get('my-tasks', [MobileTaskController::class, 'index'])->name('tasks.mine');
+    Route::get('offline/bootstrap', [OfflineSyncController::class, 'bootstrap'])->name('offline.bootstrap');
+    Route::post('offline/outbox', [OfflineSyncController::class, 'outbox'])->name('offline.outbox');
+    Route::get('notifications/latest', [NotificationController::class, 'latest'])->name('notifications.latest');
+    Route::post('push/subscriptions', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
+    Route::delete('push/subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
+    Route::post('uploads/chunked', [ChunkedUploadController::class, 'store'])->name('uploads.chunked.store');
+    Route::post('uploads/chunked/{uuid}/chunks', [ChunkedUploadController::class, 'appendChunk'])->name('uploads.chunked.append');
+    Route::post('uploads/chunked/{uuid}/complete', [ChunkedUploadController::class, 'complete'])->name('uploads.chunked.complete');
+    Route::delete('uploads/chunked/{uuid}', [ChunkedUploadController::class, 'destroy'])->name('uploads.chunked.abort');
 
     // ── MFA (Phase 7.2) ──────────────────────────────────────────────
     Route::middleware('feature:mfa')->group(function () {
@@ -771,6 +807,14 @@ Route::middleware('auth')->group(function () {
                 Route::post('ai/prompts/{prompt}/activate', [AiGovernanceController::class, 'activatePrompt'])
                     ->name('admin.ai.prompts.activate');
             });
+        });
+
+        // Omnichannel messaging (Phase 15.3/15.4): templates, delivery
+        // log, per-channel cost tracking, Meta template sync.
+        Route::middleware('permission:manage messaging')->group(function () {
+            Route::get('messaging', [MessagingController::class, 'index'])->name('admin.messaging');
+            Route::post('messaging/sync-templates', [MessagingController::class, 'syncTemplates'])
+                ->name('admin.messaging.sync-templates');
         });
 
         Route::get('integrations', [IntegrationController::class, 'index'])->name('admin.integrations');

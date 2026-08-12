@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Models\NotificationEvent;
 use App\Models\NotificationPreference;
 use App\Models\User;
-use App\Notifications\Channels\NoopChannel;
+use App\Notifications\Channels\SmsChannel;
+use App\Notifications\Channels\WebPushChannel;
+use App\Notifications\Channels\WhatsAppChannel;
 use App\Notifications\PreferenceRoutedNotification;
 use Illuminate\Support\Carbon;
 
@@ -14,17 +16,19 @@ use Illuminate\Support\Carbon;
  * resolves the seeded event definition and the recipient's per-channel
  * preferences, respects quiet hours in the tenant timezone, defers
  * digest-frequency deliveries to the next digest window, and maps
- * logical channels onto Laravel drivers (whatsapp/sms/push are no-op
- * until Phase 15 implements them).
+ * logical channels onto Laravel drivers. WhatsApp/SMS/Push (Phase 15)
+ * carry a notification and a link only — the channel drivers and
+ * OutboundContentGuard enforce that, and each skips quietly until its
+ * .env credentials exist.
  */
 class NotificationDispatcher
 {
     private const CHANNEL_DRIVERS = [
         'in_app' => 'database',
         'email' => 'mail',
-        'whatsapp' => NoopChannel::class,
-        'sms' => NoopChannel::class,
-        'push' => NoopChannel::class,
+        'whatsapp' => WhatsAppChannel::class,
+        'sms' => SmsChannel::class,
+        'push' => WebPushChannel::class,
     ];
 
     private const DAILY_DIGEST_TIME = '07:00';
@@ -79,6 +83,7 @@ class NotificationDispatcher
 
         foreach ($byDeliveryTime as $timestamp => $drivers) {
             $instance = (clone $notification)->viaChannels(array_values(array_unique($drivers)));
+            $instance->eventKey = $eventKey;
 
             if ($timestamp > 0) {
                 $instance->delay(Carbon::createFromTimestamp($timestamp));

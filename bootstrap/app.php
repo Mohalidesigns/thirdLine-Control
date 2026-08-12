@@ -26,9 +26,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // SAML IdPs POST assertions cross-origin — the assertion itself is
-        // the proof, validated in SamlService (signature + replay).
+        // the proof, validated in SamlService (signature + replay). The
+        // Phase 15 webhooks are machine callers with their own proof:
+        // Meta's HMAC signature, the aggregator/USSD shared tokens.
         $middleware->validateCsrfTokens(except: [
             'auth/sso/*/acs',
+            'webhooks/*',
         ]);
 
         $middleware->alias([
