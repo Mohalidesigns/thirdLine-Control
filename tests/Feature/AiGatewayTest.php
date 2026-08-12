@@ -31,8 +31,8 @@ use Tests\TestCase;
  * The gateway pipeline (Part C §C.4).
  *
  * The HTTP client is mocked throughout and the outbound body inspected — the
- * acceptance test the phase specification asks for. Nothing here reaches
- * Anthropic, and nothing here needs a real key.
+ * acceptance test the phase specification asks for. Nothing here reaches an
+ * Ollama server, and nothing here needs one running.
  */
 class AiGatewayTest extends TestCase
 {
@@ -44,7 +44,7 @@ class AiGatewayTest extends TestCase
 
     private Control $control;
 
-    private const FAKE_KEY = 'sk-ant-test-0000000000000000000000';
+    private const FAKE_KEY = 'ollama-proxy-test-0000000000000000000000';
 
     protected function setUp(): void
     {
@@ -54,10 +54,10 @@ class AiGatewayTest extends TestCase
         $this->seed(FeatureFlagSeeder::class);
         $this->seed(AiPromptSeeder::class);
 
-        // A syntactically plausible key so the "never leaks" assertions have
+        // A plausible proxy key so the "never leaks" assertions have
         // something real to hunt for. It is a literal in a test, never a
         // seeder or a committed .env (R9).
-        config(['services.anthropic.api_key' => self::FAKE_KEY]);
+        config(['services.ollama.api_key' => self::FAKE_KEY]);
 
         $this->tenant = Tenant::create(['name' => 'Test Bank', 'status' => 'active', 'data_residency' => 'NG']);
         $this->officer = $this->makeUser('officer@test.local', 'Control Officer');
@@ -96,15 +96,14 @@ class AiGatewayTest extends TestCase
         ]);
     }
 
-    /** A well-formed reply for control.draft. */
+    /** A well-formed reply for control.draft, in Ollama's /api/chat shape. */
     private function fakeControlDraft(array $overrides = []): array
     {
         return [
-            'id' => 'msg_test',
-            'model' => 'claude-sonnet-5',
-            'content' => [[
-                'type' => 'text',
-                'text' => json_encode([
+            'model' => 'granite4:micro',
+            'message' => [
+                'role' => 'assistant',
+                'content' => json_encode([
                     'title' => 'Dual authorisation of outward transfers',
                     'objective' => 'Prevent an outward transfer being released by its originator.',
                     'description' => 'The branch operations officer reviews and releases each transfer above the threshold.',
@@ -123,8 +122,10 @@ class AiGatewayTest extends TestCase
                     'citations' => [],
                     ...$overrides,
                 ]),
-            ]],
-            'usage' => ['input_tokens' => 1200, 'output_tokens' => 300],
+            ],
+            'done' => true,
+            'prompt_eval_count' => 1200,
+            'eval_count' => 300,
         ];
     }
 
@@ -132,9 +133,10 @@ class AiGatewayTest extends TestCase
     private function fakeTriage(): array
     {
         return [
-            'content' => [[
-                'type' => 'text',
-                'text' => json_encode([
+            'model' => 'granite4:micro',
+            'message' => [
+                'role' => 'assistant',
+                'content' => json_encode([
                     'category' => 'Process design',
                     'probable_root_cause' => 'No named deputy for the reconciliation.',
                     'root_cause_confidence' => 0.7,
@@ -145,8 +147,10 @@ class AiGatewayTest extends TestCase
                     'confidence' => 0.75,
                     'citations' => [],
                 ]),
-            ]],
-            'usage' => ['input_tokens' => 900, 'output_tokens' => 200],
+            ],
+            'done' => true,
+            'prompt_eval_count' => 900,
+            'eval_count' => 200,
         ];
     }
 
@@ -165,7 +169,7 @@ class AiGatewayTest extends TestCase
      */
     public function test_no_pii_reaches_the_outbound_request_body(): void
     {
-        Http::fake(['api.anthropic.com/*' => Http::response($this->fakeTriage())]);
+        Http::fake(['localhost:11434/*' => Http::response($this->fakeTriage())]);
 
         $exception = ControlException::withoutGlobalScopes()->create([
             'tenant_id' => $this->tenant->id,
@@ -200,12 +204,12 @@ class AiGatewayTest extends TestCase
 
     public function test_the_api_key_travels_only_in_the_header_and_never_in_a_stored_field(): void
     {
-        Http::fake(['api.anthropic.com/*' => Http::response($this->fakeControlDraft())]);
+        Http::fake(['localhost:11434/*' => Http::response($this->fakeControlDraft())]);
 
         $draft = app(AiGateway::class)->execute($this->draftRequest());
 
         Http::assertSent(function (Request $request) {
-            $this->assertSame(self::FAKE_KEY, $request->header('x-api-key')[0] ?? null);
+            $this->assertSame('Bearer '.self::FAKE_KEY, $request->header('Authorization')[0] ?? null);
             $this->assertStringNotContainsString(self::FAKE_KEY, json_encode($request->data()));
 
             return true;
@@ -218,7 +222,6 @@ class AiGatewayTest extends TestCase
         ]);
 
         $this->assertStringNotContainsString(self::FAKE_KEY, $serialised);
-        $this->assertStringNotContainsString('sk-ant-', $serialised);
     }
 
     /**
@@ -230,8 +233,8 @@ class AiGatewayTest extends TestCase
         Log::spy();
 
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
-                'error' => ['type' => 'authentication_error', 'message' => 'Invalid key '.self::FAKE_KEY],
+            'localhost:11434/*' => Http::response([
+                'error' => 'invalid credentials: '.self::FAKE_KEY,
             ], 401),
         ]);
 
@@ -322,7 +325,7 @@ class AiGatewayTest extends TestCase
 
     public function test_a_soft_budget_records_the_overrun_and_lets_the_call_through(): void
     {
-        Http::fake(['api.anthropic.com/*' => Http::response($this->fakeControlDraft())]);
+        Http::fake(['localhost:11434/*' => Http::response($this->fakeControlDraft())]);
 
         AiBudget::withoutGlobalScopes()->create([
             'tenant_id' => $this->tenant->id,
@@ -365,7 +368,7 @@ class AiGatewayTest extends TestCase
 
     public function test_the_prompt_version_is_recorded_on_every_interaction(): void
     {
-        Http::fake(['api.anthropic.com/*' => Http::response($this->fakeControlDraft())]);
+        Http::fake(['localhost:11434/*' => Http::response($this->fakeControlDraft())]);
 
         $draft = app(AiGateway::class)->execute($this->draftRequest());
 
@@ -381,7 +384,12 @@ class AiGatewayTest extends TestCase
     public function test_malformed_output_is_repaired_once_then_fails_gracefully(): void
     {
         Http::fakeSequence()
-            ->push(['content' => [['type' => 'text', 'text' => 'Sorry, here is some prose instead.']], 'usage' => ['input_tokens' => 100, 'output_tokens' => 20]])
+            ->push([
+                'message' => ['role' => 'assistant', 'content' => 'Sorry, here is some prose instead.'],
+                'done' => true,
+                'prompt_eval_count' => 100,
+                'eval_count' => 20,
+            ])
             ->push($this->fakeControlDraft());
 
         $draft = app(AiGateway::class)->execute($this->draftRequest());
@@ -394,9 +402,11 @@ class AiGatewayTest extends TestCase
     public function test_output_that_never_validates_is_rejected_and_recorded(): void
     {
         Http::fake([
-            'api.anthropic.com/*' => Http::response([
-                'content' => [['type' => 'text', 'text' => '{"title": "Missing everything else"}']],
-                'usage' => ['input_tokens' => 100, 'output_tokens' => 20],
+            'localhost:11434/*' => Http::response([
+                'message' => ['role' => 'assistant', 'content' => '{"title": "Missing everything else"}'],
+                'done' => true,
+                'prompt_eval_count' => 100,
+                'eval_count' => 20,
             ]),
         ]);
 
@@ -415,7 +425,7 @@ class AiGatewayTest extends TestCase
 
     public function test_a_fabricated_citation_is_dropped(): void
     {
-        Http::fake(['api.anthropic.com/*' => Http::response($this->fakeControlDraft([
+        Http::fake(['localhost:11434/*' => Http::response($this->fakeControlDraft([
             'citations' => [
                 ['record_type' => 'control', 'record_id' => 999999, 'claim' => 'Invented.'],
             ],
@@ -432,7 +442,7 @@ class AiGatewayTest extends TestCase
      */
     public function test_the_interaction_stores_redacted_input_and_context_ids_only(): void
     {
-        Http::fake(['api.anthropic.com/*' => Http::response($this->fakeControlDraft())]);
+        Http::fake(['localhost:11434/*' => Http::response($this->fakeControlDraft())]);
 
         $draft = app(AiGateway::class)->execute($this->draftRequest());
         $interaction = $draft->interaction->refresh();
@@ -448,23 +458,23 @@ class AiGatewayTest extends TestCase
     }
 
     /**
-     * The current Opus and Sonnet generation rejects sampling parameters
-     * with a 400, so the gateway asks the feature matrix rather than
-     * assuming.
+     * Optional parameters are gated on the per-model feature matrix. A
+     * model absent from the matrix falls back to `default`, which sends
+     * nothing optional — the safe direction.
      */
-    public function test_temperature_is_not_sent_to_a_model_that_rejects_it(): void
+    public function test_temperature_is_not_sent_to_a_model_outside_the_feature_matrix(): void
     {
-        Http::fake(['api.anthropic.com/*' => Http::response($this->fakeControlDraft())]);
+        Http::fake(['localhost:11434/*' => Http::response($this->fakeControlDraft())]);
 
         AiConfiguration::withoutGlobalScopes()
             ->where('capability_key', 'control.draft')
-            ->update(['model' => 'claude-sonnet-5', 'temperature' => 0.4]);
+            ->update(['model' => 'some-unlisted:model', 'temperature' => 0.4]);
 
         app(AiGateway::class)->execute($this->draftRequest());
 
         Http::assertSent(function (Request $request) {
-            $this->assertArrayNotHasKey('temperature', $request->data());
-            $this->assertSame('claude-sonnet-5', $request->data()['model']);
+            $this->assertArrayNotHasKey('temperature', (array) ($request->data()['options'] ?? []));
+            $this->assertSame('some-unlisted:model', $request->data()['model']);
 
             return true;
         });

@@ -8,46 +8,49 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 
 /**
- * The only class in the application that reads the Anthropic API key (R9).
+ * The only class in the application that talks to the model provider, and
+ * the only one that reads the optional Ollama API key (R9).
  *
- * Everything above it deals in arrays and never sees a credential, which is
- * what makes "the key never appears in a log, a response or a serialised
- * prop" testable rather than aspirational: there is exactly one place to
- * check.
+ * The provider is a locally hosted Ollama server running IBM Granite, so in
+ * the common case there is no credential at all — tenant data never leaves
+ * the machine, which is the strongest possible reading of R5. The api_key
+ * setting exists for an Ollama placed behind an authenticating reverse
+ * proxy; when set, it travels as a bearer header from here and from nowhere
+ * else, so "the key never appears in a log, a response or a serialised
+ * prop" stays testable rather than aspirational: there is exactly one place
+ * to check.
  *
  * Laravel's HTTP client is used rather than a vendor SDK on purpose. The
  * phase's own acceptance test is "mock the HTTP client and inspect the
  * outbound body" — Http::fake() makes that a first-class assertion against
- * the real transport, where an SDK would need its own injected handler and
- * would put a beta dependency inside a production GRC deployment for no
- * capability we use.
+ * the real transport.
  */
-class AnthropicClient
+class OllamaClient
 {
     public function configured(): bool
     {
-        return filled(config('services.anthropic.api_key'));
+        return filled(config('services.ollama.base_url'));
     }
 
     /**
-     * POST /v1/messages with bounded retries.
+     * POST /api/chat with bounded retries.
      *
      * Retries 429 and 5xx with exponential backoff plus jitter, and honours
-     * a Retry-After header when the provider sends one. A 4xx that is not
-     * 429 is a request we built wrong — retrying it just burns the budget,
-     * so it fails immediately.
+     * a Retry-After header when one is sent. A 4xx that is not 429 is a
+     * request we built wrong — a missing model, a malformed body — and
+     * retrying it just burns time, so it fails immediately.
      *
      * @param  array<string, mixed>  $payload
      * @return array{body: array, status: int, latency_ms: int}
      */
-    public function messages(array $payload): array
+    public function chat(array $payload): array
     {
         if (! $this->configured()) {
-            throw new AiUnavailableException('ANTHROPIC_API_KEY is not configured.');
+            throw new AiUnavailableException('OLLAMA_BASE_URL is not configured.');
         }
 
-        $maxRetries = max(0, (int) config('services.anthropic.max_retries', 3));
-        $baseMs = max(50, (int) config('services.anthropic.retry_base_ms', 500));
+        $maxRetries = max(0, (int) config('services.ollama.max_retries', 3));
+        $baseMs = max(50, (int) config('services.ollama.retry_base_ms', 500));
         $startedAt = microtime(true);
         $lastError = 'No attempt was made.';
 
@@ -55,7 +58,8 @@ class AnthropicClient
             try {
                 $response = $this->send($payload);
             } catch (ConnectionException $e) {
-                // Timeouts and DNS failures. Message is ours, not the
+                // Timeouts and refused connections — usually an Ollama
+                // server that is not running. Message is ours, not the
                 // provider's, and carries no configuration.
                 $lastError = 'Connection to the model provider failed or timed out.';
                 $this->backoff($attempt, $baseMs, null);
@@ -88,16 +92,18 @@ class AnthropicClient
      */
     private function send(array $payload): Response
     {
-        $base = rtrim((string) config('services.anthropic.base_url'), '/');
+        $base = rtrim((string) config('services.ollama.base_url'), '/');
+        $key = (string) config('services.ollama.api_key');
 
-        return Http::withHeaders([
-            'x-api-key' => (string) config('services.anthropic.api_key'),
-            'anthropic-version' => (string) config('services.anthropic.version'),
-            'content-type' => 'application/json',
-        ])
-            ->timeout((int) config('services.anthropic.timeout', 120))
-            ->connectTimeout((int) config('services.anthropic.connect_timeout', 10))
-            ->post($base.'/v1/messages', $payload);
+        $pending = Http::withHeaders(['content-type' => 'application/json'])
+            ->timeout((int) config('services.ollama.timeout', 300))
+            ->connectTimeout((int) config('services.ollama.connect_timeout', 10));
+
+        if ($key !== '') {
+            $pending = $pending->withToken($key);
+        }
+
+        return $pending->post($base.'/api/chat', $payload);
     }
 
     private function retryable(int $status): bool
@@ -121,21 +127,19 @@ class AnthropicClient
     /**
      * A short, safe description of a failed response.
      *
-     * The provider's error body is summarised to its type and message and
-     * then scrubbed, because an echoed request header in an error payload is
-     * a credible route for a key to reach a log file. Nothing here is shown
-     * to a user either way — AiUnavailableException replaces it with fixed
-     * text — but the interaction record keeps it, and the interaction record
-     * is exportable.
+     * Ollama reports errors as {"error": "message"}. The message is kept —
+     * "model 'granite4:micro' not found, try pulling it first" is exactly
+     * what an operator needs to see — but scrubbed first, because an echoed
+     * request header in an error payload is a credible route for a key to
+     * reach a log file. Nothing here is shown to a user either way —
+     * AiUnavailableException replaces it with fixed text — but the
+     * interaction record keeps it, and the interaction record is exportable.
      */
     private function describe(Response $response): string
     {
-        $error = (array) ($response->json('error') ?? []);
+        $error = $response->json('error');
 
-        $detail = trim(implode(': ', array_filter([
-            $error['type'] ?? null,
-            $error['message'] ?? null,
-        ])));
+        $detail = is_string($error) ? trim($error) : '';
 
         if ($detail === '') {
             $detail = 'no detail returned';
@@ -150,12 +154,12 @@ class AnthropicClient
      */
     public function scrub(string $text): string
     {
-        $key = (string) config('services.anthropic.api_key');
+        $key = (string) config('services.ollama.api_key');
 
         if ($key !== '') {
             $text = str_replace($key, '[REDACTED]', $text);
         }
 
-        return (string) preg_replace('/sk-ant-[A-Za-z0-9\-_]{8,}/', '[REDACTED]', $text);
+        return $text;
     }
 }

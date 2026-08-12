@@ -23,8 +23,8 @@ use App\Models\SubmissionPack;
 | in ai_configurations / ai_prompts (R1). This file holds the shape of the
 | layer; the tenant's rows hold its settings.
 |
-| Nothing in here is a credential. The Anthropic key lives in
-| config/services.php, read from .env only (R9).
+| Nothing in here is a credential. The Ollama endpoint (and its optional
+| proxy key) lives in config/services.php, read from .env only (R9).
 |
 */
 
@@ -291,17 +291,17 @@ return [
     | Embeddings
     |--------------------------------------------------------------------------
     |
-    | Anthropic publishes no embedding endpoint, and shipping tenant records
-    | to a third-party embedding provider would breach R5 for the sake of a
-    | ranking signal. The default driver is therefore local and deterministic:
-    | a hashed bag-of-terms projected into a fixed-width vector, cosine-scored
-    | in PHP over a keyword-prefiltered candidate set exactly as Part C §C.7
-    | permits ("correctness first, optimise later").
+    | The default driver is local and deterministic: a hashed bag-of-terms
+    | projected into a fixed-width vector, cosine-scored in PHP over a
+    | keyword-prefiltered candidate set exactly as Part C §C.7 permits
+    | ("correctness first, optimise later"). It needs no model at all, so
+    | indexing never competes with generation for the Ollama server.
     |
     | It is a lexical-semantic hybrid, not a neural embedding, and it is
     | honest about that: keyword recall does the heavy lifting and the vector
-    | supplies the ranking. Swapping in a real embedding model later is a new
-    | driver plus a re-index, with no change above EmbeddingService.
+    | supplies the ranking. The same Ollama server can serve a real embedding
+    | model (granite-embedding) with no data leaving the boundary — that is a
+    | new driver plus a re-index, with no change above EmbeddingService.
     |
     */
 

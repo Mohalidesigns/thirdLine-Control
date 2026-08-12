@@ -38,7 +38,7 @@ use Illuminate\Support\Collection;
 class AiGateway
 {
     public function __construct(
-        private AnthropicClient $client,
+        private OllamaClient $client,
         private PromptRegistry $prompts,
         private RedactionService $redaction,
         private RetrievalService $retrieval,
@@ -66,7 +66,7 @@ class AiGateway
 
         if (! $this->client->configured()) {
             throw $this->recordFailure($request, $prompt, new AiUnavailableException(
-                'No Anthropic API key is configured for this installation.',
+                'No Ollama endpoint is configured for this installation.',
             ), $model);
         }
 
@@ -136,15 +136,14 @@ class AiGateway
         $errors = [];
 
         for ($attempt = 0; $attempt <= $attempts; $attempt++) {
-            $response = $this->client->messages(
+            $response = $this->client->chat(
                 $this->payload($model, $systemPrompt, $messages, $prompt, $schema),
             );
 
             $text = $this->textFrom($response['body']);
-            $usage = (array) ($response['body']['usage'] ?? []);
 
-            $totalInput += (int) ($usage['input_tokens'] ?? 0);
-            $totalOutput += (int) ($usage['output_tokens'] ?? 0);
+            $totalInput += (int) ($response['body']['prompt_eval_count'] ?? 0);
+            $totalOutput += (int) ($response['body']['eval_count'] ?? 0);
             $totalLatency += $response['latency_ms'];
             $rawParts[] = $text;
 
@@ -224,7 +223,7 @@ class AiGateway
             'input_tokens' => $inputTokens,
             'output_tokens' => $outputTokens,
             'cost_minor' => $costMinor,
-            'currency' => (string) config('services.anthropic.pricing_currency', 'USD'),
+            'currency' => (string) config('services.ollama.pricing_currency', 'USD'),
             'latency_ms' => $latencyMs,
         ]);
 
@@ -271,13 +270,14 @@ class AiGateway
     }
 
     /**
-     * The request body.
+     * The request body for Ollama's /api/chat.
      *
      * Optional parameters are gated on the per-model feature matrix in
-     * config/services.php rather than assumed: the current Opus and Sonnet
-     * generation rejects `temperature` outright, and thinking and effort are
-     * not available on every tier. Sending an unsupported parameter is a
-     * 400 that costs a retry cycle and a confusing error.
+     * config/services.php rather than assumed: not every Granite build
+     * supports the think toggle, and sending an unsupported parameter is an
+     * error or a silent no-op depending on the model. Streaming is always
+     * off — the gateway parses one complete body, and the pipeline's schema
+     * validation has nothing to do with a half-arrived response.
      *
      * @param  array<int, array<string, string>>  $messages
      * @param  array<string, mixed>  $schema
@@ -289,58 +289,55 @@ class AiGateway
 
         $payload = [
             'model' => $model,
-            'max_tokens' => $prompt->max_tokens ?: (int) config('services.anthropic.max_tokens', 8192),
-            'system' => $system,
-            'messages' => $messages,
+            'messages' => [
+                ['role' => 'system', 'content' => $system],
+                ...$messages,
+            ],
+            'stream' => false,
+            'options' => [
+                'num_predict' => $prompt->max_tokens ?: (int) config('services.ollama.max_tokens', 8192),
+                'num_ctx' => (int) config('services.ollama.num_ctx', 16384),
+            ],
         ];
 
         if ($features['temperature'] && $prompt->temperature !== null) {
-            $payload['temperature'] = $prompt->temperature;
+            $payload['options']['temperature'] = $prompt->temperature;
         }
 
-        // Where the provider can enforce the schema, let it — then validate
-        // anyway. A provider guarantee is not a control we own.
+        // Where the provider can enforce the schema, let it — Ollama takes
+        // a JSON schema in `format` and constrains generation to it — then
+        // validate anyway. A provider guarantee is not a control we own.
         if ($features['structured_output'] && $schema !== []) {
-            $payload['output_config'] = [
-                'format' => ['type' => 'json_schema', 'schema' => $this->strictSchema($schema)],
-            ];
+            $payload['format'] = $this->strictSchema($schema);
         }
 
         if ($features['thinking']) {
-            $payload['thinking'] = ['type' => 'adaptive'];
-        }
-
-        if ($features['effort']) {
-            // Reasoning-tier work gets the deeper setting; everything else
-            // takes the balanced one. Cost is bounded by the budget either
-            // way, and under-thinking a framework mapping is the expensive
-            // mistake here, not the tokens.
-            $payload['output_config']['effort'] =
-                $model === config('services.anthropic.reasoning_model') ? 'high' : 'medium';
+            $payload['think'] = true;
         }
 
         return $payload;
     }
 
     /**
-     * @return array{thinking: bool, effort: bool, structured_output: bool, temperature: bool}
+     * @return array{thinking: bool, structured_output: bool, temperature: bool}
      */
     private function features(string $model): array
     {
-        $default = (array) config('services.anthropic.features.default', []);
+        $default = (array) config('services.ollama.features.default', []);
 
         return [
-            ...['thinking' => false, 'effort' => false, 'structured_output' => false, 'temperature' => false],
+            ...['thinking' => false, 'structured_output' => false, 'temperature' => false],
             ...$default,
-            ...(array) config("services.anthropic.features.{$model}", []),
+            ...(array) config("services.ollama.features.{$model}", []),
         ];
     }
 
     /**
-     * Structured outputs require additionalProperties:false on every object
-     * in the schema. Adding it here rather than in every seeded prompt keeps
-     * the stored schemas readable and makes the requirement one thing to fix
-     * if the provider's rule changes.
+     * additionalProperties:false on every object in the schema, so the
+     * constrained decoder cannot pad the output with invented keys. Adding
+     * it here rather than in every seeded prompt keeps the stored schemas
+     * readable and makes the requirement one thing to fix if the provider's
+     * rule changes.
      */
     private function strictSchema(array $schema): array
     {
@@ -361,10 +358,7 @@ class AiGateway
 
     private function textFrom(array $body): string
     {
-        return collect((array) ($body['content'] ?? []))
-            ->filter(fn ($block) => ($block['type'] ?? null) === 'text')
-            ->pluck('text')
-            ->implode('');
+        return (string) ($body['message']['content'] ?? '');
     }
 
     /** @param array<int, string> $errors */
@@ -393,7 +387,7 @@ class AiGateway
 
         $tier = CapabilityRegistry::tier($configuration->capability_key);
 
-        return (string) config("services.anthropic.{$tier}_model", config('services.anthropic.default_model'));
+        return (string) config("services.ollama.{$tier}_model", config('services.ollama.default_model'));
     }
 
     private function assertCapabilityEnabled(int $tenantId, string $key): AiConfiguration
@@ -469,7 +463,7 @@ class AiGateway
             'input_redacted' => $redactedVariables,
             'retrieved_context' => $this->retrieval->toContextIds($hits),
             'status' => 'Pending',
-            'currency' => (string) config('services.anthropic.pricing_currency', 'USD'),
+            'currency' => (string) config('services.ollama.pricing_currency', 'USD'),
         ]);
     }
 
@@ -490,7 +484,7 @@ class AiGateway
             'subject_id' => $request->subject?->getKey(),
             'status' => $e->status(),
             'error_message' => $this->client->scrub($e->getMessage()),
-            'currency' => (string) config('services.anthropic.pricing_currency', 'USD'),
+            'currency' => (string) config('services.ollama.pricing_currency', 'USD'),
         ]);
 
         return $e;

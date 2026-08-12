@@ -98,7 +98,7 @@ class AiGovernanceTest extends TestCase
             'user_id' => ($user ?? $this->officer)->id,
             'capability_key' => $capability,
             'prompt_version' => 1,
-            'model' => 'claude-sonnet-5',
+            'model' => 'granite4:micro',
             'subject_type' => $subject?->getMorphClass(),
             'subject_id' => $subject?->getKey(),
             'status' => 'Completed',
@@ -419,12 +419,12 @@ class AiGovernanceTest extends TestCase
     /** The page must never hand the key to the browser (R9). */
     public function test_the_governance_page_never_exposes_the_api_key(): void
     {
-        config(['services.anthropic.api_key' => 'sk-ant-secret-value-000000']);
+        config(['services.ollama.api_key' => 'ollama-proxy-secret-value-000000']);
 
         $response = $this->actingAs($this->admin)->get(route('admin.ai.index'));
 
         $response->assertOk();
-        $this->assertStringNotContainsString('sk-ant-secret-value-000000', $response->getContent());
+        $this->assertStringNotContainsString('ollama-proxy-secret-value-000000', $response->getContent());
         $this->assertStringNotContainsString('api_key', $response->getContent());
     }
 

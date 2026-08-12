@@ -28,8 +28,8 @@ use Spatie\Permission\Models\Role;
  * governance page would.
  *
  * Second, the demo interactions below are written directly rather than
- * produced by calling Anthropic. Seeding must run without network access or
- * an API key, and a seeder that spends money is a seeder nobody runs twice.
+ * produced by calling Ollama. Seeding must run without a model server, and
+ * a seeder that waits on live generations is a seeder nobody runs twice.
  * They carry realistic token counts, costs, latencies and — importantly — a
  * spread of human decisions, including a rejection with a reason, so the
  * acceptance-rate panel on the governance page has something honest to show.
@@ -79,7 +79,7 @@ class Phase14AiSeeder extends Seeder
                 [
                     'is_enabled' => true,
                     // Null model: the capability's configured tier applies,
-                    // so an installation that changes ANTHROPIC_MODEL does
+                    // so an installation that changes OLLAMA_MODEL does
                     // not have to revisit nine rows.
                     'model' => null,
                     'requires_approval_role_id' => in_array($key, $restricted, true) ? $headRoleId : null,
@@ -145,7 +145,7 @@ class Phase14AiSeeder extends Seeder
         $exception = ControlException::withoutGlobalScopes()->where('tenant_id', $tenantId)->first();
 
         $promptVersion = 1;
-        $model = (string) config('services.anthropic.default_model');
+        $model = (string) config('services.ollama.default_model');
 
         $rows = [
             [
@@ -259,7 +259,7 @@ class Phase14AiSeeder extends Seeder
                 'tenant_id' => $tenantId,
                 'prompt_version' => $promptVersion,
                 'model' => $model,
-                'currency' => (string) config('services.anthropic.pricing_currency', 'USD'),
+                'currency' => (string) config('services.ollama.pricing_currency', 'USD'),
                 'cost_minor' => $budgetService->costMinor(
                     $model,
                     (int) ($row['input_tokens'] ?? 0),

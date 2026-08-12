@@ -3,14 +3,14 @@
 namespace App\Services\Ai\Exceptions;
 
 /**
- * No API key configured, or the provider could not be reached after the
- * configured retries.
+ * No Ollama endpoint configured, or the server could not be reached after
+ * the configured retries.
  *
  * userMessage() is deliberately fixed text. The provider's own error body
  * can echo request headers, and an echoed Authorization header rendered
  * into a flash message is how an API key leaves a system (R9). The detail
- * goes to the interaction's error_message, which AnthropicClient has
- * already scrubbed.
+ * goes to the interaction's error_message, which OllamaClient has already
+ * scrubbed.
  */
 class AiUnavailableException extends AiException
 {

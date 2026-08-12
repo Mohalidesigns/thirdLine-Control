@@ -51,7 +51,7 @@ class AiRetrievalTest extends TestCase
         $this->seed(FeatureFlagSeeder::class);
         $this->seed(AiPromptSeeder::class);
 
-        config(['services.anthropic.api_key' => 'sk-ant-test-0000000000000000000000']);
+        config(['services.ollama.api_key' => 'ollama-proxy-test-0000000000000000000000']);
 
         $this->tenant = Tenant::create(['name' => 'Test Bank', 'status' => 'active', 'data_residency' => 'NG']);
 
@@ -183,14 +183,16 @@ class AiRetrievalTest extends TestCase
         $this->indexControl();
         $this->indexRisk();
 
-        Http::fake(['api.anthropic.com/*' => Http::response([
-            'content' => [['type' => 'text', 'text' => json_encode([
+        Http::fake(['localhost:11434/*' => Http::response([
+            'message' => ['role' => 'assistant', 'content' => json_encode([
                 'answer' => 'Nothing to report.',
                 'confidence' => 0.5,
                 'insufficient_context' => false,
                 'citations' => [],
-            ])]],
-            'usage' => ['input_tokens' => 100, 'output_tokens' => 50],
+            ])],
+            'done' => true,
+            'prompt_eval_count' => 100,
+            'eval_count' => 50,
         ])]);
 
         app(AiGateway::class)->execute(
@@ -221,16 +223,18 @@ class AiRetrievalTest extends TestCase
      */
     public function test_an_empty_retrieval_is_reported_as_insufficient_context(): void
     {
-        Http::fake(['api.anthropic.com/*' => Http::response([
-            'content' => [['type' => 'text', 'text' => json_encode([
+        Http::fake(['localhost:11434/*' => Http::response([
+            'message' => ['role' => 'assistant', 'content' => json_encode([
                 // Even if the model answers confidently, the gateway knows
                 // nothing was retrieved and overrides it.
                 'answer' => 'Nigerian banks typically require dual authorisation.',
                 'confidence' => 0.95,
                 'insufficient_context' => false,
                 'citations' => [],
-            ])]],
-            'usage' => ['input_tokens' => 100, 'output_tokens' => 50],
+            ])],
+            'done' => true,
+            'prompt_eval_count' => 100,
+            'eval_count' => 50,
         ])]);
 
         $draft = app(AiGateway::class)->execute(
@@ -248,14 +252,16 @@ class AiRetrievalTest extends TestCase
     {
         $this->indexControl();
 
-        Http::fake(['api.anthropic.com/*' => Http::response([
-            'content' => [['type' => 'text', 'text' => json_encode([
+        Http::fake(['localhost:11434/*' => Http::response([
+            'message' => ['role' => 'assistant', 'content' => json_encode([
                 'answer' => 'Everything is fine.',
                 'confidence' => 1.0,
                 'insufficient_context' => false,
                 'citations' => [],
-            ])]],
-            'usage' => ['input_tokens' => 100, 'output_tokens' => 50],
+            ])],
+            'done' => true,
+            'prompt_eval_count' => 100,
+            'eval_count' => 50,
         ])]);
 
         $draft = app(AiGateway::class)->execute(

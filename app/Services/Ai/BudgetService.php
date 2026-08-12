@@ -137,7 +137,7 @@ class BudgetService
      */
     public function costMinor(string $model, int $inputTokens, int $outputTokens): int
     {
-        $pricing = (array) config("services.anthropic.pricing.{$model}", []);
+        $pricing = (array) config("services.ollama.pricing.{$model}", []);
 
         if ($pricing === []) {
             return 0;

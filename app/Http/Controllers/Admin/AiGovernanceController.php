@@ -10,9 +10,9 @@ use App\Models\AiConfiguration;
 use App\Models\AiInteraction;
 use App\Models\AiKnowledgeChunk;
 use App\Models\AiPrompt;
-use App\Services\Ai\AnthropicClient;
 use App\Services\Ai\BudgetService;
 use App\Services\Ai\CapabilityRegistry;
+use App\Services\Ai\OllamaClient;
 use App\Services\Ai\PromptRegistry;
 use App\Services\AuditTrailService;
 use Illuminate\Http\RedirectResponse;
@@ -42,7 +42,7 @@ class AiGovernanceController extends Controller
     public function __construct(
         private BudgetService $budget,
         private PromptRegistry $prompts,
-        private AnthropicClient $client,
+        private OllamaClient $client,
     ) {}
 
     public function index(Request $request): Response
@@ -59,12 +59,12 @@ class AiGovernanceController extends Controller
             'rejections' => $this->rejectionCategories($tenantId),
             'index' => $this->indexHealth($tenantId),
             'models' => [
-                'default' => config('services.anthropic.default_model'),
-                'reasoning' => config('services.anthropic.reasoning_model'),
-                'fast' => config('services.anthropic.fast_model'),
+                'default' => config('services.ollama.default_model'),
+                'reasoning' => config('services.ollama.reasoning_model'),
+                'fast' => config('services.ollama.fast_model'),
                 // Never the key — only whether one exists.
                 'configured' => $this->client->configured(),
-                'pricing' => config('services.anthropic.pricing'),
+                'pricing' => config('services.ollama.pricing'),
             ],
             'roles' => Role::orderBy('name')->get(['id', 'name']),
             'can' => [
@@ -367,7 +367,7 @@ class AiGovernanceController extends Controller
                 'is_enabled' => (bool) $configuration?->is_enabled,
                 'model' => $configuration?->model
                     ?: $prompt?->model_hint
-                    ?: config("services.anthropic.{$tier}_model"),
+                    ?: config("services.ollama.{$tier}_model"),
                 'model_is_override' => filled($configuration?->model),
                 'monthly_token_budget' => $configuration?->monthly_token_budget,
                 'requires_approval_role_id' => $configuration?->requires_approval_role_id,

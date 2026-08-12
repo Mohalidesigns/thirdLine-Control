@@ -5,22 +5,19 @@ namespace App\Services\Ai;
 /**
  * Vector representation for retrieval ranking.
  *
- * Anthropic publishes no embedding endpoint, and shipping a tenant's control
- * descriptions, incident narratives and policy text to a third-party
- * embedding provider to obtain one would breach R5 for the sake of a ranking
- * signal — the data would leave the boundary in bulk, continuously, outside
- * any of the export controls the rest of the platform enforces.
- *
- * So the default driver is local and deterministic: a hashed bag-of-terms
+ * The default driver is local and deterministic: a hashed bag-of-terms
  * projected into a fixed-width unit vector, cosine-scored in PHP over a
- * keyword-prefiltered candidate set, exactly as Part C §C.7 permits.
+ * keyword-prefiltered candidate set, exactly as Part C §C.7 permits. It
+ * needs no model at all, so indexing works even while the Ollama server is
+ * down or busy generating.
  *
  * Be honest about what that is. It is lexical, not semantic: it will not
  * connect "dual authorisation" to "four-eyes principle" the way a trained
  * model would. Keyword recall does the heavy lifting in RetrievalService and
- * this supplies the ranking and the term-overlap signal. When an in-country
- * or self-hosted embedding model is available, it becomes a second driver
- * plus a re-index, with nothing above this class changing.
+ * this supplies the ranking and the term-overlap signal. The local Ollama
+ * server can serve a real embedding model (granite-embedding) without any
+ * data leaving the boundary — adopting it is a second driver here plus a
+ * re-index, with nothing above this class changing.
  */
 class EmbeddingService
 {

@@ -169,11 +169,11 @@ export default function AiIndex({ capabilities, budget, usage, quality, rejectio
                 <div className="card mb-6 border-l-4 border-l-[var(--color-warning)]">
                     <div className="card-body">
                         <p className="text-sm font-semibold text-[var(--color-text-primary)]">
-                            No API key is configured for this installation.
+                            No Ollama endpoint is configured for this installation.
                         </p>
                         <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
                             The AI layer is dormant: every capability reports itself unavailable rather than
-                            failing mid-request. Set <span className="font-mono">ANTHROPIC_API_KEY</span> in the
+                            failing mid-request. Set <span className="font-mono">OLLAMA_BASE_URL</span> in the
                             environment to activate it.
                         </p>
                     </div>
