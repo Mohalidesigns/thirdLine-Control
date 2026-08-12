@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Exceptions\ResidencyViolationException;
 use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -39,6 +40,23 @@ class Tenant extends Model
         'mfa_sms_opt_in' => 'boolean',
         'break_glass_daily_cap' => 'integer',
     ];
+
+    /**
+     * A residency declaration is set at provisioning and changed only by
+     * re-provisioning (16.2 business rule): a runtime edit throws. The
+     * provisioning command binds 'residency.reprovisioning' to opt in,
+     * and the Auditable trait records the change it makes (R3).
+     */
+    protected static function booted(): void
+    {
+        static::updating(function (Tenant $tenant) {
+            if ($tenant->isDirty('data_residency') && ! app()->bound('residency.reprovisioning')) {
+                throw new ResidencyViolationException(
+                    'A data-residency declaration cannot be changed at runtime — re-provision the tenant.'
+                );
+            }
+        });
+    }
 
     /**
      * Localisation bundle shared with the frontend (R7): every date and

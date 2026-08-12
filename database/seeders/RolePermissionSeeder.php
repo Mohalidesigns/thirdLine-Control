@@ -84,6 +84,15 @@ class RolePermissionSeeder extends Seeder
             // template catalogue, the delivery log and channel cost tracking
             // are a single governance surface.
             'manage messaging',
+            // Multi-entity, data residency & enterprise readiness (Phase 16).
+            // 'grant entity-access' is separate from 'manage entities'
+            // because who may see a subsidiary is an access-control act, and
+            // holding a permission never substitutes for a grant (R2).
+            'view entities', 'manage entities', 'grant entity-access',
+            'view group-dashboard',
+            'view residency', 'manage residency',
+            'record transfers', 'authorise transfers',
+            'manage soa',
         ];
 
         foreach ($permissions as $permission) {
@@ -161,6 +170,14 @@ class RolePermissionSeeder extends Seeder
             // opens the door, it does not widen the room. Governance of the
             // models themselves stays with the Control Function Head.
             'use ai',
+            // Second line reads the entity register and the group position
+            // (still gated per entity by explicit grants), records
+            // cross-border transfers and maintains SoA decisions.
+            // Authorising a transfer and granting entity access stay with
+            // the Control Function Head (R2).
+            'view entities', 'view group-dashboard',
+            'view residency', 'record transfers',
+            'manage soa',
         ]);
 
         Role::findOrCreate('Control Owner', 'web')->syncPermissions([
@@ -202,6 +219,9 @@ class RolePermissionSeeder extends Seeder
             'view monitoring', 'view sod',
             'manage dashboards',
             'use ai',
+            // A line manager sees the entity register and, where granted,
+            // the group position for their own entities.
+            'view entities', 'view group-dashboard',
         ]);
 
         Role::findOrCreate('Executive Viewer', 'web')->syncPermissions([
@@ -234,6 +254,11 @@ class RolePermissionSeeder extends Seeder
             // is permission-filtered per user, an Atlas answer for this role
             // is built only from records it could already open.
             'use ai',
+            // The board reads the group position and the residency
+            // attestation register — the artefacts it is asked to sign off
+            // — and authors none of it. Sight of a subsidiary still needs
+            // an explicit per-entity grant.
+            'view entities', 'view group-dashboard', 'view residency',
         ]);
     }
 }

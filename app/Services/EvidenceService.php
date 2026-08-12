@@ -41,6 +41,10 @@ class EvidenceService
 
         $policy = $this->resolvePolicy($meta['contains_personal_data'] ?? false);
 
+        // The write is blocked, not warned about, if the evidence disk sits
+        // outside the tenant's declared residency country (16.2, R5).
+        app(ResidencyGuard::class)->assertStorageAllowed(self::DISK, $uploader->tenant);
+
         $path = $file->store('evidence/'.now()->format('Y/m'), self::DISK);
 
         return Evidence::create([

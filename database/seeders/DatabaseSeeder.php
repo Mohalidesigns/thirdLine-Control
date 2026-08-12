@@ -63,6 +63,11 @@ class DatabaseSeeder extends Seeder
             // Phase 15: WhatsApp/SMS template catalogue (drafts until Meta
             // approves the WhatsApp set).
             Phase15MessagingSeeder::class,
+            // Phase 16: lawful bases are reference data; the demo group
+            // structure, transfer register, attestation and ISO 27001 SoA
+            // read the whole dataset, so they run last.
+            TransferLawfulBasisSeeder::class,
+            Phase16DemoSeeder::class,
         ]);
     }
 }

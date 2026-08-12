@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\ResidencyViolationException;
 use App\Models\Control;
 use App\Models\ControlException;
 use App\Models\IntegrationConfig;
@@ -193,6 +194,18 @@ class IntegrationService
 
         if (! $config->base_url) {
             $log->update(['status' => 'Failed', 'error_message' => 'No base URL configured.', 'attempts' => 1, 'attempted_at' => now()]);
+
+            return $log;
+        }
+
+        // Residency guard at the integration layer (16.2): an endpoint
+        // declared to sit outside the tenant's country is blocked before
+        // any byte leaves. The log row keeps the attempt replayable once
+        // the endpoint map is corrected; the guard has already audited it.
+        try {
+            app(ResidencyGuard::class)->assertEndpointAllowed($config->base_url, $config->tenant);
+        } catch (ResidencyViolationException $e) {
+            $log->update(['status' => 'Failed', 'error_message' => $e->getMessage(), 'attempts' => 1, 'attempted_at' => now()]);
 
             return $log;
         }

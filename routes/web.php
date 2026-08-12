@@ -23,12 +23,15 @@ use App\Http\Controllers\DashboardBuilderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataSourceController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\EntityController;
 use App\Http\Controllers\EscalationMatrixController;
 use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\ExceptionController;
 use App\Http\Controllers\FeatureFlagController;
 use App\Http\Controllers\FrameworkController;
 use App\Http\Controllers\FrameworkRequirementController;
+use App\Http\Controllers\GroupDashboardController;
+use App\Http\Controllers\HealthController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\ImprovementActionController;
 use App\Http\Controllers\IncidentController;
@@ -55,12 +58,14 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportDefinitionController;
 use App\Http\Controllers\ReportRunController;
 use App\Http\Controllers\ReportScheduleController;
+use App\Http\Controllers\ResidencyController;
 use App\Http\Controllers\RiskAppetiteController;
 use App\Http\Controllers\RiskAssessmentController;
 use App\Http\Controllers\RiskController;
 use App\Http\Controllers\RiskTreatmentController;
 use App\Http\Controllers\SavedViewController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SoaController;
 use App\Http\Controllers\SodController;
 use App\Http\Controllers\SpotCheckController;
 use App\Http\Controllers\SsoConfigurationController;
@@ -77,6 +82,11 @@ use App\Http\Controllers\WhistleblowingController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
+
+// ── Operational health (Phase 16.3) — /up answers "alive", this answers
+// "serving". No tenant data; production ingress restricts it to the
+// monitoring network (docs/deployment).
+Route::get('/health', HealthController::class)->name('health');
 
 // ── PWA shell (Phase 7.10) — public by design
 Route::get('manifest.webmanifest', [PwaController::class, 'manifest'])->name('pwa.manifest');
@@ -435,6 +445,46 @@ Route::middleware('auth')->group(function () {
             ->name('framework-mappings.verify');
         Route::get('controls/{control}/frameworks', [ControlRequirementMapController::class, 'crossFramework'])
             ->name('controls.frameworks');
+
+        // ── Statement of Applicability (Phase 16.4) ──────────────────
+        Route::get('frameworks/{framework}/soa', [SoaController::class, 'show'])->name('frameworks.soa');
+        Route::put('frameworks/{framework}/soa', [SoaController::class, 'decide'])
+            ->middleware('permission:manage soa')->name('frameworks.soa.decide');
+        Route::get('frameworks/{framework}/soa/export', [SoaController::class, 'export'])->name('frameworks.soa.export');
+    });
+
+    // ── Group, entities & consolidation (Phase 16.1) ─────────────────
+    Route::middleware('feature:entities')->group(function () {
+        Route::get('entities', [EntityController::class, 'index'])
+            ->middleware('permission:view entities')->name('entities.index');
+        Route::post('entities', [EntityController::class, 'store'])
+            ->middleware('permission:manage entities')->name('entities.store');
+        Route::put('entities/{entity}', [EntityController::class, 'update'])
+            ->middleware('permission:manage entities')->name('entities.update');
+        Route::post('entities/{entity}/grants', [EntityController::class, 'grantAccess'])
+            ->middleware('permission:grant entity-access')->name('entities.grants.store');
+        Route::delete('entities/{entity}/grants/{user}', [EntityController::class, 'revokeAccess'])
+            ->middleware('permission:grant entity-access')->name('entities.grants.destroy');
+
+        Route::get('group', [GroupDashboardController::class, 'index'])
+            ->middleware('permission:view group-dashboard')->name('group.dashboard');
+    });
+
+    // ── Data residency (Phase 16.2) — outside the admin area because the
+    // second line records transfers day to day; the declaration itself is
+    // read-only everywhere (changing it is a re-provisioning event).
+    Route::middleware(['feature:residency', 'permission:view residency'])->group(function () {
+        Route::get('residency', [ResidencyController::class, 'index'])->name('residency.index');
+        Route::post('residency/transfers', [ResidencyController::class, 'storeTransfer'])
+            ->middleware('permission:record transfers')->name('residency.transfers.store');
+        Route::post('residency/transfers/{transfer}/authorise', [ResidencyController::class, 'authoriseTransfer'])
+            ->middleware('permission:authorise transfers')->name('residency.transfers.authorise');
+        Route::post('residency/transfers/{transfer}/complete', [ResidencyController::class, 'completeTransfer'])
+            ->middleware('permission:record transfers')->name('residency.transfers.complete');
+        Route::post('residency/attestations', [ResidencyController::class, 'storeAttestation'])
+            ->middleware(['permission:manage residency', 'throttle:10,1'])->name('residency.attestations.store');
+        Route::get('residency/attestations/{attestation}/download', [ResidencyController::class, 'downloadAttestation'])
+            ->name('residency.attestations.download');
     });
 
     // ── Regulatory obligations & compliance calendar (Phase 8) ───────

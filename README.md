@@ -158,6 +158,15 @@ policy → query scoping**, mirrored to the UI via shared Inertia props.
 | My-tasks mobile view, offline outbox, chunked uploads, push subscription | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | **Approvals / SoD transitions from the offline queue** | never — rejected server-side for every role | | | | | |
 | Messaging admin: templates, Meta sync, delivery log, channel costs (`manage messaging`) | ✓ | ✓ | — | — | — | — |
+| View the legal-entity register | ✓ | ✓ | ✓ | — | ✓ | ✓ |
+| Create / edit legal entities | ✓ | ✓ | — | — | — | — |
+| **Grant / revoke per-entity access (a grant, not a role, opens an entity)** | ✓ | ✓ | — | — | — | — |
+| Group dashboard (granted entities only — no grant, no numbers, any role) | ✓ | ✓ | ✓ | — | ✓ | ✓ |
+| View residency declaration, transfer register, attestations | ✓ | ✓ | ✓ | — | — | ✓ |
+| Record a cross-border transfer (lawful basis mandatory) | ✓ | ✓ | ✓ | — | — | — |
+| **Authorise a transfer (recorder ≠ authoriser)** | see note | ✓ | — | — | — | — |
+| Generate & sign a residency attestation (`manage residency`) | ✓ | ✓ | — | — | — | — |
+| Record SoA applicability decisions (`manage soa`) | ✓ | ✓ | ✓ | — | — | — |
 
 **Segregation of duties (FR-12.3), enforced in `ExceptionPolicy` + `ExceptionService`
 with no admin bypass:** only a Control Function Head may move an exception to
@@ -307,7 +316,8 @@ and before/after JSON. A logging failure never breaks the business operation
 | `atheris:purge-snapshots` | daily 05:30 | Delete snapshot data past its dataset's retention period and mark the record Purged. Anything under legal hold is skipped and the count is reported, because silence would read as "nothing was due" |
 | `ai:reindex` | daily 05:45 | Rebuild the AI knowledge index — stale chunks only unless `--all`. Backstop for a queue outage; the queued listener handles the normal path |
 | `ai:prune` | Sundays 03:45 | Clear verbatim model output past its retention window. The interaction record itself is never deleted (R3) |
-| `reports:run-scheduled` | **every 15 min** | Generate and distribute every report schedule that has fallen due. Every fifteen minutes rather than nightly because each schedule carries its own cron *and its own timezone*: a board pack due 06:45 in Lagos and a group return due 06:45 in London are different moments, and a once-a-night sweep files both late. Runs as the schedule's creator, so a scheduled report never sees more than the person who scheduled it
+| `reports:run-scheduled` | **every 15 min** | Generate and distribute every report schedule that has fallen due. Every fifteen minutes rather than nightly because each schedule carries its own cron *and its own timezone*: a board pack due 06:45 in Lagos and a group return due 06:45 in London are different moments, and a once-a-night sweep files both late. Runs as the schedule's creator, so a scheduled report never sees more than the person who scheduled it |
+| `atheris:backup` | daily 01:30 | Residency-guarded database dump to the backup disk (`RESIDENCY_BACKUP_DISK`), retaining 14 — a backup disk declared outside the tenant's country refuses to accept a byte (16.2). Restore drill: `scripts/restore-drill.sh` monthly (docs/runbooks/disaster-recovery.md) |
 
 Run on demand:
 
@@ -318,6 +328,8 @@ Run on demand:
 | `atheris:run-monitoring-rules [--rule=] [--no-capture]` | Run one rule, due or not. `--no-capture` re-evaluates the stored snapshot, which is what testing a rule change wants: same data, corrected rule |
 | `atheris:purge-snapshots [--tenant=] [--dry-run]` | Report or enforce snapshot retention |
 | `reports:run-scheduled [--tenant=] [--schedule=]` | Run one schedule now, due or not — the same path the scheduler takes |
+| `tenant:provision {name} [--admin-email=] [--residency=NG] [--currency=NGN] [--entity-type=bank] [--pack=*]` | Stand up a new tenant end to end: reference data, roles, the tenant with its residency declaration, a head-office unit, the root legal entity, the first administrator (one-time password printed once) and any chosen content packs. The only context allowed to set a residency declaration (16.2) |
+| `atheris:backup [--disk=] [--keep=14]` | Take a residency-guarded backup now |
 
 ## Reports & exports
 
@@ -1205,6 +1217,93 @@ New tables: `whatsapp_templates`, `sms_templates`, `message_logs`,
 `whatsapp_sessions`, `push_subscriptions`, `offline_actions`,
 `chunked_uploads`; `users.phone` added.
 
+## Multi-entity, data residency & enterprise readiness (Phase 16)
+
+**Group & entity hierarchy (16.1).** `entities` is the legal-entity register for
+banking groups and holding companies: type (holding → representative office,
+mirroring the licence classes the platform serves), jurisdiction, licence
+categories, regulators, fiscal year end, functional currency, consolidation
+method (`full` / `proportional` / `equity` / `none`) and ownership percentage.
+An entity anchors an organisation-unit subtree (`organisation_unit_id`), which
+is how the existing registers scope to it without a schema change: controls via
+`unit_id`, risks/metrics/obligation assignments via their existing
+`entity_id → organisation_units` columns (R8 — nothing existing moved).
+`ConsolidationService` computes **standalone** numbers per entity (a parent's
+subtree minus any subtree claimed by a nested entity, so nothing is counted
+twice), weights them by consolidation method for the group position, and
+benchmarks each entity against the group average. Cached per tenant
+(`TenantCache`, explicit invalidation on entity writes).
+
+**Per-entity access is a grant, not a role.** `entity_user` rows are the only
+thing that opens a subsidiary's data: `EntityPolicy::view()` requires a grant
+even of a System Administrator, and the group dashboard computes its totals
+over exactly the granted set, so a hidden subsidiary's numbers cannot be
+inferred from a total. Granting is its own permission (`grant entity-access`)
+and every grant/revoke is audited.
+
+**Data residency (16.2).** `ResidencyGuard` enforces the tenant's declaration
+(`tenants.data_residency`) at the four layers data can leave through —
+filesystem writes (`EvidenceService`), queue dispatch
+(`Queue::createPayloadUsing` in `AppServiceProvider`), backups
+(`atheris:backup`) and outbound integrations (`IntegrationService::send`) —
+against the region maps in `config/residency.php`. A mismatch **blocks and
+audits** (`residency-blocked`); there is no flag, feature toggle or environment
+switch that disables the guard, and changing a declaration at runtime throws
+(`Tenant`/`Entity::booted()`) — re-provisioning is the only path, and it is
+audited. The **cross-border transfer register** (`cross_border_transfers`)
+refuses a transfer without a usable lawful basis (NDPA Part VIII grounds seeded
+in `transfer_lawful_bases`, unverified until confirmed against the gazette —
+R10), and recorder ≠ authoriser (R2). The **residency attestation**
+(`ResidencyAttestationService`) derives a signed statement — data categories ×
+storage target × region, enforcement posture, the period's transfers — from
+live configuration, hashes it (SHA-256), signs it (HMAC over the checksum) and
+renders the PDF a customer hands to CBN, BoG or NDPC. Deployment reference:
+`docs/deployment/nigeria.md` (Rack Centre, MainOne/Equinix LG1, Galaxy
+Backbone, OADC; control-plane vs data-plane split) and
+`docs/deployment/gh-ke-za.md`.
+
+**Enterprise hardening (16.3).** Structured JSON logging (`structured` channel)
+with a request correlation id (`AssignRequestId`, echoed as `X-Request-Id`);
+`/health` reporting database/cache checks and queue depth (`/up` stays the
+liveness probe); security headers on every response (`SecurityHeaders`: CSP,
+HSTS behind TLS, X-Frame-Options DENY, nosniff, Referrer-Policy,
+Permissions-Policy); login lockout (5 attempts, Breeze throttle);
+dependency vulnerability scanning in CI (`.github/workflows/ci.yml`: `composer
+audit` + `npm audit` fail the build); a query-budget regression test on the
+controls index at 400 rows; DR runbook with a monthly restore drill
+(`docs/runbooks/disaster-recovery.md`, `scripts/restore-drill.sh`);
+responsible disclosure in `SECURITY.md`; and `tenant:provision` standing up a
+complete tenant in one command. Production queue topology (Redis + Horizon) is
+documented per country plane in `docs/deployment/`.
+
+**Statement of Applicability (16.4).** The shipped ISO/IEC 27001:2022 pack
+(`ISO-27001-2022`, all 93 Annex A controls in 4 themes plus clauses 4–10)
+drives `SoaService`: one row per leaf requirement joining the recorded
+applicability decision (`soa_entries` — excluding a control requires a
+justification, which is what a certification auditor asks for first) with the
+live approved control mappings, so the SoA is derived, never typed. Exported
+as PDF from the framework page (`is_certifiable` frameworks). The demo tenant
+dogfoods it: Atheris's own operating controls mapped to Annex A with decisions
+recorded (`Phase16DemoSeeder::seedIsmsSoa()`).
+
+### Routes
+
+`GET /entities`, `POST /entities`, `PUT /entities/{entity}`,
+`POST /entities/{entity}/grants`, `DELETE /entities/{entity}/grants/{user}`,
+`GET /group`; `GET /residency`, `POST /residency/transfers`,
+`POST /residency/transfers/{transfer}/authorise` (+ `/complete`),
+`POST /residency/attestations`,
+`GET /residency/attestations/{attestation}/download`;
+`GET /frameworks/{framework}/soa` (+ `PUT`, `GET …/export`); `GET /health`.
+
+Permissions: `view entities`, `manage entities`, `grant entity-access`,
+`view group-dashboard`, `view residency`, `manage residency`,
+`record transfers`, `authorise transfers`, `manage soa`.
+Feature flags: `entities`, `residency`.
+New tables: `entities`, `entity_user`, `transfer_lawful_bases`,
+`cross_border_transfers`, `residency_attestations`, `soa_entries`;
+`organisation_units.type` gains `Subsidiary`.
+
 ## Key business rules (where they live)
 
 - **Maker–checker** on controls, test scripts, ratings, compensating controls — policies + services
@@ -1243,11 +1342,17 @@ New tables: `whatsapp_templates`, `sms_templates`, `message_logs`,
 - **A prompt version is never edited** — `PromptRegistry::publish()` always writes a new row, because `ai_interactions` references the version that ran (R3)
 - **AI-proposed obligations ship unverified and inactive** — `RegulatoryParseCapability::draftObligations()` (R10)
 - **The API key is read in exactly one class** — `AnthropicClient`, which also scrubs it from anything bound for storage
+- **The residency guard has no off switch** — `ResidencyGuard` reads only `config/residency.php`; no database flag, no feature flag, no env kill switch; every block audited as `residency-blocked`
+- **A residency declaration changes only by re-provisioning** — `Tenant`/`Entity::booted()` throw on a runtime edit; `tenant:provision` binds `residency.reprovisioning` for the one legitimate path
+- **No lawful basis, no transfer** — `cross_border_transfers.lawful_basis_id` is NOT NULL, `CrossBorderTransferService::record()` re-checks the basis is usable, and the form validates it; recorder ≠ authoriser in policy *and* service
+- **An entity opens only by grant** — `EntityPolicy::view()` requires an `entity_user` row on top of the permission, for every role; group totals are computed over the granted set only
+- **Consolidation math is the entity record's** — method and ownership live on `entities`, applied by `Entity::consolidationWeight()`; never a constant
+- **The SoA is derived, never typed** — `SoaService::statement()` joins recorded decisions to live approved mappings at read time; an exclusion without a justification fails validation
 
 ## Quality gate
 
 ```bash
-composer test        # 653 feature/unit tests incl. SoD, legal-hold, dual-approval,
+composer test        # 707 feature/unit tests incl. SoD, legal-hold, dual-approval,
                      # due-rule and penalty maths, content-pack idempotency,
                      # API-auth bypass attempts, distribution idempotency,
                      # CSA rating gates, survey anonymity, import rollback,
@@ -1273,7 +1378,16 @@ composer test        # 653 feature/unit tests incl. SoD, legal-hold, dual-approv
                      # become a record, an advisory capability refusing to
                      # touch a test result, a budget stop that makes no call
                      # and still leaves a trace, and the API key absent from
-                     # the request body, the stored interaction and the page
+                     # the request body, the stored interaction and the page,
+                     # the residency guard blocking all four egress layers,
+                     # a declaration refusing to change at runtime, a transfer
+                     # with no lawful basis never becoming a row, recorder ≠
+                     # authoriser on transfers, consolidation math per method,
+                     # a rollup leaking nothing ungranted (admin included),
+                     # tenant-scoped cache keys with explicit invalidation,
+                     # a tamper-evident attestation signature, the 93 Annex A
+                     # controls present in the SoA, and a query budget held
+                     # on the controls index at 400 rows
 composer lint        # Pint
 npm run build
 ```
@@ -1382,6 +1496,20 @@ Speak-Up reports; SMS drivers with receipts and minor-unit cost tracking;
 feature-flagged USSD attestation; payload-free VAPID Web Push; and a CI-enforced
 250KB-gzipped route-chunk budget. Every channel is dormant until its `.env`
 credentials exist — go-live is configuration, not code.
+
+**v2.0 Phase 16 (Multi-Entity, Data Residency & Enterprise Readiness) is
+implemented**: the legal-entity register with consolidation methods and
+grant-only per-entity access; the consolidated group dashboard with standalone
+(never double-counted) entity numbers, weighted group totals and benchmarking;
+the runtime-immutable residency declaration enforced by a guard at the
+filesystem, queue, backup and integration layers with no off switch; the
+cross-border transfer register with mandatory NDPA lawful bases and
+recorder ≠ authoriser; signed, tamper-evident residency attestations; per-country
+deployment documentation (NG/GH/KE/ZA, control-plane vs data-plane); structured
+logging with correlation ids, health endpoints, security headers, CI dependency
+scanning, a DR runbook with restore drill, one-command tenant provisioning; and
+the dogfooded ISO 27001:2022 Statement of Applicability over the shipped
+93-control Annex A pack.
 
 Carried forward from this phase: WhatsApp templates must be created and approved
 in Meta Business Manager before the channel is honest about sending (the seeder

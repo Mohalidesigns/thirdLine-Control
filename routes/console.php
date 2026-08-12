@@ -49,3 +49,9 @@ Schedule::command('reports:run-scheduled')->everyFifteenMinutes()->withoutOverla
 // window, leaving the interaction record itself intact (R3).
 Schedule::command('ai:reindex')->dailyAt('05:45')->withoutOverlapping();
 Schedule::command('ai:prune')->weeklyOn(7, '03:45');
+
+// Phase 16 — enterprise readiness. The nightly backup runs before the
+// morning batch windows so a restore never loses more than a day (RPO in
+// docs/runbooks/disaster-recovery.md); the residency guard vets the
+// backup disk on every run (16.2).
+Schedule::command('atheris:backup')->dailyAt('01:30')->withoutOverlapping();

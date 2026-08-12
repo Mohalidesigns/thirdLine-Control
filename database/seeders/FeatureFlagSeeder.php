@@ -65,6 +65,9 @@ class FeatureFlagSeeder extends Seeder
         'ai-governance' => 'AI governance surface: model registry, prompt versions, budgets, acceptance rates and the activity log',
         // Phase 15 — mobile, offline & omnichannel
         'ussd' => 'USSD attestation confirmation flow via a gateway webhook (needs USSD_WEBHOOK_TOKEN)',
+        // Phase 16 — multi-entity, data residency & enterprise readiness
+        'entities' => 'Legal-entity register, per-entity access grants and the consolidated group dashboard',
+        'residency' => 'Data-residency declaration, cross-border transfer register and signed attestations',
     ];
 
     /**
