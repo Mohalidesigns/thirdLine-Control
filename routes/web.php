@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AiGovernanceController;
 use App\Http\Controllers\Admin\MessagingController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\AiAssistController;
+use App\Http\Controllers\AssuranceController;
 use App\Http\Controllers\AtlasController;
 use App\Http\Controllers\AttestationController;
 use App\Http\Controllers\AuditLogController;
@@ -36,6 +37,7 @@ use App\Http\Controllers\HealthController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\ImprovementActionController;
 use App\Http\Controllers\IncidentController;
+use App\Http\Controllers\InitiativeController;
 use App\Http\Controllers\IntegrationController;
 use App\Http\Controllers\LinkageController;
 use App\Http\Controllers\MetricController;
@@ -46,6 +48,7 @@ use App\Http\Controllers\MonitoringRuleController;
 use App\Http\Controllers\MonitoringRunController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
+use App\Http\Controllers\ObjectiveController;
 use App\Http\Controllers\ObligationAssignmentController;
 use App\Http\Controllers\ObligationController;
 use App\Http\Controllers\ObligationInstanceController;
@@ -70,11 +73,14 @@ use App\Http\Controllers\SoaController;
 use App\Http\Controllers\SodController;
 use App\Http\Controllers\SpotCheckController;
 use App\Http\Controllers\SsoConfigurationController;
+use App\Http\Controllers\StrategyController;
 use App\Http\Controllers\SubmissionPackController;
+use App\Http\Controllers\SustainabilityController;
 use App\Http\Controllers\TenantBrandingController;
 use App\Http\Controllers\TenantSecurityController;
 use App\Http\Controllers\TestInstanceController;
 use App\Http\Controllers\TestScriptController;
+use App\Http\Controllers\VendorController;
 use App\Http\Controllers\VersionController;
 use App\Http\Controllers\Webhooks\SmsReceiptController;
 use App\Http\Controllers\Webhooks\UssdController;
@@ -264,6 +270,119 @@ Route::middleware('auth')->group(function () {
             ->name('metrics.breaches.acknowledge');
         Route::post('metrics/{metric}/breaches/{breach}/resolve', [MetricController::class, 'resolveBreach'])
             ->name('metrics.breaches.resolve');
+    });
+
+    // ── Strategy & performance alignment (Phase 17.1) ────────────────
+    // The map and the scorecard are the board's two views of the same
+    // register; both read the roll-up rather than storing a second copy
+    // of it.
+    Route::middleware(['feature:objectives', 'permission:view objectives'])->group(function () {
+        Route::get('strategy/map', [StrategyController::class, 'map'])->name('strategy.map');
+        Route::get('strategy/scorecard', [StrategyController::class, 'scorecard'])->name('strategy.scorecard');
+
+        Route::get('objectives', [ObjectiveController::class, 'index'])->name('objectives.index');
+        Route::post('objectives', [ObjectiveController::class, 'store'])->name('objectives.store');
+        Route::get('objectives/{objective}', [ObjectiveController::class, 'show'])->name('objectives.show');
+        Route::put('objectives/{objective}', [ObjectiveController::class, 'update'])->name('objectives.update');
+        Route::post('objectives/{objective}/approve', [ObjectiveController::class, 'approve'])->name('objectives.approve');
+        Route::post('objectives/{objective}/progress', [ObjectiveController::class, 'progress'])->name('objectives.progress');
+        Route::post('objectives/{objective}/recalculate', [ObjectiveController::class, 'recalculate'])
+            ->name('objectives.recalculate');
+        Route::post('objectives/{objective}/measures', [ObjectiveController::class, 'storeMeasure'])
+            ->name('objectives.measures.store');
+        Route::delete('objectives/{objective}/measures/{measure}', [ObjectiveController::class, 'destroyMeasure'])
+            ->name('objectives.measures.destroy');
+
+        Route::post('initiatives', [InitiativeController::class, 'store'])->name('initiatives.store');
+        Route::put('initiatives/{initiative}', [InitiativeController::class, 'update'])->name('initiatives.update');
+        Route::post('initiatives/{initiative}/milestones/{milestone}', [InitiativeController::class, 'completeMilestone'])
+            ->name('initiatives.milestones.update');
+    });
+
+    // ── Third-party / vendor risk (Phase 17.2) ───────────────────────
+    // Approving a due-diligence conclusion, filing a material-outsourcing
+    // notification and registering a contract each carry their own
+    // permission inside the group: they are different authorities held by
+    // different people in most institutions.
+    Route::middleware(['feature:vendors', 'permission:view vendors'])->group(function () {
+        Route::get('vendors', [VendorController::class, 'index'])->name('vendors.index');
+        Route::get('vendors/concentration', [VendorController::class, 'concentration'])->name('vendors.concentration');
+        Route::post('vendors', [VendorController::class, 'store'])->name('vendors.store');
+        Route::get('vendors/{vendor}', [VendorController::class, 'show'])->name('vendors.show');
+        Route::put('vendors/{vendor}', [VendorController::class, 'update'])->name('vendors.update');
+
+        Route::post('vendors/{vendor}/assessments', [VendorController::class, 'storeAssessment'])
+            ->name('vendors.assessments.store');
+        Route::post('vendors/{vendor}/assessments/{assessment}/submit', [VendorController::class, 'submitAssessment'])
+            ->name('vendors.assessments.submit');
+        Route::post('vendors/{vendor}/assessments/{assessment}/approve', [VendorController::class, 'approveAssessment'])
+            ->name('vendors.assessments.approve');
+        Route::post('vendors/{vendor}/assessments/{assessment}/reject', [VendorController::class, 'rejectAssessment'])
+            ->name('vendors.assessments.reject');
+
+        Route::post('vendors/{vendor}/findings', [VendorController::class, 'storeFinding'])
+            ->name('vendors.findings.store');
+        Route::put('vendors/{vendor}/findings/{finding}', [VendorController::class, 'updateFinding'])
+            ->name('vendors.findings.update');
+
+        Route::post('vendors/{vendor}/screenings', [VendorController::class, 'storeScreening'])
+            ->name('vendors.screenings.store');
+        Route::post('vendors/{vendor}/screenings/{screening}/disposition', [VendorController::class, 'dispositionScreening'])
+            ->name('vendors.screenings.disposition');
+
+        Route::post('vendors/{vendor}/notification', [VendorController::class, 'recordNotification'])
+            ->name('vendors.notification.store');
+
+        Route::post('vendors/{vendor}/contracts', [VendorController::class, 'storeContract'])
+            ->name('vendors.contracts.store');
+        Route::put('vendors/{vendor}/contracts/{contract}', [VendorController::class, 'updateContract'])
+            ->name('vendors.contracts.update');
+    });
+
+    // ── IFRS S1/S2 sustainability controls (Phase 17.3) ──────────────
+    // Preparing a figure and verifying it are separate permissions on
+    // purpose: a control over sustainability reporting that one person
+    // both operates and signs off is not a control (COSO ICSR).
+    Route::middleware(['feature:sustainability', 'permission:view sustainability'])->group(function () {
+        Route::get('sustainability', [SustainabilityController::class, 'index'])->name('sustainability.index');
+        Route::post('sustainability/materiality', [SustainabilityController::class, 'storeMateriality'])
+            ->name('sustainability.materiality.store');
+        Route::post('sustainability/materiality/{assessment}/approve', [SustainabilityController::class, 'approveMateriality'])
+            ->name('sustainability.materiality.approve');
+
+        Route::get('sustainability/ghg', [SustainabilityController::class, 'ghg'])->name('sustainability.ghg');
+        Route::post('sustainability/ghg', [SustainabilityController::class, 'storeDataPoint'])
+            ->name('sustainability.ghg.store');
+        Route::put('sustainability/ghg/{point}', [SustainabilityController::class, 'updateDataPoint'])
+            ->name('sustainability.ghg.update');
+        Route::post('sustainability/ghg/{point}/verify', [SustainabilityController::class, 'verifyDataPoint'])
+            ->name('sustainability.ghg.verify');
+        Route::post('sustainability/ghg/{point}/defer', [SustainabilityController::class, 'deferDataPoint'])
+            ->name('sustainability.ghg.defer');
+
+        Route::get('sustainability/filings', [SustainabilityController::class, 'filings'])
+            ->name('sustainability.filings');
+        Route::post('sustainability/filings', [SustainabilityController::class, 'storeFiling'])
+            ->name('sustainability.filings.store');
+        Route::post('sustainability/filings/{filing}/verify', [SustainabilityController::class, 'verifyFiling'])
+            ->name('sustainability.filings.verify');
+        Route::post('sustainability/filings/{filing}/stages/{stage}', [SustainabilityController::class, 'submitStage'])
+            ->name('sustainability.filings.stages.submit');
+    });
+
+    // ── Combined assurance map (Phase 17.4) ──────────────────────────
+    // Recording a reliance decision carries its own permission: a combined
+    // assurance report is signed on the strength of exactly those
+    // decisions, so they are a named authority rather than general
+    // maintenance of the map.
+    Route::middleware(['feature:assurance', 'permission:view assurance'])->group(function () {
+        Route::get('assurance', [AssuranceController::class, 'map'])->name('assurance.map');
+        Route::post('assurance/providers', [AssuranceController::class, 'storeProvider'])
+            ->name('assurance.providers.store');
+        Route::post('assurance/activities', [AssuranceController::class, 'storeActivity'])
+            ->name('assurance.activities.store');
+        Route::post('assurance/activities/{activity}/reliance', [AssuranceController::class, 'recordReliance'])
+            ->name('assurance.activities.reliance');
     });
 
     // ── Linkage graph (Phase 10.6) ───────────────────────────────────

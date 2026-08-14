@@ -25,7 +25,7 @@ class ControlException extends Model
     protected $table = 'control_exceptions';
 
     protected $fillable = [
-        'tenant_id', 'reference', 'source_type', 'source_id', 'control_id', 'risk_id',
+        'tenant_id', 'reference', 'source_type', 'source_id', 'external_ref', 'control_id', 'risk_id',
         'check_result_id', 'title', 'description', 'root_cause', 'severity',
         'owner_id', 'responsible_party_id', 'unit_id', 'raised_by',
         'date_raised', 'target_closure_date', 'status', 'remediation_plan',

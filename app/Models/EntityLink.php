@@ -41,6 +41,9 @@ class EntityLink extends Model
         'incident' => Incident::class,
         'complaint' => Complaint::class,
         'case' => InvestigationCase::class,
+        // Phase 17 — strategy and third-party nodes.
+        'objective' => Objective::class,
+        'vendor' => Vendor::class,
     ];
 
     /** Human labels and the route each node type links to in the UI. */
@@ -59,6 +62,8 @@ class EntityLink extends Model
         'incident' => 'Incident',
         'complaint' => 'Complaint',
         'case' => 'Case',
+        'objective' => 'Objective',
+        'vendor' => 'Third Party',
     ];
 
     protected $fillable = [

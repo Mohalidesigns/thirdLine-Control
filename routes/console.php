@@ -55,3 +55,16 @@ Schedule::command('ai:prune')->weeklyOn(7, '03:45');
 // docs/runbooks/disaster-recovery.md); the residency guard vets the
 // backup disk on every run (16.2).
 Schedule::command('atheris:backup')->dailyAt('01:30')->withoutOverlapping();
+
+// Phase 17 — extended GRC. All three run before the 07:00 escalation
+// sweep, so a review that lapsed overnight, a filing stage that fell due
+// and an assurance gap that opened all escalate on the same morning
+// rather than a day late.
+Schedule::command('atheris:refresh-vendor-risk')->dailyAt('02:45');
+Schedule::command('atheris:refresh-sustainability')->dailyAt('03:15');
+Schedule::command('atheris:refresh-assurance')->dailyAt('05:15');
+
+// The strategy roll-up runs after the KRI engine, so the scorecard a
+// board opens in the morning reflects last night's readings rather than
+// the previous day's.
+Schedule::command('atheris:roll-up-objectives')->dailyAt('04:00');

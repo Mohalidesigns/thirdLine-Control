@@ -167,6 +167,27 @@ policy → query scoping**, mirrored to the UI via shared Inertia props.
 | **Authorise a transfer (recorder ≠ authoriser)** | see note | ✓ | — | — | — | — |
 | Generate & sign a residency attestation (`manage residency`) | ✓ | ✓ | — | — | — | — |
 | Record SoA applicability decisions (`manage soa`) | ✓ | ✓ | ✓ | — | — | — |
+| View strategic objectives, the map and the scorecard | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Author objectives and cascade them (`manage objectives`) | ✓ | ✓ | ✓ | — | — | — |
+| **Approve an objective onto the scorecard (drafter ≠ approver)** | see note | ✓ | — | — | — | ✓ |
+| Report progress on an objective | ✓ | ✓ | ✓ | own only | — | — |
+| Own initiatives and complete milestones (`manage initiatives`) | ✓ | ✓ | ✓ | ✓ | — | — |
+| View the third-party register and concentration risk | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Register and maintain third parties (`manage vendors`) | ✓ | ✓ | ✓ | — | — | — |
+| Run due diligence, raise findings (`assess vendors`) | ✓ | ✓ | ✓ | — | — | — |
+| **Approve a due-diligence conclusion (assessor ≠ approver)** | see note | ✓ | — | — | — | — |
+| Record sanctions / PEP / adverse-media screening (`screen vendors`) | ✓ | ✓ | ✓ | — | — | — |
+| **File a material-outsourcing notification (`notify vendor-regulators`)** | ✓ | ✓ | — | — | — | — |
+| Register contracts & SLAs (`manage vendor-contracts`) | ✓ | ✓ | ✓ | — | — | — |
+| View the sustainability register, GHG inventory and filing tracker | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Assess materiality (`manage sustainability`) | ✓ | ✓ | ✓ | — | — | — |
+| **Approve a materiality determination (assessor ≠ approver)** | see note | ✓ | — | — | — | — |
+| Prepare a GHG figure (`prepare ghg-data`) | ✓ | ✓ | ✓ | ✓ | — | — |
+| **Verify a GHG figure (preparer ≠ verifier)** | see note | ✓ | — | — | — | — |
+| Plan and file FRC pre-reporting stages (`manage sustainability-filings`) | ✓ | ✓ | ✓ | — | — | — |
+| View the combined assurance map | ✓ | ✓ | ✓ | — | ✓ | ✓ |
+| Maintain providers and coverage (`manage assurance`) | ✓ | ✓ | ✓ | — | — | — |
+| **Record a reliance decision (`record reliance`)** | ✓ | ✓ | — | — | — | — |
 
 **Segregation of duties (FR-12.3), enforced in `ExceptionPolicy` + `ExceptionService`
 with no admin bypass:** only a Control Function Head may move an exception to
@@ -221,6 +242,20 @@ conflict is a Control Function Head decision carrying a mandatory expiry, and th
 acceptance reopens automatically when it lapses. Failing-path tests, including one
 that puts a System Administrator on the wrong side of the rule-approval gate:
 `tests/Feature/ContinuousMonitoringTest.php`, `tests/Feature/MonitoringPagesTest.php`.
+
+The Phase 17 gates are the same shape and equally bypass-free. An objective's
+drafter cannot approve it onto the board's scorecard; the person who ran a
+due-diligence assessment cannot approve its conclusion; the person who assessed
+a sustainability topic's materiality cannot approve their own determination —
+deciding a topic is immaterial is deciding not to disclose it; and the person
+who prepared a GHG figure cannot verify it, which is the COSO ICSR point about
+a control one person both operates and signs off. In each case the service
+enforces the rule as well as the policy, so a scheduled command or an import
+cannot route around it, and each has a failing-path test that puts a Control
+Function Head holding every permission on the wrong side of the gate:
+`tests/Feature/StrategyAlignmentTest.php`, `tests/Feature/ThirdPartyRiskTest.php`,
+`tests/Feature/SustainabilityReportingTest.php`,
+`tests/Feature/CombinedAssuranceTest.php`.
 
 Phase 14 adds a gate of a different kind, because the actor is not a person.
 **AI never decides (R4), and that is structural rather than procedural**: the
@@ -318,6 +353,10 @@ and before/after JSON. A logging failure never breaks the business operation
 | `ai:prune` | Sundays 03:45 | Clear verbatim model output past its retention window. The interaction record itself is never deleted (R3) |
 | `reports:run-scheduled` | **every 15 min** | Generate and distribute every report schedule that has fallen due. Every fifteen minutes rather than nightly because each schedule carries its own cron *and its own timezone*: a board pack due 06:45 in Lagos and a group return due 06:45 in London are different moments, and a once-a-night sweep files both late. Runs as the schedule's creator, so a scheduled report never sees more than the person who scheduled it |
 | `atheris:backup` | daily 01:30 | Residency-guarded database dump to the backup disk (`RESIDENCY_BACKUP_DISK`), retaining 14 — a backup disk declared outside the tenant's country refuses to accept a byte (16.2). Restore drill: `scripts/restore-drill.sh` monthly (docs/runbooks/disaster-recovery.md) |
+| `atheris:refresh-vendor-risk` | daily 02:45 | Expire lapsed third-party due-diligence reviews, raise the review obligation as an exception against the relationship (once per lapse, never twice), and move contracts into their own renewal-notice window or past it (17.2) |
+| `atheris:refresh-sustainability` | daily 03:15 | Mark overdue IFRS S1/S2 pre-reporting filing stages Late — a stage that quietly stayed Pending after its deadline would read as on time (17.3) |
+| `atheris:roll-up-objectives` | daily 04:00 | Recompute strategic objective progress from measures, initiatives and cascaded objectives, leaves before parents. Runs after the KRI engine so the scorecard a board opens reflects last night's readings (17.1) |
+| `atheris:refresh-assurance` | daily 05:15 | Raise an exception for every significant risk carrying no live independent assurance, so an assurance gap sits in the same queue as every other control failure rather than in a slide nobody actions (17.4) |
 
 Run on demand:
 
@@ -330,6 +369,9 @@ Run on demand:
 | `reports:run-scheduled [--tenant=] [--schedule=]` | Run one schedule now, due or not — the same path the scheduler takes |
 | `tenant:provision {name} [--admin-email=] [--residency=NG] [--currency=NGN] [--entity-type=bank] [--pack=*]` | Stand up a new tenant end to end: reference data, roles, the tenant with its residency declaration, a head-office unit, the root legal entity, the first administrator (one-time password printed once) and any chosen content packs. The only context allowed to set a residency declaration (16.2) |
 | `atheris:backup [--disk=] [--keep=14]` | Take a residency-guarded backup now |
+| `atheris:refresh-vendor-risk [--tenant=]` | Run the third-party expiry and contract-renewal sweep outside the schedule |
+| `atheris:roll-up-objectives [--tenant=]` | Recompute the scorecard now — what the objective page's "Return to roll-up" button does, for every objective at once |
+| `atheris:refresh-assurance [--tenant=] [--period=]` | Report and escalate assurance gaps for one period |
 
 ## Reports & exports
 
@@ -1304,6 +1346,166 @@ New tables: `entities`, `entity_user`, `transfer_lawful_bases`,
 `cross_border_transfers`, `residency_attestations`, `soa_entries`;
 `organisation_units.type` gains `Subsidiary`.
 
+## Extended GRC (Phase 17)
+
+**Strategy and performance alignment (17.1).** `objectives` is the strategic
+objective register: perspective (the four balanced-scorecard perspectives plus
+sustainability), cascade via `parent_objective_id`, owner, period, weight. Its
+progress is **derived, not asserted** — `ObjectiveService::rollUp()` takes a
+weighted mean over three kinds of contribution: `objective_metrics` (a Phase 10
+metric scaled from its own baseline to its own target, so a reduction target
+scores the same way a growth target does), `initiatives` (weighted by their
+milestones), and child objectives, depth-first. A measure that cannot be scored
+is **excluded rather than counted as zero**, and an objective that nothing
+measures at all stores **null** rather than 0 — it reads as "not measured" on
+the map and the scorecard and is left out of its perspective's weighted
+position instead of dragging it down. An unmeasured objective is unknown, not
+failing. An owner may switch an objective to `manual` and assert a
+figure; the derived number stays visible beside it and `breakdown()` shows every
+contribution that produced it, because a board that cannot see how a number was
+built has to take it on faith. Objectives, risks, controls and KRIs are one
+traversal, not four join tables: `objective` and `vendor` join
+`EntityLink::NODE_TYPES`, which is what lets the **strategy map** answer "which
+risks threaten this objective, and are the controls over them effective" —
+`LinkageService::neighbourIds()` and `ineffectiveControlCounts()` compute it in
+two queries for the whole page, not one per row. Two views: `Strategy/Map`
+(perspectives as rows) and `Strategy/Scorecard` (the measures behind every
+number). An objective enters the live scorecard only when a **second person**
+approves it (`ObjectivePolicy::approve()` — the drafter is refused whatever they
+hold), and a cascade that would form a loop is refused at the door
+(`ObjectiveRequest::after()`).
+
+**Third-party / vendor risk (17.2).** `vendors` carries criticality, services,
+contract dates, spend, owner, entity, sub-processors and the NDPA-relevant
+`data_access_classification`. Due diligence reuses the Phase 9 questionnaire
+engine — `vendor_assessments.campaign_id` points at the campaign whose
+questionnaire was used, rather than rebuilding questions and scoring (R8).
+**The assessor cannot approve their own conclusion**, enforced in
+`VendorService::approveAssessment()` as well as `VendorAssessmentPolicy`, so the
+rule holds for a scheduled command or an import too. Approval sets `expires_at`
+from the relationship's own review frequency; when it lapses,
+`atheris:refresh-vendor-risk` marks the assessment Expired, moves the vendor to
+Under Review and **raises an exception against the relationship** — once per
+lapse, never twice — carrying the vendor's criticality into its severity.
+Whether an outsourcing is material enough to notify a regulator is the
+institution's decision recorded on the vendor; the obligation itself, with its
+citation and deadline, stays in the Phase 8 register, and filing the
+notification is its own permission. Screening (`vendor_screenings`) never clears
+itself: a hit stays in the outstanding queue until a **named person** records a
+disposition, and any AI summary is attached as a draft with the interaction it
+came from (R4). `vendor_contracts` holds SLA commitments as data (every contract
+measures something different) with a per-contract renewal-notice window;
+`SqlDialect::dateMinusDaysColumn()` keeps that window portable between MySQL and
+the SQLite test suite. **Concentration risk** aggregates by vendor, service
+category and processing jurisdiction across every entity, converted to one base
+currency through the FX reference table (R7) — and spend with **no reference
+rate is reported in an `unconverted` bucket, never silently dropped**, because a
+concentration number that quietly excluded a subsidiary is worse than none.
+
+**IFRS S1/S2 sustainability controls (17.3).** `sustainability_topics` ships the
+IFRS S1/S2 starting set globally (`tenant_id` NULL); **every shipped row is
+`unverified` and carries no `standard_reference` at all** — a guessed paragraph
+citation in a compliance product is worse than none (R10). `materiality_assessments`
+records financial and, where the tenant elects it, impact materiality; a
+double-materiality election must actually score both. Determining a topic
+immaterial is deciding not to disclose it, so **the assessor cannot approve their
+own determination**. `ghg_data_points` carries the full lineage — activity data,
+factor, factor source, the control over the figure, the evidence behind it — and
+`lineageGaps()` names what is missing rather than tolerating it silently; tCO2e
+is computed from activity × factor and stays **null when either input is
+missing** rather than being invented. **The preparer cannot verify their own
+figure** (COSO ICSR, R2). Scope 3 may be deferred under the transition reliefs
+with its reason on the row, so a reader can tell "not reported yet" from
+"reported as zero"; Scope 1 and 2 carry no such relief and the service refuses
+to defer them. The inventory keeps **verified and unverified totals apart** — a
+total that folded them together would be the single most misleading number in
+the product. The **FRC three-stage pre-reporting tracker** computes stage
+deadlines from each entity's own fiscal year start (never an assumed December
+year end, R7). The offsets are `tenants.settings['sustainability']
+['filing_stage_offsets']` with documented, **unverified** defaults in
+`SustainabilityService::DEFAULT_FILING_STAGES` (−3 / +3 / +6 months) and
+suggested adoption years surfaced but never applied silently; the schedule in
+force is **copied onto each filing at creation**, so correcting a default later
+cannot silently restate a deadline somebody has already been told.
+`readiness()` names every topic and figure that would be excluded from a
+submission pack, and why.
+
+**Combined assurance map (17.4).** The King IV/V and NCCG concept.
+`assurance_providers` places each provider in the three lines plus the external
+providers outside them; **independence is a recorded judgement, not inferred
+from the line**, because a second-line function assuring its own process is
+exactly the case the map exists to expose. `assurance_activities` is one cell:
+provider × subject (`risk` / `control` / `obligation` / `process`, by alias
+rather than four nullable keys) × coverage × conclusion × reliance. Assurance
+recorded on a control counts as cover for the risks it mitigates, and **stale
+cover does not count** — an activity past its own next-assurance date is
+coverage on paper only. **Gaps** are significant risks with no live independent
+assurance (coverage by management alone is still a gap, and the reason says so);
+**duplication** is a subject *tested* by three or more distinct providers —
+management self-assessment is excluded from that count, because management
+self-assessing alongside second-line testing and an internal audit is the
+ordinary three-lines shape, and counting it would flag every risk in the
+register as duplicated. Both
+thresholds are `tenants.settings['assurance']`, not constants. `record reliance`
+is its own permission — a combined assurance report is signed on the strength of
+exactly those decisions — and reliance cannot be placed on work that reached no
+conclusion. `atheris:refresh-assurance` raises a gap as an exception so it
+queues with every other control failure rather than sitting in a slide.
+
+**Internal-audit interlock (17.5).** `/api/v1` gains five endpoints:
+`GET assurance/coverage` (second-line coverage with the reliance decision, its
+rationale and the named person who made it), `GET assurance/gaps` (with the
+thresholds the answer was computed against), `POST assurance/activities`
+(third line publishes coverage and reliance; upserts on provider + subject +
+period, so a retry updates rather than duplicating), `POST assurance/findings`
+(an audit finding becomes a control exception with `source_type: Internal Audit`,
+entering the ordinary lifecycle rather than a parallel one; idempotent on
+`external_ref`), and `GET third-parties`. **An inbound record never creates an
+assurance provider** — the provider must already be registered, so an
+integration key cannot manufacture board-level comfort out of nothing. Reliance
+decisions survive the round trip unchanged; `docs/openapi.yaml` carries the
+contract.
+
+### Routes
+
+`GET /strategy/map`, `GET /strategy/scorecard`; `GET|POST /objectives`,
+`GET|PUT /objectives/{objective}`, `POST /objectives/{objective}/approve`
+(+ `/progress`, `/recalculate`, `/measures`, `DELETE /measures/{measure}`);
+`POST /initiatives`, `PUT /initiatives/{initiative}`,
+`POST /initiatives/{initiative}/milestones/{milestone}`.
+`GET|POST /vendors`, `GET /vendors/concentration`, `GET|PUT /vendors/{vendor}`,
+`POST /vendors/{vendor}/assessments` (+ `/{assessment}/submit`, `/approve`,
+`/reject`), `POST|PUT /vendors/{vendor}/findings`,
+`POST /vendors/{vendor}/screenings` (+ `/{screening}/disposition`),
+`POST /vendors/{vendor}/notification`, `POST|PUT /vendors/{vendor}/contracts`.
+`GET /sustainability`, `POST /sustainability/materiality`
+(+ `/{assessment}/approve`), `GET|POST /sustainability/ghg`,
+`PUT|POST /sustainability/ghg/{point}` (+ `/verify`, `/defer`),
+`GET|POST /sustainability/filings` (+ `/{filing}/verify`,
+`/{filing}/stages/{stage}`).
+`GET /assurance`, `POST /assurance/providers`, `POST /assurance/activities`,
+`POST /assurance/activities/{activity}/reliance`.
+API: `GET /api/v1/assurance/coverage`, `GET /api/v1/assurance/gaps`,
+`POST /api/v1/assurance/activities`, `POST /api/v1/assurance/findings`,
+`GET /api/v1/third-parties`.
+
+Permissions: `view objectives`, `manage objectives`, `approve objectives`,
+`manage initiatives`; `view vendors`, `manage vendors`, `assess vendors`,
+`approve vendor-assessments`, `manage vendor-contracts`, `screen vendors`,
+`notify vendor-regulators`; `view sustainability`, `manage sustainability`,
+`approve materiality`, `prepare ghg-data`, `verify ghg-data`,
+`manage sustainability-filings`; `view assurance`, `manage assurance`,
+`record reliance`.
+Feature flags: `objectives`, `vendors`, `sustainability`, `assurance`.
+New tables: `objectives`, `objective_metrics`, `initiatives`,
+`initiative_milestones`, `vendors`, `vendor_assessments`, `vendor_findings`,
+`vendor_contracts`, `vendor_screenings`, `sustainability_topics`,
+`materiality_assessments`, `ghg_data_points`, `sustainability_filings`,
+`sustainability_filing_stages`, `assurance_providers`, `assurance_activities`;
+`control_exceptions.source_type` gains `Third Party`, `Sustainability`,
+`Assurance` and `Internal Audit`, and the table gains a tenant-unique
+`external_ref` for records arriving over the interlock.
+
 ## Key business rules (where they live)
 
 - **Maker–checker** on controls, test scripts, ratings, compensating controls — policies + services
@@ -1348,11 +1550,21 @@ New tables: `entities`, `entity_user`, `transfer_lawful_bases`,
 - **An entity opens only by grant** — `EntityPolicy::view()` requires an `entity_user` row on top of the permission, for every role; group totals are computed over the granted set only
 - **Consolidation math is the entity record's** — method and ownership live on `entities`, applied by `Entity::consolidationWeight()`; never a constant
 - **The SoA is derived, never typed** — `SoaService::statement()` joins recorded decisions to live approved mappings at read time; an exclusion without a justification fails validation
+- **Objective progress is derived, and an unmeasured objective is unknown rather than failing** — `ObjectiveService::rollUp()` writes **null**, not 0, when nothing measures an objective; `objectives.progress` is nullable for exactly that reason, the scorecard excludes it from its perspective's weighted position and says how many are unmeasured, and `breakdown()` always shows what produced the number
+- **Duplication is three parties *testing* the same thing, not the three lines doing their jobs** — `AssuranceService::duplication()` excludes `self_assessment`, so management self-assessing alongside second line and internal audit is the healthy shape rather than a finding
+- **Significance is read from the rating band and nothing else** — `AssuranceService::map()` never falls back to `residual_rating` / `inherent_rating`, which are numeric scores; an unrated risk is reported as unrated rather than assumed safe or assumed critical
+- **A due-diligence review has an expiry, and lapsing raises an exception** — `VendorService::approveAssessment()` sets `expires_at` from the relationship's own review frequency; `expireAssessments()` raises once per lapse and records that it did
+- **Concentration never silently drops what it cannot convert** — `VendorService::concentration()` returns an `unconverted` bucket rather than excluding a currency with no reference rate
+- **The FRC filing stage offsets are data, and unverified until confirmed** — `tenants.settings['sustainability']['filing_stage_offsets']`, defaults in `SustainabilityService::DEFAULT_FILING_STAGES`; the schedule is copied onto each filing at creation so a later correction cannot restate a communicated deadline (R1, R10)
+- **A tCO2e figure is never invented from a missing input, and verified totals never mix with unverified ones** — `SustainabilityService::prepareDataPoint()` / `inventory()`; `GhgDataPoint::lineageGaps()` names what makes a figure unassurable
+- **Only Scope 3 may be deferred** — `SustainabilityService::deferDataPoint()` refuses Scope 1 and 2; the transition relief is the standard's, not the institution's convenience
+- **Assurance independence is recorded, not inferred, and stale cover is not cover** — `AssuranceProvider::countsAsIndependent()` + `AssuranceActivity::isStale()`; significant-risk and duplication thresholds live in `tenants.settings['assurance']`
+- **An inbound integration record cannot conjure an assurance provider** — `AssuranceService::applyInboundActivity()` matches an existing provider by code and 422s otherwise, so an API key cannot manufacture board-level comfort
 
 ## Quality gate
 
 ```bash
-composer test        # 707 feature/unit tests incl. SoD, legal-hold, dual-approval,
+composer test        # 776 feature/unit tests incl. SoD, legal-hold, dual-approval,
                      # due-rule and penalty maths, content-pack idempotency,
                      # API-auth bypass attempts, distribution idempotency,
                      # CSA rating gates, survey anonymity, import rollback,
@@ -1386,8 +1598,23 @@ composer test        # 707 feature/unit tests incl. SoD, legal-hold, dual-approv
                      # a rollup leaking nothing ungranted (admin included),
                      # tenant-scoped cache keys with explicit invalidation,
                      # a tamper-evident attestation signature, the 93 Annex A
-                     # controls present in the SoA, and a query budget held
-                     # on the controls index at 400 rows
+                     # controls present in the SoA, a query budget held
+                     # on the controls index at 400 rows, an objective
+                     # roll-up checked against known arithmetic and a
+                     # cascade loop refused, an unmeasured measure staying
+                     # unknown rather than zero, a due-diligence assessor
+                     # refused their own approval, a lapsed review raising
+                     # exactly one exception, concentration across three
+                     # currencies with an unconvertible vendor reported
+                     # rather than dropped, a contract's own notice window,
+                     # the three FRC stage deadlines from a January and a
+                     # July year start plus a tenant override, a GHG
+                     # preparer refused their own verification, Scope 1
+                     # refusing deferral, shipped IFRS topics carrying no
+                     # invented citations, a known assurance gap and a
+                     # known duplication, and a ThirdLine round trip
+                     # preserving a reliance decision while refusing to
+                     # invent an assurance provider
 composer lint        # Pint
 npm run build
 ```
@@ -1517,6 +1744,49 @@ ships them as drafts); offline evidence blobs replay without a server-side
 idempotency key, so an interrupted sync can in principle duplicate an upload
 (the checksum makes duplicates detectable); and the outbox replays when the app
 is next opened online rather than via background sync while closed.
+
+**v2.0 Phase 17 (Extended GRC) is implemented**: strategic objectives whose
+progress is derived from their measures, initiatives and cascade rather than
+asserted, with the strategy map and balanced scorecard the derivation feeds, and
+objective ← risk ← control ← KRI as one traversal of the existing linkage graph;
+third-party risk management with questionnaire-engine due diligence,
+assessor ≠ approver, an expiry that raises a real exception when a review lapses,
+sanctions/PEP/adverse-media screening that no machine can clear, a contract and
+SLA register with per-contract renewal windows, and concentration risk in one
+base currency that reports rather than hides what it cannot convert; IFRS S1/S2
+sustainability controls with an unverified-by-default topic register carrying no
+invented citations, double-materiality where the tenant elects it,
+preparer ≠ verifier GHG lineage with Scope 3 transition reliefs recorded rather
+than implied, and the FRC three-stage pre-reporting tracker computed from each
+entity's own fiscal year start against offsets that are tenant data; and the
+combined assurance map with recorded independence, staleness-aware coverage,
+gap and duplication identification against tenant thresholds, named reliance
+decisions, and the /api/v1 interlock that exchanges coverage, reliance and audit
+findings with ThirdLine without letting an integration key invent a provider.
+
+Carried forward from this phase: the FRC stage offsets and adoption years ship
+**unverified** and must be confirmed against the regulator's own published
+instrument before any filing built from them is relied on — the platform
+enforces this by excluding unverified filings from generated submissions, but
+the confirmation itself is an officer's job; the shipped IFRS S1/S2 topics
+likewise carry no paragraph references, deliberately, and a tenant reporting
+under the standards will want to add and verify them; sanctions and adverse-media
+screening is recorded through the Phase 12 connector framework but no screening
+vendor connector ships exercised, so screening is a manual record until one is
+configured; and vendor findings can reference an improvement action but do not
+yet auto-create one.
+
+Found while validating this phase, and **not fixed here**: four earlier
+migrations narrow an enum in `down()` without first moving the rows that hold
+the new values, so `migrate:rollback` fails part-way through on a seeded
+database —
+`2026_08_08_150004_add_csa_source_to_control_exceptions_table.php`,
+`2026_08_09_100013_add_risk_escalation_support.php`,
+`2026_08_10_100014_add_incident_source_to_control_exceptions_table.php` and
+`2026_08_11_100009_add_monitoring_source_to_control_exceptions_table.php`.
+The Phase 16 and Phase 17 instances of the same defect are fixed (each `down()`
+now resets the affected rows before narrowing); the four above belong to
+earlier phases and are left for their owners. Rolling forward is unaffected.
 
 Still pending from the v1 backlog: webhook
 subscriptions, NexusRisk risk-register pull, and in-place evidence redaction with

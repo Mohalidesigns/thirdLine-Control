@@ -68,6 +68,11 @@ class DatabaseSeeder extends Seeder
             // read the whole dataset, so they run last.
             TransferLawfulBasisSeeder::class,
             Phase16DemoSeeder::class,
+            // Phase 17: the IFRS topic register is reference data and ships
+            // unverified; the demo pack reads the group structure, the risk
+            // register and the KRI engine, so it runs after all of them.
+            SustainabilityTopicSeeder::class,
+            Phase17DemoSeeder::class,
         ]);
     }
 }

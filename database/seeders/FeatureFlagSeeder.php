@@ -68,6 +68,11 @@ class FeatureFlagSeeder extends Seeder
         // Phase 16 — multi-entity, data residency & enterprise readiness
         'entities' => 'Legal-entity register, per-entity access grants and the consolidated group dashboard',
         'residency' => 'Data-residency declaration, cross-border transfer register and signed attestations',
+        // Phase 17 — extended GRC
+        'objectives' => 'Strategic objectives, initiatives, the strategy map and the balanced scorecard',
+        'vendors' => 'Third-party risk register, due-diligence assessments, contracts, screening and concentration risk',
+        'sustainability' => 'IFRS S1/S2 sustainability controls: materiality, GHG lineage, FRC filing stages',
+        'assurance' => 'Combined assurance map with coverage gaps, duplication and reliance decisions',
     ];
 
     /**

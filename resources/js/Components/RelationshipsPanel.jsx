@@ -27,6 +27,10 @@ const LINKABLE_TYPES = [
     ['incident', 'Incident'],
     ['complaint', 'Complaint'],
     ['case', 'Case'],
+    // Phase 17 nodes — linking a risk to the objective it threatens is what
+    // makes the strategy map answer "is the cover holding".
+    ['objective', 'Objective'],
+    ['vendor', 'Third Party'],
 ];
 
 /**

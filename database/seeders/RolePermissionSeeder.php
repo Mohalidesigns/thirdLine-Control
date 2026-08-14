@@ -99,6 +99,30 @@ class RolePermissionSeeder extends Seeder
             'view residency', 'manage residency',
             'record transfers', 'authorise transfers',
             'manage soa',
+            // Extended GRC (Phase 17).
+            //
+            // 'approve objectives' is separate from 'manage objectives'
+            // because an objective entering the board's scorecard is the
+            // board's act, not the author's (R2).
+            'view objectives', 'manage objectives', 'approve objectives',
+            'manage initiatives',
+            // Third-party risk. 'approve vendor-assessments' is the
+            // second-person gate on a due-diligence conclusion, and
+            // 'notify vendor-regulators' is separate again because a
+            // material-outsourcing notification is a filing with a
+            // regulator, not an internal record.
+            'view vendors', 'manage vendors', 'assess vendors',
+            'approve vendor-assessments', 'manage vendor-contracts',
+            'screen vendors', 'notify vendor-regulators',
+            // Sustainability (IFRS S1/S2). Verifying GHG data is held apart
+            // from preparing it: the preparer of a Scope 1 figure cannot be
+            // the person who signs it off (R2).
+            'view sustainability', 'manage sustainability',
+            'approve materiality', 'prepare ghg-data', 'verify ghg-data',
+            'manage sustainability-filings',
+            // Combined assurance. Recording a reliance decision is the
+            // named act a King IV/NCCG combined-assurance report rests on.
+            'view assurance', 'manage assurance', 'record reliance',
         ];
 
         foreach ($permissions as $permission) {
@@ -188,6 +212,20 @@ class RolePermissionSeeder extends Seeder
             'view entities', 'view group-dashboard',
             'view residency', 'record transfers',
             'manage soa',
+            // Phase 17. Second line authors the objective register and runs
+            // third-party due diligence, sustainability preparation and the
+            // assurance map. Every second-person gate above it stays with
+            // the Control Function Head: approving an objective onto the
+            // scorecard, approving a due-diligence conclusion, notifying a
+            // regulator of a material outsourcing, approving a materiality
+            // determination, verifying GHG data it prepared, and recording
+            // a reliance decision (R2).
+            'view objectives', 'manage objectives', 'manage initiatives',
+            'view vendors', 'manage vendors', 'assess vendors',
+            'manage vendor-contracts', 'screen vendors',
+            'view sustainability', 'manage sustainability', 'prepare ghg-data',
+            'manage sustainability-filings',
+            'view assurance', 'manage assurance',
         ]);
 
         Role::findOrCreate('Control Owner', 'web')->syncPermissions([
@@ -215,6 +253,16 @@ class RolePermissionSeeder extends Seeder
             // Atlas a question can only ever be answered from records they
             // could already open.
             'use ai',
+            // First line owns initiatives and vendor relationships in
+            // practice, so it reads the strategy register and the third
+            // party register and progresses the initiatives it owns. The
+            // policies additionally allow an owner to report on their own
+            // objective without holding 'manage objectives'.
+            'view objectives', 'manage initiatives',
+            'view vendors',
+            // Preparing a GHG figure is a first-line act — the business
+            // unit holds the meter readings. Verifying it is not.
+            'view sustainability', 'prepare ghg-data',
         ]);
 
         Role::findOrCreate('Line Manager', 'web')->syncPermissions([
@@ -232,6 +280,8 @@ class RolePermissionSeeder extends Seeder
             // A line manager sees the entity register and, where granted,
             // the group position for their own entities.
             'view entities', 'view group-dashboard',
+            // Read across the extended-GRC registers; authors none of them.
+            'view objectives', 'view vendors', 'view sustainability', 'view assurance',
         ]);
 
         Role::findOrCreate('Executive Viewer', 'web')->syncPermissions([
@@ -269,6 +319,13 @@ class RolePermissionSeeder extends Seeder
             // — and authors none of it. Sight of a subsidiary still needs
             // an explicit per-entity grant.
             'view entities', 'view group-dashboard', 'view residency',
+            // Phase 17: the strategy map, the scorecard and the combined
+            // assurance map are board artefacts. The executive tier reads
+            // them and approves an objective onto the scorecard — which it
+            // can only ever do for an objective somebody else drafted (R2)
+            // — but authors nothing and never runs due diligence.
+            'view objectives', 'approve objectives',
+            'view vendors', 'view sustainability', 'view assurance',
         ]);
     }
 }

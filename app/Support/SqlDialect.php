@@ -37,4 +37,16 @@ final class SqlDialect
     {
         return self::driver() === 'sqlite' ? "date('now')" : 'curdate()';
     }
+
+    /**
+     * A date column shifted back by the number of days held in another
+     * column — "the day notice had to be given", where the notice period is
+     * per-contract data rather than a constant (17.2).
+     */
+    public static function dateMinusDaysColumn(string $dateColumn, string $daysColumn): string
+    {
+        return self::driver() === 'sqlite'
+            ? "date({$dateColumn}, '-' || {$daysColumn} || ' days')"
+            : "date_sub({$dateColumn}, interval {$daysColumn} day)";
+    }
 }
