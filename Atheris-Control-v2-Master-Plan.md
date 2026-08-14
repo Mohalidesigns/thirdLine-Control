@@ -3,7 +3,7 @@
 
 **Document:** Strategic + technical plan for the v2.0 update
 **Baseline:** Atheris Control (SecondLine), BRD v1.0 Phases 0–6 delivered
-**Target:** Corporater-parity GRC suite + Africa-first differentiators + full Anthropic AI layer
+**Target:** Corporater-parity GRC suite + Africa-first differentiators + full on-premise AI layer (Ollama · IBM Granite)
 **Date:** 7 August 2026
 **Companion document:** `02-CLAUDE-CODE-PROMPTS.md` (the executable build prompts)
 
@@ -144,7 +144,7 @@ These are the features to build that Corporater will not, and the order of their
 ├──────────────────────────────────────────────────────────────────────┤
 │  CHANNELS       Web · PWA · WhatsApp Cloud API · SMS · Email · API   │
 ├──────────────────────────────────────────────────────────────────────┤
-│  AI LAYER       Anthropic Claude · RAG over tenant data              │
+│  AI LAYER       Ollama · IBM Granite (on-prem) · RAG over tenant data│
 │                 AiGateway → PII redaction → prompt registry →        │
 │                 model call → confidence → human-in-loop → audit      │
 ├──────────────────────────────────────────────────────────────────────┤
@@ -190,7 +190,7 @@ Eleven phases, ~9 months at a steady pace. Phases 7–9 are the credibility floo
 | **11** | Policy, Incident, Complaints & Case | 4 | Policy lifecycle + attestation, incident/loss events, whistleblowing, CBN complaints SLA engine, investigations. |
 | **12** | Continuous Controls Monitoring & Connectors | 5 | CCM rule engine, automated testing, Finacle/FLEXCUBE/T24/BankOne/NIBSS/SAP/D365/Sage/M365/FIRS connectors. |
 | **13** | Dashboards, Analytics & Reporting v2 | 4 | Dashboard builder, charts, drill-down, org rollups, report designer, Word/PPT/Excel/PDF, **regulator submission packs**. |
-| **14** | **AI Layer (Anthropic)** | 5 | AI gateway, 9 capabilities, Atlas assistant with RAG, AI governance and audit. |
+| **14** | **AI Layer (Ollama · IBM Granite)** | 5 | AI gateway, 9 capabilities, Atlas assistant with RAG, AI governance and audit. Runs on-premise — no tenant data leaves the machine. |
 | **15** | Mobile, Offline & Omnichannel | 3 | PWA offline attestation, WhatsApp Cloud API, SMS, resumable uploads, low-bandwidth mode. |
 | **16** | Multi-entity, Residency & Enterprise Readiness | 4 | Group consolidation, per-country data planes, residency attestation, scale, DR, observability, ISO 27001 self-evidence. |
 | **17** | Extended GRC (strategy, TPRM, ESG, assurance) | 4 | Objectives/KPI alignment, vendor risk, IFRS S1/S2 controls, combined assurance map. |
@@ -250,7 +250,11 @@ Run one phase per session. Do not run two. Each phase ends with `composer test`,
 
 ## ⚠️ Security note — act on this before anything else
 
-The Anthropic API key was shared in plain chat. **Treat it as compromised: rotate it at console.anthropic.com now.** The replacement belongs in `.env` as `ANTHROPIC_API_KEY`, referenced only via `config/services.php`, with `.env` in `.gitignore` (it already is) and a placeholder line in `.env.example`. It must never appear in a prompt, a commit, a seeder, a test fixture, or client-side code. Phase 14 assumes this.
+An Anthropic API key was shared in plain chat while this plan was being drafted. **Treat it as compromised and revoke it at console.anthropic.com** — it is no longer used by anything here, but a leaked key that is merely unused is still a leaked key.
+
+Phase 14 shipped against a **locally hosted Ollama server running IBM Granite**, so the platform holds no third-party model credential at all. `OLLAMA_BASE_URL` and the optional `OLLAMA_API_KEY` — the latter needed only for an Ollama behind an authenticating reverse proxy — live in `.env`, are read only via `config/services.php`, and are touched by exactly one class (`OllamaClient`, which also scrubs the key from anything bound for storage). `.env` is in `.gitignore` (it already was) and `.env.example` carries the placeholders. Nothing of this belongs in a prompt, a commit, a seeder, a test fixture, or client-side code.
+
+The residency consequence is the point: with inference on the institution's own machine, no tenant data crosses the boundary for AI at all. That is a stronger position under the CBN and BoG localisation rules in §0 than any data-processing agreement with an offshore model provider, and it should be sold as such.
 
 ---
 

@@ -1005,7 +1005,8 @@ at a 512 MB limit for exactly this reason. Size the worker that runs
 
 ## AI layer (Phase 14)
 
-A native, governed, auditable AI layer on the Anthropic API. The design premise
+A native, governed, auditable AI layer on a **locally hosted Ollama server
+running IBM Granite**. The design premise
 is not "add a chatbot" — it is that scarce second-line expertise is the binding
 constraint in most of these institutions, and a model that drafts is worth a lot
 while a model that decides is a liability. Everything below follows from that.
@@ -1017,7 +1018,7 @@ path to the provider:
 
 ```
 capability enabled → user authorised → budget → rate limit → retrieval
-  → redaction → prompt render → Anthropic call → parse & validate
+  → redaction → prompt render → Ollama call → parse & validate
   → confidence → citations → interaction recorded → AiDraft returned
 ```
 
@@ -1052,9 +1053,12 @@ layer. See the RBAC section for what survives underneath it.
 
 Model identifiers are **data, not constants** (R1): `ai_configurations.model` per
 tenant, then the prompt's `model_hint`, then the capability's tier default from
-`config/services.php`. Verified against Anthropic's current model documentation
-at build time — the prompt pack's draft named `claude-*-4-6` identifiers; the
-shipped defaults are Claude Sonnet 5, Claude Opus 5 and Haiku 4.5.
+`config/services.php`. The installation runs one Granite model, so all three
+tiers (fast / default / reasoning) default to `granite4:micro`; pulling a larger
+Granite and pointing `OLLAMA_REASONING_MODEL` at it upgrades the reasoning tier
+without a deploy. `services.ollama.features` is a per-model capability matrix —
+the gateway asks it before building a payload rather than sending a parameter
+the model will reject or silently ignore.
 
 ### Retrieval is permission-filtered before the model sees anything
 
@@ -1070,14 +1074,14 @@ clears the floor the result is empty, and an empty result is what makes
 *"I don't have enough information in your data to answer that"* an honest
 answer rather than a fallback.
 
-**Embeddings are computed locally.** Anthropic publishes no embedding endpoint,
-and shipping a tenant's control descriptions and incident narratives to a
-third-party embedding provider in bulk would breach R5 for the sake of a ranking
-signal. The default driver is a deterministic hashed bag-of-terms, cosine-scored
-in PHP over a keyword-prefiltered candidate set — exactly as Part C §C.7 permits.
-It is lexical, not semantic: it will not connect "dual authorisation" to
-"four-eyes principle" the way a trained model would. Swapping in an in-country
-embedding model later is a new driver plus a re-index.
+**Embeddings need no model at all.** The default driver is a deterministic
+hashed bag-of-terms, cosine-scored in PHP over a keyword-prefiltered candidate
+set — exactly as Part C §C.7 permits — so indexing never competes with
+generation for the Ollama server. It is lexical, not semantic: it will not
+connect "dual authorisation" to "four-eyes principle" the way a trained model
+would. The same Ollama server can serve a real embedding model
+(`granite-embedding`) with no data leaving the boundary; adopting it is a second
+driver in `EmbeddingService` plus a re-index, with no change above it.
 
 **Never indexed:** investigation cases (not in the source map at all),
 confidential documents (gated per-document on an access-role list a single
@@ -1155,7 +1159,7 @@ Feature flags: `ai-assist`, `ai-atlas`, `ai-governance`.
 
 ### Operational notes
 
-Without `ANTHROPIC_API_KEY` the layer is **dormant**, not broken: every
+Without `OLLAMA_BASE_URL` the layer is **dormant**, not broken: every
 capability reports itself unavailable rather than failing mid-request. A fresh
 installation also ships with every capability *disabled* — `AiGateway` treats a
 missing `ai_configurations` row as off, so switching one on is a deliberate,
@@ -1164,8 +1168,18 @@ audited administrative act.
 The transport is Laravel's HTTP client rather than a vendor SDK. The phase's own
 acceptance test is "mock the HTTP client and inspect the outbound body", which
 `Http::fake()` makes a first-class assertion against the real transport;
-`AnthropicClient` is the single class that reads the key, which is what makes
-"the key never leaks" one place to check rather than a codebase-wide audit.
+`OllamaClient` is the single class that talks to the provider — and the only one
+that reads `OLLAMA_API_KEY`, which exists solely for an Ollama behind an
+authenticating reverse proxy. Timeouts are tuned for local inference on modest
+hardware (`OLLAMA_TIMEOUT` defaults to 300s), and `OLLAMA_NUM_CTX` is set
+explicitly because Ollama's own default context window is small enough to
+silently truncate an assembled retrieval context — which surfaces as the model
+appearing to ignore its instructions.
+
+Because inference runs on the machine, **no tenant data crosses the boundary at
+all** — the strongest available reading of R5. Redaction is still mandatory and
+still re-checked at egress: the boundary being local is a property of this
+deployment, not a licence to loosen the pipeline.
 
 ## Mobile, offline & omnichannel (Phase 15)
 
@@ -1543,7 +1557,7 @@ New tables: `objectives`, `objective_metrics`, `initiatives`,
 - **Model identifiers, prompts, budgets and capability toggles are data** — `ai_configurations`, `ai_prompts`, `ai_budgets`, `config/ai.php`; no model name or prompt lives in a class
 - **A prompt version is never edited** — `PromptRegistry::publish()` always writes a new row, because `ai_interactions` references the version that ran (R3)
 - **AI-proposed obligations ship unverified and inactive** — `RegulatoryParseCapability::draftObligations()` (R10)
-- **The API key is read in exactly one class** — `AnthropicClient`, which also scrubs it from anything bound for storage
+- **The provider is reached from exactly one class** — `OllamaClient`, the only reader of the optional `OLLAMA_API_KEY`, which also scrubs it from anything bound for storage
 - **The residency guard has no off switch** — `ResidencyGuard` reads only `config/residency.php`; no database flag, no feature flag, no env kill switch; every block audited as `residency-blocked`
 - **A residency declaration changes only by re-provisioning** — `Tenant`/`Entity::booted()` throw on a runtime edit; `tenant:provision` binds `residency.reprovisioning` for the one legitimate path
 - **No lawful basis, no transfer** — `cross_border_transfers.lawful_basis_id` is NOT NULL, `CrossBorderTransferService::record()` re-checks the basis is usable, and the form validates it; recorder ≠ authoriser in policy *and* service
@@ -1688,7 +1702,8 @@ distribution; deterministic forward-look analytics; and the six Nigerian regulat
 submission generators with completeness gating, unverified-content exclusion and
 three-person maker-checker filing.
 
-**v2.0 Phase 14 (AI Layer) is implemented**: a governed Anthropic layer where the
+**v2.0 Phase 14 (AI Layer) is implemented**: a governed local-Ollama/IBM Granite
+layer where the
 gateway is the only route to the provider and its pipeline — capability gate,
 authorisation, budget, rate limit, permission-filtered retrieval, unskippable
 redaction, versioned prompt, schema validation with one repair, confidence
