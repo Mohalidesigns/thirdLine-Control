@@ -62,6 +62,12 @@ class RolePermissionSeeder extends Seeder
             'export complaint-returns',
             'view cases', 'create cases', 'investigate cases', 'close cases',
             'view privileged-notes', 'report cases',
+            // 'view all cases' is the named oversight override of the 11.4
+            // allowlist: read-only sight of every case, every view logged.
+            // It never confers investigation, note or access-management
+            // rights — those still require allowlist membership — and it is
+            // deliberately granted to the System Administrator alone.
+            'view all cases',
             // Continuous controls monitoring & connectors (Phase 12)
             'view data-sources', 'manage data-sources', 'approve data-sources',
             'authorise pii-retention',
@@ -117,6 +123,10 @@ class RolePermissionSeeder extends Seeder
         // title (R1).
         Role::findOrCreate('Control Function Head', 'web')->syncPermissions(array_diff($all, [
             'manage users', 'manage settings', 'manage sso', 'install content-packs',
+            // Case oversight stays with the System Administrator; the head
+            // of control reaches a case the same way everyone else does —
+            // by being named on it (11.4).
+            'view all cases',
         ]));
 
         Role::findOrCreate('Control Officer', 'web')->syncPermissions([

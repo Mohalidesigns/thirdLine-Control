@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AiGovernanceController;
 use App\Http\Controllers\Admin\MessagingController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\AiAssistController;
 use App\Http\Controllers\AtlasController;
 use App\Http\Controllers\AttestationController;
@@ -751,6 +752,16 @@ Route::middleware('auth')->group(function () {
 
     // ── Administration ───────────────────────────────────────────────
     Route::middleware('role:System Administrator|Control Function Head')->prefix('admin')->group(function () {
+        // Roles & permissions (BRD §4) — who may do what, in one screen.
+        // 'manage users' is held by the System Administrator alone.
+        Route::middleware('permission:manage users')->group(function () {
+            Route::get('roles', [RoleController::class, 'index'])->name('admin.roles');
+            Route::post('roles', [RoleController::class, 'store'])->name('admin.roles.store');
+            Route::put('roles/{role}', [RoleController::class, 'update'])->name('admin.roles.update');
+            Route::delete('roles/{role}', [RoleController::class, 'destroy'])->name('admin.roles.destroy');
+            Route::put('users/{user}/roles', [RoleController::class, 'updateUserRoles'])->name('admin.users.roles.update');
+        });
+
         Route::get('escalation-matrix', [EscalationMatrixController::class, 'index'])->name('admin.escalation-matrix');
         Route::post('escalation-matrix', [EscalationMatrixController::class, 'store'])->name('admin.escalation-matrix.store');
         Route::put('escalation-matrix/{escalation_matrix}', [EscalationMatrixController::class, 'update'])->name('admin.escalation-matrix.update');
