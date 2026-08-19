@@ -186,7 +186,10 @@ export default function Show({ exception, evidence = [], users = [], units = [],
                     <div className="card">
                         <div className="card-header">
                             <h3 className="text-sm font-semibold">Compensating controls</h3>
-                            {['Open', 'Assigned', 'In Progress', 'Remediated'].includes(exception.status) && (
+                            {/* A compensating control offsets a specific failed
+                                control — without a linked control there is
+                                nothing to register it against (FR-6.3). */}
+                            {exception.control && ['Open', 'Assigned', 'In Progress', 'Remediated'].includes(exception.status) && (
                                 <button type="button" className="text-sm text-[var(--color-primary)] hover:underline" onClick={() => setModal('compensating')}>
                                     + Register
                                 </button>
@@ -634,9 +637,11 @@ export default function Show({ exception, evidence = [], users = [], units = [],
                 description="Recognised in residual risk only after control function approval."
             >
                 <form onSubmit={submitTo(compForm, 'compensating-controls.store')} className="space-y-4">
+                    <InputError message={compForm.errors.compensating} />
                     <div>
                         <InputLabel value="Description" required />
                         <TextArea value={compForm.data.description} onChange={(e) => compForm.setData('description', e.target.value)} />
+                        <InputError message={compForm.errors.description} className="mt-1" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>

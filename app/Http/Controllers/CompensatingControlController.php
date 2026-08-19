@@ -7,6 +7,7 @@ use App\Models\ControlException;
 use App\Services\ResidualRiskService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -32,6 +33,16 @@ class CompensatingControlController extends Controller
     public function store(Request $request, ControlException $exception): RedirectResponse
     {
         $this->authorize('create', CompensatingControl::class);
+
+        // A compensating control offsets a specific failed PRIMARY control —
+        // the schema requires it and residual-risk recognition (FR-6.3) is
+        // anchored to it. An exception with no linked control has nothing to
+        // compensate, so refuse loudly rather than 500 on the insert.
+        if (! $exception->control_id) {
+            throw ValidationException::withMessages([
+                'compensating' => "{$exception->reference} is not linked to a control. Link the exception to the failed control first — a compensating control is recognised against that control's residual risk.",
+            ]);
+        }
 
         $validated = $request->validate([
             'description' => ['required', 'string'],
