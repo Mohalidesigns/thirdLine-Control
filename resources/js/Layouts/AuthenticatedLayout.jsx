@@ -147,6 +147,13 @@ const NAV_ITEMS = [
         icon: 'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z',
     },
     {
+        label: 'Exception Manager',
+        route: 'exception-manager.index',
+        match: '/exception-manager',
+        feature: 'exception-manager',
+        icon: 'M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z',
+    },
+    {
         label: 'Compensating Controls',
         route: 'compensating-controls.index',
         match: '/compensating-controls',
@@ -304,6 +311,14 @@ const NAV_ITEMS = [
         match: '/admin/escalation-matrix',
         allowedRoles: ['System Administrator', 'Control Function Head'],
         icon: 'M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941',
+    },
+    {
+        label: 'Exception Routing',
+        route: 'admin.exception-routing',
+        match: '/admin/exception-routing',
+        allowedRoles: ['System Administrator', 'Control Function Head'],
+        feature: 'exception-manager',
+        icon: 'M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5',
     },
     {
         label: 'Evidence Disposal',

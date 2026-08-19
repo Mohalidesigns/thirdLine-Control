@@ -123,6 +123,12 @@ class RolePermissionSeeder extends Seeder
             // Combined assurance. Recording a reliance decision is the
             // named act a King IV/NCCG combined-assurance report rests on.
             'view assurance', 'manage assurance', 'record reliance',
+            // Exception Manager (CR-01). Issuing, answering, reviewing and
+            // withdrawing are four different hands by design: the control
+            // function escalates and reviews, the department responds, and
+            // configuration confers no part in the loop itself.
+            'escalate exceptions', 'respond exceptions', 'review exception-responses',
+            'withdraw exceptions', 'configure exception-routing',
         ];
 
         foreach ($permissions as $permission) {
@@ -133,7 +139,15 @@ class RolePermissionSeeder extends Seeder
 
         // BRD §4 roles. Two second-line tiers, first-line owner/manager,
         // read-only executive, and the system administrator.
-        Role::findOrCreate('System Administrator', 'web')->syncPermissions($all);
+        //
+        // CR-01: the System Administrator configures exception routing and
+        // SLA but takes NO part in the loop — no issuing, answering,
+        // reviewing or withdrawing. Holding the platform keys must never
+        // put anyone inside a segregation-of-duties chain (R2).
+        Role::findOrCreate('System Administrator', 'web')->syncPermissions(array_diff($all, [
+            'escalate exceptions', 'respond exceptions',
+            'review exception-responses', 'withdraw exceptions',
+        ]));
 
         // Installing regulatory content packs changes platform-wide data, so
         // it stays with the System Administrator alongside the other
@@ -158,6 +172,11 @@ class RolePermissionSeeder extends Seeder
             'view risks', 'create risks', 'edit risks', 'map risks',
             'view tests', 'execute tests', 'build test-scripts', 'rate controls',
             'view exceptions', 'create exceptions', 'remediate exceptions',
+            // CR-01: second line issues, reviews and withdraws departmental
+            // escalations. Accepting a response is a closure act and needs
+            // 'close exceptions' (R-C), which this role does not hold — an
+            // officer can reject, never accept.
+            'escalate exceptions', 'review exception-responses', 'withdraw exceptions',
             'view compensating-controls', 'create compensating-controls',
             'view spot-checks', 'conduct spot-checks',
             'view dashboards', 'export reports',
@@ -230,6 +249,8 @@ class RolePermissionSeeder extends Seeder
 
         Role::findOrCreate('Control Owner', 'web')->syncPermissions([
             'view controls', 'view exceptions', 'remediate exceptions',
+            // CR-01: first line answers what is addressed to it.
+            'respond exceptions',
             'view compensating-controls', 'create compensating-controls',
             'view dashboards',
             'view frameworks', 'view obligations', 'submit obligations',
@@ -267,6 +288,9 @@ class RolePermissionSeeder extends Seeder
 
         Role::findOrCreate('Line Manager', 'web')->syncPermissions([
             'view controls', 'view risks', 'view tests', 'view exceptions',
+            // CR-01: a line manager answers an escalation addressed to their
+            // department.
+            'respond exceptions',
             'view compensating-controls', 'view spot-checks', 'view dashboards',
             'view frameworks', 'view obligations', 'view regulatory-changes',
             'view distributions', 'respond campaigns',

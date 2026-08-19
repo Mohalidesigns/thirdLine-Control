@@ -68,3 +68,8 @@ Schedule::command('atheris:refresh-assurance')->dailyAt('05:15');
 // board opens in the morning reflects last night's readings rather than
 // the previous day's.
 Schedule::command('atheris:roll-up-objectives')->dailyAt('04:00');
+
+// CR-01 — the Exception Manager chase engine runs before the escalation
+// matrix sweep at 07:00, so an escalation stamped for the ladder today is
+// walked by the ladder the same morning, not tomorrow.
+Schedule::command('exceptions:chase')->dailyAt('06:30');

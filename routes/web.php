@@ -29,6 +29,10 @@ use App\Http\Controllers\EntityController;
 use App\Http\Controllers\EscalationMatrixController;
 use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\ExceptionController;
+use App\Http\Controllers\ExceptionManagerController;
+use App\Http\Controllers\ExceptionResponseController;
+use App\Http\Controllers\ExceptionRoutingController;
+use App\Http\Controllers\PublicExceptionResponseController;
 use App\Http\Controllers\FeatureFlagController;
 use App\Http\Controllers\FrameworkController;
 use App\Http\Controllers\FrameworkRequirementController;
@@ -110,6 +114,17 @@ Route::middleware(['feature:whistleblowing', 'throttle:10,1'])->group(function (
     Route::get('speak-up/status', [WhistleblowingController::class, 'status'])->name('whistleblowing.status');
     Route::post('speak-up/status', [WhistleblowingController::class, 'checkStatus'])->name('whistleblowing.check');
     Route::post('speak-up/reply', [WhistleblowingController::class, 'reply'])->name('whistleblowing.reply');
+});
+
+// ── Exception Manager secure answer link (CR-01, R-H) — public by design.
+// An external processor has no account; the hashed one-time token IS the
+// credential. Scoped to a single escalation, expiring, revocable, and
+// throttled hard because a token endpoint invites brute force.
+Route::middleware(['feature:exception-manager', 'throttle:20,1'])->group(function () {
+    Route::get('exception-response/{token}', [PublicExceptionResponseController::class, 'show'])
+        ->name('public.exception-response.show');
+    Route::post('exception-response/{token}', [PublicExceptionResponseController::class, 'submit'])
+        ->name('public.exception-response.submit');
 });
 
 // ── Omnichannel webhooks (Phase 15.3/15.4) — public by design, each
@@ -423,6 +438,52 @@ Route::middleware('auth')->group(function () {
     Route::post('exceptions/{exception}/accept-risk', [ExceptionController::class, 'acceptRisk'])->name('exceptions.accept-risk');
     Route::post('exceptions/{exception}/comments', [ExceptionController::class, 'comment'])->name('exceptions.comments');
 
+    // ── Exception Manager (CR-01): departmental escalation, response &
+    // closure. Rows are escalations, not exceptions — the addressed loop.
+    Route::middleware('feature:exception-manager')->group(function () {
+        Route::get('exception-manager', [ExceptionManagerController::class, 'index'])
+            ->name('exception-manager.index');
+
+        Route::middleware('permission:escalate exceptions')->group(function () {
+            Route::post('exceptions/{exception}/escalations', [ExceptionManagerController::class, 'issue'])
+                ->name('exception-manager.issue');
+            Route::post('exception-manager/{escalation}/links', [ExceptionManagerController::class, 'createLink'])
+                ->name('exception-manager.links.store');
+            Route::post('exception-manager/{escalation}/links/{link}/revoke', [ExceptionManagerController::class, 'revokeLink'])
+                ->name('exception-manager.links.revoke');
+        });
+
+        Route::middleware('permission:respond exceptions')->group(function () {
+            Route::get('exception-manager/{escalation}/respond', [ExceptionResponseController::class, 'respond'])
+                ->name('exception-manager.respond');
+            Route::post('exception-manager/{escalation}/respond/draft', [ExceptionResponseController::class, 'saveDraft'])
+                ->name('exception-manager.respond.draft');
+            Route::post('exception-manager/{escalation}/respond', [ExceptionResponseController::class, 'submit'])
+                ->name('exception-manager.respond.submit');
+        });
+
+        Route::middleware('permission:review exception-responses')
+            ->post('exception-manager/{escalation}/responses/{response}/review', [ExceptionManagerController::class, 'review'])
+            ->name('exception-manager.review');
+
+        Route::post('exception-manager/{escalation}/close', [ExceptionManagerController::class, 'close'])
+            ->name('exception-manager.close');
+
+        Route::middleware('permission:withdraw exceptions')
+            ->post('exception-manager/{escalation}/withdraw', [ExceptionManagerController::class, 'withdraw'])
+            ->name('exception-manager.withdraw');
+
+        // The department's committed actions (CR1.5).
+        Route::post('exception-actions/{action}/progress', [ExceptionResponseController::class, 'progressAction'])
+            ->name('exception-actions.progress');
+        Route::post('exception-actions/{action}/complete', [ExceptionResponseController::class, 'completeAction'])
+            ->name('exception-actions.complete');
+
+        // Dynamic segment last, so it never captures the literals above.
+        Route::get('exception-manager/{escalation}', [ExceptionManagerController::class, 'show'])
+            ->name('exception-manager.show');
+    });
+
     // ── Compensating controls ────────────────────────────────────────
     Route::get('compensating-controls', [CompensatingControlController::class, 'index'])->name('compensating-controls.index');
     Route::post('exceptions/{exception}/compensating-controls', [CompensatingControlController::class, 'store'])->name('compensating-controls.store');
@@ -443,6 +504,8 @@ Route::middleware('auth')->group(function () {
         Route::get('spot-checks/{spot_check}.pdf', [ReportController::class, 'spotCheck'])->name('reports.spot-check');
         Route::get('exceptions.pdf', [ReportController::class, 'exceptionRegisterPdf'])->name('reports.exceptions.pdf');
         Route::get('exceptions.xlsx', [ReportController::class, 'exceptionsXlsx'])->name('reports.exceptions.xlsx');
+        Route::get('exception-manager.pdf', [ReportController::class, 'exceptionManagerPdf'])->name('reports.exception-manager.pdf');
+        Route::get('exception-manager.xlsx', [ReportController::class, 'exceptionManagerXlsx'])->name('reports.exception-manager.xlsx');
         Route::get('controls.xlsx', [ReportController::class, 'controlsXlsx'])->name('reports.controls.xlsx');
         Route::get('testing-summary.pdf', [ReportController::class, 'testingSummaryPdf'])->name('reports.testing-summary');
         Route::get('test-instances.xlsx', [ReportController::class, 'testInstancesXlsx'])->name('reports.test-instances.xlsx');
@@ -879,6 +942,19 @@ Route::middleware('auth')->group(function () {
             Route::put('roles/{role}', [RoleController::class, 'update'])->name('admin.roles.update');
             Route::delete('roles/{role}', [RoleController::class, 'destroy'])->name('admin.roles.destroy');
             Route::put('users/{user}/roles', [RoleController::class, 'updateUserRoles'])->name('admin.users.roles.update');
+        });
+
+        // CR-01: exception routing + SLA config. Its own permission, held by
+        // the System Administrator — who deliberately gains no review or
+        // closure rights with it.
+        Route::middleware(['feature:exception-manager', 'permission:configure exception-routing'])->group(function () {
+            Route::get('exception-routing', [ExceptionRoutingController::class, 'routing'])->name('admin.exception-routing');
+            Route::post('exception-routing', [ExceptionRoutingController::class, 'storeRule'])->name('admin.exception-routing.store');
+            Route::put('exception-routing/{rule}', [ExceptionRoutingController::class, 'updateRule'])->name('admin.exception-routing.update');
+            Route::delete('exception-routing/{rule}', [ExceptionRoutingController::class, 'destroyRule'])->name('admin.exception-routing.destroy');
+            Route::get('exception-sla', [ExceptionRoutingController::class, 'sla'])->name('admin.exception-sla');
+            Route::post('exception-sla', [ExceptionRoutingController::class, 'storePolicy'])->name('admin.exception-sla.store');
+            Route::put('exception-sla/{policy}', [ExceptionRoutingController::class, 'updatePolicy'])->name('admin.exception-sla.update');
         });
 
         Route::get('escalation-matrix', [EscalationMatrixController::class, 'index'])->name('admin.escalation-matrix');

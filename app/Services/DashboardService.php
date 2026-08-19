@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Control;
 use App\Models\ControlException;
 use App\Models\EffectivenessRating;
+use App\Models\ExceptionEscalation;
 use App\Models\Risk;
 use App\Models\TestInstance;
 use App\Support\SqlDialect;
@@ -88,6 +89,16 @@ class DashboardService
                     '61-90' => (int) ($ageing->bucket_61_90 ?? 0),
                     '90+' => (int) ($ageing->bucket_90_plus ?? 0),
                 ],
+            ],
+            // CR-01: the departmental escalation loop, aggregated at the
+            // database like everything else here.
+            'exceptionManager' => [
+                'issued' => ExceptionEscalation::count(),
+                'awaitingResponse' => ExceptionEscalation::awaitingResponse()->count(),
+                'overdue' => ExceptionEscalation::responseOverdue()->count(),
+                'awaitingReview' => ExceptionEscalation::where('status', 'Responded')->count(),
+                'closedThisPeriod' => ExceptionEscalation::where('status', 'Closed')
+                    ->where('closed_at', '>=', now()->startOfMonth())->count(),
             ],
             'testing' => [
                 'total' => (int) ($testTotals->total ?? 0),

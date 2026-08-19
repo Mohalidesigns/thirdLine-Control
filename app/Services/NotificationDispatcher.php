@@ -10,6 +10,7 @@ use App\Notifications\Channels\WebPushChannel;
 use App\Notifications\Channels\WhatsAppChannel;
 use App\Notifications\PreferenceRoutedNotification;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * Single dispatch point for every user-facing notification (Phase 7.4):
@@ -45,6 +46,19 @@ class NotificationDispatcher
         foreach ($recipients as $user) {
             $this->sendToUser($user, $eventKey, $notification);
         }
+    }
+
+    /**
+     * CR-01: an external processor has no account, so it has no preferences
+     * and no in-app channel — but its notice still leaves through the single
+     * dispatch point rather than a stray Mail::send. Email only, immediate.
+     */
+    public function sendExternal(string $email, string $eventKey, PreferenceRoutedNotification $notification): void
+    {
+        $instance = (clone $notification)->viaChannels(['mail']);
+        $instance->eventKey = $eventKey;
+
+        Notification::route('mail', $email)->notify($instance);
     }
 
     private function sendToUser(User $user, string $eventKey, PreferenceRoutedNotification $notification): void

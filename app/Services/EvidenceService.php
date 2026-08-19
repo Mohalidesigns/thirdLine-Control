@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ControlException;
 use App\Models\Evidence;
+use App\Models\ExceptionEscalation;
 use App\Models\Finding;
 use App\Models\ObligationInstance;
 use App\Models\RetentionPolicy;
@@ -25,6 +26,9 @@ class EvidenceService
         'finding' => Finding::class,
         // Phase 8: the proof that a regulatory filing was actually made.
         'obligation_instance' => ObligationInstance::class,
+        // CR-01: departmental response attachments are evidence rows with
+        // linked_type/linked_id — never a file column on the response.
+        'exception-escalation' => ExceptionEscalation::class,
     ];
 
     /**

@@ -294,12 +294,17 @@ class ExceptionService
             ]);
         }
 
+        // CR-01 (R-D): the departmental loop must be closed before the
+        // control lapse can be — the error names the open escalations.
+        app(ExceptionEscalationService::class)->assertClosable($exception);
+
         $this->transition($exception, 'Verified-Closed', [
             'verification_method' => $verification['verification_method'],
             'verified_by' => $verifier->id,
             'verified_at' => now(),
             'closure_notes' => $verification['closure_notes'] ?? null,
             'is_overdue' => false,
+            'closure_type' => 'Remediated',
         ]);
 
         $exception->logActivity('Verification', 'Remediated', 'Verified-Closed', $verification['verification_method']);
@@ -361,9 +366,18 @@ class ExceptionService
             'risk_accepted_by' => $approver->id,
             'risk_acceptance_expiry' => $expiryDate,
             'is_overdue' => false,
+            'closure_type' => 'Risk Accepted',
         ]);
 
         $exception->logActivity('Status Change', $from, 'Risk Accepted', $reason);
+
+        // CR-01 (CR1.5): risk acceptance ends the departmental loop — every
+        // open escalation is withdrawn with the acceptance as the reason.
+        app(ExceptionEscalationService::class)->withdrawAllOpen(
+            $exception,
+            $approver,
+            "Risk accepted on {$exception->reference}: {$reason}",
+        );
 
         return $exception;
     }

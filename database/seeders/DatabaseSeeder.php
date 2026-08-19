@@ -73,6 +73,10 @@ class DatabaseSeeder extends Seeder
             // register and the KRI engine, so it runs after all of them.
             SustainabilityTopicSeeder::class,
             Phase17DemoSeeder::class,
+            // CR-01: the Exception Manager's default SLA policies, a routing
+            // rule and a demo register exercising the full issue → respond →
+            // review → re-issue → close loop.
+            ExceptionManagerDemoSeeder::class,
         ]);
     }
 }

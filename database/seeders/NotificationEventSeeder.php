@@ -199,6 +199,81 @@ class NotificationEventSeeder extends Seeder
             'default_channels' => ['in_app', 'email'],
             'is_user_configurable' => false,
         ],
+        // CR-01 — Exception Manager: departmental escalation, response &
+        // closure. The issue notice is NOT user-configurable: a department
+        // cannot mute an exception addressed to it.
+        [
+            'key' => 'exception.escalation.issued',
+            'label' => 'Exception issued to your department',
+            'description' => 'The control function has issued a control exception to you for a formal departmental response.',
+            'category' => 'exception-manager',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => false,
+        ],
+        [
+            'key' => 'exception.escalation.acknowledgement_due',
+            'label' => 'Escalation acknowledgement due',
+            'description' => 'An exception issued to you has not been acknowledged and its acknowledgement window is closing.',
+            'category' => 'exception-manager',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => false,
+        ],
+        [
+            'key' => 'exception.response.reminder',
+            'label' => 'Exception response reminder',
+            'description' => 'Graduated reminder around the response due date on an exception issued to you.',
+            'category' => 'exception-manager',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => true,
+        ],
+        [
+            'key' => 'exception.response.overdue',
+            'label' => 'Exception response overdue',
+            'description' => 'The response deadline on an exception issued to you has passed; unanswered escalations climb the escalation ladder.',
+            'category' => 'exception-manager',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => false,
+        ],
+        [
+            'key' => 'exception.response.submitted',
+            'label' => 'Departmental response received',
+            'description' => 'A department has submitted its response to an exception you issued — it is awaiting review.',
+            'category' => 'exception-manager',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => true,
+        ],
+        [
+            'key' => 'exception.response.accepted',
+            'label' => 'Your response was accepted',
+            'description' => 'The control function accepted your departmental response; committed actions are now tracked.',
+            'category' => 'exception-manager',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => true,
+        ],
+        [
+            'key' => 'exception.response.rejected',
+            'label' => 'Your response was rejected and re-issued',
+            'description' => 'The control function rejected your response; the exception has been re-issued with a new deadline.',
+            'category' => 'exception-manager',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => false,
+        ],
+        [
+            'key' => 'exception.escalation.closed',
+            'label' => 'Escalation closed',
+            'description' => 'The control function validated the committed actions and closed an escalation addressed to you.',
+            'category' => 'exception-manager',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => true,
+        ],
+        [
+            'key' => 'exception.escalation.withdrawn',
+            'label' => 'Escalation withdrawn',
+            'description' => 'An escalation addressed to you was withdrawn by the control function; no response is required.',
+            'category' => 'exception-manager',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => true,
+        ],
     ];
 
     public function run(): void

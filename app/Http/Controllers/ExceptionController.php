@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ExceptionRequest;
+use App\Models\BusinessProcess;
 use App\Models\Control;
 use App\Models\ControlException;
 use App\Models\Evidence;
+use App\Models\ExceptionEscalation;
 use App\Models\OrganisationUnit;
 use App\Models\User;
 use App\Services\ExceptionService;
@@ -86,6 +88,9 @@ class ExceptionController extends Controller
             'responsibleParty:id,name', 'unit:id,name', 'raisedBy:id,name', 'verifier:id,name',
             'activities.actor:id,name', 'compensatingControls.owner:id,name',
             'escalationEvents.recipient:id,name', 'recurrenceOf:id,reference',
+            // CR-01: the departmental escalation loop.
+            'escalations.unit:id,name', 'escalations.process:id,name',
+            'escalations.respondent:id,name', 'escalations.issuer:id,name',
         ]);
 
         $user = auth()->user();
@@ -99,8 +104,11 @@ class ExceptionController extends Controller
                 ->latest('uploaded_at')
                 ->get(),
             'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'units' => OrganisationUnit::orderBy('name')->get(['id', 'name']),
+            'processes' => BusinessProcess::orderBy('name')->get(['id', 'name']),
             'can' => [
                 'update' => $user->can('update', $exception),
+                'escalate' => $user->can('issue', ExceptionEscalation::class),
                 'remediate' => $user->can('remediate', $exception),
                 'close' => $user->can('close', $exception),
                 'requestExtension' => $user->can('requestExtension', $exception),

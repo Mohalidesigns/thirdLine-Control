@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\CompensatingControl;
 use App\Models\Control;
 use App\Models\ControlException;
+use App\Models\ExceptionEscalation;
 use App\Models\ReportTemplate;
 use App\Models\SpotCheck;
 use App\Models\TestInstance;
@@ -69,6 +70,36 @@ class ReportService
             'exceptions' => $exceptions,
             'filters' => $filters,
         ], 'exception-register.pdf');
+    }
+
+    /**
+     * CR1.8 — the Exception Manager register: the escalation rows, the
+     * department scorecard, ageing by department/severity, and the
+     * board/ARCC extract, in one document.
+     */
+    public function exceptionManagerRegister(int $tenantId, array $filters = []): Response
+    {
+        $template = $this->templateFor('Exception Manager Register');
+
+        $escalations = ExceptionEscalation::query()
+            ->with(['exception:id,reference,title', 'unit:id,name', 'respondent:id,name'])
+            ->when($filters['status'] ?? null, fn ($q, $s) => $s === 'open' ? $q->open() : $q->where('status', $s))
+            ->when($filters['severity'] ?? null, fn ($q, $s) => $q->where('severity', $s))
+            ->when($filters['unit_id'] ?? null, fn ($q, $u) => $q->where('unit_id', $u))
+            ->orderByDesc('issued_at')
+            ->limit(500)
+            ->get();
+
+        $escalationService = app(ExceptionEscalationService::class);
+
+        return $this->renderPdf('reports.exception-manager', [
+            'template' => $template,
+            'escalations' => $escalations,
+            'scorecard' => $escalationService->departmentScorecard($tenantId),
+            'ageing' => $escalationService->ageing($tenantId),
+            'boardExtract' => $escalationService->boardExtract($tenantId),
+            'filters' => $filters,
+        ], 'exception-manager-register.pdf');
     }
 
     public function testingSummary(): Response
@@ -151,6 +182,13 @@ class ReportService
             'Exception Register' => [
                 ['type' => 'summary', 'title' => 'Summary'],
                 ['type' => 'register', 'title' => 'Exception Register'],
+            ],
+            'Exception Manager Register' => [
+                ['type' => 'summary', 'title' => 'Summary'],
+                ['type' => 'register', 'title' => 'Escalation Register'],
+                ['type' => 'scorecard', 'title' => 'Department Scorecard'],
+                ['type' => 'ageing', 'title' => 'Ageing by Department & Severity'],
+                ['type' => 'board_extract', 'title' => 'Board / ARCC Extract'],
             ],
             'Test Summary' => [
                 ['type' => 'metrics', 'title' => 'Testing Metrics'],

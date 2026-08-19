@@ -10,6 +10,9 @@ use App\Models\Control;
 use App\Models\ControlException;
 use App\Models\CrossBorderTransfer;
 use App\Models\Entity;
+use App\Models\ExceptionAction;
+use App\Models\ExceptionEscalation;
+use App\Models\ExceptionResponse;
 use App\Models\InvestigationCase;
 use App\Models\SsoConfiguration;
 use App\Models\TenantBranding;
@@ -20,7 +23,10 @@ use App\Policies\CompensatingControlPolicy;
 use App\Policies\ControlPolicy;
 use App\Policies\CrossBorderTransferPolicy;
 use App\Policies\EntityPolicy;
+use App\Policies\ExceptionActionPolicy;
+use App\Policies\ExceptionEscalationPolicy;
 use App\Policies\ExceptionPolicy;
+use App\Policies\ExceptionResponsePolicy;
 use App\Policies\SsoConfigurationPolicy;
 use App\Policies\TestInstancePolicy;
 use App\Services\Ai\KnowledgeIndexer;
@@ -58,6 +64,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(AiConfiguration::class, AiConfigurationPolicy::class);
         Gate::policy(Entity::class, EntityPolicy::class);
         Gate::policy(CrossBorderTransfer::class, CrossBorderTransferPolicy::class);
+        // CR-01 — the Exception Manager loop.
+        Gate::policy(ExceptionEscalation::class, ExceptionEscalationPolicy::class);
+        Gate::policy(ExceptionResponse::class, ExceptionResponsePolicy::class);
+        Gate::policy(ExceptionAction::class, ExceptionActionPolicy::class);
 
         $this->registerKnowledgeIndexing();
 

@@ -33,6 +33,10 @@ class ControlException extends Model
         'verified_at', 'closure_notes', 'risk_acceptance_reason', 'risk_accepted_by',
         'risk_acceptance_expiry', 'age_days', 'is_overdue', 'is_recurring',
         'recurrence_of_exception_id', 'extension_count',
+        // CR-01 denormalised caches — maintained by ExceptionEscalationService,
+        // never the source of truth (the exception_escalations rows are).
+        'escalation_status', 'first_escalated_at', 'last_response_at',
+        'open_escalation_count', 'is_response_overdue', 'closure_type',
     ];
 
     protected $casts = [
@@ -45,6 +49,10 @@ class ControlException extends Model
         'is_overdue' => 'boolean',
         'is_recurring' => 'boolean',
         'extension_count' => 'integer',
+        'first_escalated_at' => 'datetime',
+        'last_response_at' => 'datetime',
+        'open_escalation_count' => 'integer',
+        'is_response_overdue' => 'boolean',
     ];
 
     public function control(): BelongsTo
@@ -105,6 +113,28 @@ class ControlException extends Model
     public function recurrenceOf(): BelongsTo
     {
         return $this->belongsTo(ControlException::class, 'recurrence_of_exception_id');
+    }
+
+    /** CR-01: the addressed departmental escalations issued on this exception. */
+    public function escalations(): HasMany
+    {
+        return $this->hasMany(ExceptionEscalation::class, 'exception_id');
+    }
+
+    public function escalationResponses(): HasMany
+    {
+        return $this->hasMany(ExceptionResponse::class, 'exception_id');
+    }
+
+    public function escalationActions(): HasMany
+    {
+        return $this->hasMany(ExceptionAction::class, 'exception_id');
+    }
+
+    /** CR-01 (R-D): escalations that still block Verified-Closed. */
+    public function openEscalations(): HasMany
+    {
+        return $this->escalations()->whereIn('status', ExceptionEscalation::OPEN_STATUSES);
     }
 
     public function isOpen(): bool

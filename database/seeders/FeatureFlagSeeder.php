@@ -73,6 +73,9 @@ class FeatureFlagSeeder extends Seeder
         'vendors' => 'Third-party risk register, due-diligence assessments, contracts, screening and concentration risk',
         'sustainability' => 'IFRS S1/S2 sustainability controls: materiality, GHG lineage, FRC filing stages',
         'assurance' => 'Combined assurance map with coverage gaps, duplication and reliance decisions',
+
+        // CR-01 — Exception Manager
+        'exception-manager' => 'Departmental exception escalation: fan-out issue, on-the-record responses, review/re-issue rounds, SLA chase and closure',
     ];
 
     /**

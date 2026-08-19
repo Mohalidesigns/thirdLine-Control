@@ -357,6 +357,7 @@ and before/after JSON. A logging failure never breaks the business operation
 | `atheris:refresh-sustainability` | daily 03:15 | Mark overdue IFRS S1/S2 pre-reporting filing stages Late — a stage that quietly stayed Pending after its deadline would read as on time (17.3) |
 | `atheris:roll-up-objectives` | daily 04:00 | Recompute strategic objective progress from measures, initiatives and cascaded objectives, leaves before parents. Runs after the KRI engine so the scorecard a board opens reflects last night's readings (17.1) |
 | `atheris:refresh-assurance` | daily 05:15 | Raise an exception for every significant risk carrying no live independent assurance, so an assurance gap sits in the same queue as every other control failure rather than in a slide nobody actions (17.4) |
+| `exceptions:chase` | daily 06:30 | CR-01 chase engine: send acknowledgement/response reminders on each SLA policy's business-day offsets (idempotent — a second run the same day sends nothing), mark responses overdue, and stamp escalations past their policy threshold for the FR-8 tier ladder. Runs before the 07:00 matrix sweep so a stamped escalation climbs the same morning |
 
 Run on demand:
 
@@ -1519,6 +1520,73 @@ New tables: `objectives`, `objective_metrics`, `initiatives`,
 `control_exceptions.source_type` gains `Third Party`, `Sustainability`,
 `Assurance` and `Internal Audit`, and the table gains a tenant-unique
 `external_ref` for records arriving over the interlock.
+
+## Exception Manager (CR-01)
+
+The client-named key feature: an exception stops being an internal tracker
+row and becomes a formal, addressed instrument. The control function ISSUES
+it to one or more departments or processors (fan-out — one escalation per
+target, each with its own reference `EXE-…`, respondent, SLA clock and
+response thread), the named respondent answers ON THE RECORD, and the answer
+is reviewed round by round. The control lapse cannot reach Verified-Closed
+until every escalation on it is Closed or Withdrawn.
+
+**The loop.** Issue → (acknowledge: opening the response screen for the
+first time records it — a department cannot claim it never saw the notice) →
+structured response (position, management comment, root cause + category,
+agreed action plan, proposed target date, evidence) → review. Accept turns
+the committed plan into an `exception_actions` row (`EXA-…`) owned by the
+department, tracked to completion and validated by the control function
+against evidence — Partially Effective or Ineffective re-issues rather than
+closes. Reject re-issues as round *n+1* with a fresh SLA clock; prior rounds
+stay readable and immutable. Withdraw (reason mandatory, audited) ends an
+escalation issued in error, and risk-accepted closure withdraws every open
+escalation with the acceptance as the reason.
+
+**Recipients.** Resolution at issue time runs explicit user → routing rule
+(`exception_routing_rules`, first match wins, only ever pre-fills the form) →
+unit head → process owner; no resolvable respondent is a hard validation
+error, never a silent no-op. External processors without an account answer
+through a hashed, expiring, revocable, throttled secure link scoped to one
+escalation (`exception_response_links` — plaintext token shown once, only
+the sha256 stored, every access logged with IP and user agent).
+
+**Clocks.** Every deadline comes from `exception_sla_policies` (per severity:
+acknowledge-within-hours, respond-within-business-days, reminder offsets,
+max reminders, escalate-after) — business days in the tenant's timezone,
+skipping seeded public holidays; nothing is hard-coded (R1). The daily
+idempotent `exceptions:chase` sends the reminders and, past the policy
+threshold, hands the unanswered escalation to the FR-8 matrix through three
+new trigger conditions (`escalation_unacknowledged`,
+`escalation_response_overdue`, `escalation_response_rejected`) — the ladder
+never re-fires for a round that has already been answered.
+
+**Segregation of duties, no admin bypass.** The raiser/issuer cannot submit
+the departmental response (R-A); the responder cannot review it (R-B); only
+a holder of `close exceptions` may accept a response or verify closure (R-C
+— FR-5.4 survives intact); and the System Administrator configures routing
+and SLA (`configure exception-routing`) but holds no part in the loop at all.
+New permissions: `escalate exceptions`, `respond exceptions`,
+`review exception-responses`, `withdraw exceptions`,
+`configure exception-routing`.
+
+**Surfaces.** `/exception-manager` — the register the client demos (rows are
+escalations, with a department scorecard and ageing view), `Show` — the full
+round-by-round thread, `Respond` — the authenticated response form,
+`/exception-response/{token}` — the external answer screen,
+`Settings → Exception Routing / Exception SLAs` — admin config, plus an
+"Escalations & Responses" panel and "Escalate to department" action on the
+exception itself. Reporting: `reports/exception-manager.pdf` (register,
+scorecard, ageing, board/ARCC extract) and `.xlsx`, and new
+`exceptionManager` counters in `DashboardService`.
+
+Feature flag: `exception-manager`. New tables: `exception_escalations`,
+`exception_responses`, `exception_actions`, `exception_response_links`,
+`exception_sla_policies`, `exception_routing_rules`; `control_exceptions`
+gains denormalised loop caches (`escalation_status`, `open_escalation_count`,
+`is_response_overdue`, `closure_type`, …) maintained by
+`ExceptionEscalationService` — the escalation rows stay the source of truth.
+BRD: FR-5.11..FR-5.20.
 
 ## Key business rules (where they live)
 
