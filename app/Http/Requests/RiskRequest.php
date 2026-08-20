@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Risk;
+use App\Rules\RichTextRule;
 use App\Services\RiskAssessmentService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -24,6 +25,7 @@ class RiskRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'description_rich' => ['nullable', 'array', new RichTextRule],
             'category' => ['nullable', 'string', 'max:255'],
             // Bounds follow the tenant's configured scales, never a
             // hard-coded 5×5 grid (R1).

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CompensatingControl;
 use App\Models\ControlException;
+use App\Rules\RichTextRule;
 use App\Services\ResidualRiskService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -46,11 +47,13 @@ class CompensatingControlController extends Controller
 
         $validated = $request->validate([
             'description' => ['required', 'string'],
+            'description_rich' => ['nullable', 'array', new RichTextRule],
             'owner_id' => ['nullable', 'exists:users,id'],
             'is_temporary' => ['required', 'boolean'],
             'effective_from' => ['required', 'date'],
             'effective_to' => ['required_if:is_temporary,true', 'nullable', 'date', 'after:effective_from'],
             'residual_exposure_note' => ['nullable', 'string'],
+            'residual_exposure_note_rich' => ['nullable', 'array', new RichTextRule],
         ]);
 
         $exception->compensatingControls()->create([

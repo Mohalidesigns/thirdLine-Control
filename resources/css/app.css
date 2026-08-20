@@ -269,6 +269,67 @@ body {
     }
 }
 
+/* ── Rich text (Editor.js) ─────────────────────────────────────────
+   The editor container must read as one of the app's inputs — same
+   border, radius and focus ring — never as a bare Editor.js instance. */
+.rich-text-editor {
+    cursor: text;
+}
+.rich-text-editor:focus-within {
+    border-color: var(--navy-500);
+    box-shadow: 0 0 0 2px rgb(74 109 158 / 0.4); /* navy-400 @ 40% */
+    outline: none;
+}
+.rich-text-editor .ce-block__content,
+.rich-text-editor .ce-toolbar__content {
+    max-width: 100%;
+    margin: 0;
+}
+.rich-text-editor .codex-editor__redactor {
+    padding-bottom: 0.5rem !important;
+}
+.rich-text-editor .ce-toolbar__plus,
+.rich-text-editor .ce-toolbar__settings-btn {
+    color: var(--navy-600);
+}
+.rich-text-editor .ce-toolbar__plus:hover,
+.rich-text-editor .ce-toolbar__settings-btn:hover {
+    background: var(--navy-50);
+    color: var(--navy-700);
+}
+.rich-text-editor .ce-popover-item__icon,
+.rich-text-editor .ce-inline-tool,
+.rich-text-editor .ce-inline-toolbar__dropdown {
+    color: var(--navy-700);
+}
+.rich-text-editor .ce-popover-item:hover,
+.rich-text-editor .ce-inline-tool:hover {
+    background: var(--navy-50);
+}
+.rich-text-editor .cdx-marker,
+.rich-text-viewer mark {
+    background: rgb(201 162 39 / 0.28);
+    padding: 0 1px;
+}
+.rich-text-viewer a,
+.rich-text-editor a {
+    color: var(--navy-600);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.rich-text-viewer a:hover {
+    color: var(--navy-700);
+}
+.rich-text-viewer code,
+.rich-text-editor .inline-code {
+    background: var(--navy-50);
+    border-radius: 4px;
+    padding: 0 4px;
+    font-family: 'Roboto Mono', ui-monospace, monospace;
+    font-size: 0.85em;
+    color: var(--navy-700);
+}
+
 /* Low-bandwidth mode (Phase 7.10): no animations, no transitions,
    flat shadows — every rendered frame costs battery and data. */
 .low-bandwidth *,

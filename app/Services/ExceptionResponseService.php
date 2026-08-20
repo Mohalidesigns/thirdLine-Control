@@ -297,9 +297,12 @@ class ExceptionResponseService
             'responder_email' => $user?->email ?? ($data['responder_email'] ?? $escalation->external_email),
             'position' => $data['position'],
             'management_comment' => $data['management_comment'],
+            'management_comment_rich' => $data['management_comment_rich'] ?? null,
             'root_cause' => $data['root_cause'] ?? null,
+            'root_cause_rich' => $data['root_cause_rich'] ?? null,
             'root_cause_category' => $data['root_cause_category'] ?? null,
             'agreed_action_plan' => $data['agreed_action_plan'] ?? null,
+            'agreed_action_plan_rich' => $data['agreed_action_plan_rich'] ?? null,
             'proposed_target_date' => $data['proposed_target_date'] ?? null,
         ];
     }

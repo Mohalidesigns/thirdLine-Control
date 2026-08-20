@@ -117,7 +117,8 @@ class IncidentService
     public function markRemediated(Incident $incident, User $user, array $data): Incident
     {
         $this->transition($incident, 'Remediated', collect($data)->only([
-            'root_cause', 'root_cause_category', 'contributing_factors', 'lessons_learned',
+            'root_cause', 'root_cause_rich', 'root_cause_category', 'contributing_factors',
+            'lessons_learned', 'lessons_learned_rich',
         ])->all());
 
         $this->addTimelineEntry($incident, 'remediated', 'Remediation complete.', $user, null, true);

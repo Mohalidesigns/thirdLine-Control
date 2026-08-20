@@ -1,6 +1,7 @@
 import InputError from '@/Components/InputError';
 import PageHeader from '@/Components/PageHeader';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import RichTextEditor from '@/Components/RichTextEditor';
 import { Head, useForm } from '@inertiajs/react';
 
 const nowLocal = () => {
@@ -23,6 +24,7 @@ export default function Create({
     const { data, setData, post, processing, errors } = useForm({
         title: '',
         description: '',
+        description_rich: null,
         incident_type: 'operational',
         basel_event_type: '',
         severity: 'Medium',
@@ -78,11 +80,11 @@ export default function Create({
 
                         <div>
                             <label className="form-label">Description</label>
-                            <textarea
-                                className="form-input"
-                                rows={4}
-                                value={data.description}
-                                onChange={(e) => setData('description', e.target.value)}
+                            <RichTextEditor
+                                value={data.description_rich ?? data.description}
+                                onChange={(doc, plain) => setData((d) => ({ ...d, description: plain, description_rich: doc }))}
+                                tools="default"
+                                minHeight={140}
                             />
                             <InputError message={errors.description} className="mt-1" />
                         </div>

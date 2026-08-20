@@ -1,6 +1,7 @@
 import InputError from '@/Components/InputError';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { formatDateTime } from '@/utils';
+import RichTextEditor from '@/Components/RichTextEditor';
 import { Head, useForm, usePage } from '@inertiajs/react';
 
 const POSITIONS = ['Accepted', 'Partially Accepted', 'Disputed', 'Already Remediated', 'More Information Required'];
@@ -19,9 +20,12 @@ export default function ExceptionResponse({ escalation, token, submitted = false
         responder_email: '',
         position: '',
         management_comment: '',
+        management_comment_rich: null,
         root_cause: '',
+        root_cause_rich: null,
         root_cause_category: '',
         agreed_action_plan: '',
+        agreed_action_plan_rich: null,
         proposed_target_date: '',
     });
 
@@ -99,13 +103,23 @@ export default function ExceptionResponse({ escalation, token, submitted = false
                                 <label className="form-label">
                                     {form.data.position === 'Disputed' ? 'Rebuttal' : 'Management comment'} <span className="text-red-500">*</span>
                                 </label>
-                                <textarea className="form-input" rows="4" value={form.data.management_comment} onChange={(e) => form.setData('management_comment', e.target.value)} />
+                                <RichTextEditor
+                                    value={form.data.management_comment_rich ?? form.data.management_comment}
+                                    onChange={(doc, plain) => form.setData((d) => ({ ...d, management_comment: plain, management_comment_rich: doc }))}
+                                    tools="default"
+                                    minHeight={130}
+                                />
                                 <InputError message={form.errors.management_comment} className="mt-1" />
                             </div>
 
                             <div>
                                 <label className="form-label">Root cause {needsRootCause && <span className="text-red-500">*</span>}</label>
-                                <textarea className="form-input" rows="3" value={form.data.root_cause} onChange={(e) => form.setData('root_cause', e.target.value)} />
+                                <RichTextEditor
+                                    value={form.data.root_cause_rich ?? form.data.root_cause}
+                                    onChange={(doc, plain) => form.setData((d) => ({ ...d, root_cause: plain, root_cause_rich: doc }))}
+                                    tools="minimal"
+                                    minHeight={100}
+                                />
                                 <InputError message={form.errors.root_cause} className="mt-1" />
                             </div>
 
@@ -126,7 +140,12 @@ export default function ExceptionResponse({ escalation, token, submitted = false
 
                             <div>
                                 <label className="form-label">Agreed action plan {needsActionPlan && <span className="text-red-500">*</span>}</label>
-                                <textarea className="form-input" rows="3" value={form.data.agreed_action_plan} onChange={(e) => form.setData('agreed_action_plan', e.target.value)} />
+                                <RichTextEditor
+                                    value={form.data.agreed_action_plan_rich ?? form.data.agreed_action_plan}
+                                    onChange={(doc, plain) => form.setData((d) => ({ ...d, agreed_action_plan: plain, agreed_action_plan_rich: doc }))}
+                                    tools="default"
+                                    minHeight={100}
+                                />
                                 <InputError message={form.errors.agreed_action_plan} className="mt-1" />
                             </div>
 

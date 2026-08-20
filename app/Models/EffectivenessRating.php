@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EffectivenessRating extends Model
 {
-    use Auditable, BelongsToTenant, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenant, HasFactory, HasRichText, SoftDeletes;
 
     public const SCALE = ['Effective', 'Partially Effective', 'Ineffective', 'Not Tested'];
 
@@ -21,6 +22,9 @@ class EffectivenessRating extends Model
         'operating_effectiveness', 'operating_rationale',
         'overall_rating', 'status', 'rated_by', 'approved_by', 'approved_at',
     ];
+
+    /** Editor.js-backed fields — see HasRichText. */
+    protected array $richText = ['design_rationale', 'operating_rationale'];
 
     protected $casts = [
         'approved_at' => 'datetime',

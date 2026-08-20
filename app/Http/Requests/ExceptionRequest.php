@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\ControlException;
+use App\Rules\RichTextRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,7 +19,9 @@ class ExceptionRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'description_rich' => ['nullable', 'array', new RichTextRule],
             'root_cause' => ['nullable', 'string'],
+            'root_cause_rich' => ['nullable', 'array', new RichTextRule],
             'severity' => ['required', Rule::in(ControlException::SEVERITIES)],
             'control_id' => ['nullable', 'exists:controls,id'],
             'risk_id' => ['nullable', 'exists:risks,id'],

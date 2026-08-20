@@ -244,9 +244,12 @@ class ExceptionService
         return $exception;
     }
 
-    public function markInProgress(ControlException $exception, ?string $plan = null): ControlException
+    public function markInProgress(ControlException $exception, ?string $plan = null, ?array $planDoc = null): ControlException
     {
-        $this->transition($exception, 'In Progress', array_filter(['remediation_plan' => $plan]));
+        $this->transition($exception, 'In Progress', array_filter([
+            'remediation_plan' => $plan,
+            'remediation_plan_rich' => $planDoc,
+        ]));
         $exception->logActivity('Status Change', 'Assigned', 'In Progress');
 
         return $exception;
@@ -303,6 +306,7 @@ class ExceptionService
             'verified_by' => $verifier->id,
             'verified_at' => now(),
             'closure_notes' => $verification['closure_notes'] ?? null,
+            'closure_notes_rich' => $verification['closure_notes_rich'] ?? null,
             'is_overdue' => false,
             'closure_type' => 'Remediated',
         ]);
@@ -351,7 +355,7 @@ class ExceptionService
     /**
      * Formal risk acceptance — senior approval, expiry, re-confirmation (FR-5.8).
      */
-    public function acceptRisk(ControlException $exception, User $approver, string $reason, string $expiryDate): ControlException
+    public function acceptRisk(ControlException $exception, User $approver, string $reason, string $expiryDate, ?array $reasonDoc = null): ControlException
     {
         if (! $approver->hasAnyRole(['Control Function Head', 'System Administrator'])) {
             throw ValidationException::withMessages([
@@ -363,6 +367,7 @@ class ExceptionService
 
         $this->transition($exception, 'Risk Accepted', [
             'risk_acceptance_reason' => $reason,
+            'risk_acceptance_reason_rich' => $reasonDoc,
             'risk_accepted_by' => $approver->id,
             'risk_acceptance_expiry' => $expiryDate,
             'is_overdue' => false,

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\GeneratesReference;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Control extends Model
 {
-    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, HasRichText, SoftDeletes;
 
     public const STATUSES = ['Draft', 'Pending Approval', 'Active', 'Under Review', 'Retired'];
 
@@ -55,6 +56,9 @@ class Control extends Model
         'implementation_status', 'implementation_progress', 'is_distributable',
         'is_template', 'created_by', 'approved_by', 'approved_at', 'sync_status',
     ];
+
+    /** Editor.js-backed fields — see HasRichText. */
+    protected array $richText = ['description', 'objective', 'control_documentation', 'notes'];
 
     protected $casts = [
         'is_key_control' => 'boolean',

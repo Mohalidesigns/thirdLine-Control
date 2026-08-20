@@ -10,6 +10,8 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import SeverityBadge from '@/Components/SeverityBadge';
 import StatusBadge from '@/Components/StatusBadge';
+import RichTextEditor from '@/Components/RichTextEditor';
+import RichTextViewer from '@/Components/RichTextViewer';
 import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -66,18 +68,20 @@ export default function Show({ exception, evidence = [], users = [], units = [],
     const commentForm = useForm({ note: '' });
     const assignForm = useForm({ user_id: '' });
     const remediateForm = useForm({ note: '' });
-    const closeForm = useForm({ verification_method: '', closure_notes: '' });
+    const closeForm = useForm({ verification_method: '', closure_notes: '', closure_notes_rich: null });
     const failForm = useForm({ reason: '' });
     const extensionForm = useForm({ new_date: '', reason: '' });
     const decideForm = useForm({ approved: true, new_date: '', reason: '' });
-    const riskForm = useForm({ reason: '', expiry_date: '' });
+    const riskForm = useForm({ reason: '', reason_rich: null, expiry_date: '' });
     const compForm = useForm({
         description: '',
+        description_rich: null,
         owner_id: '',
         is_temporary: true,
         effective_from: '',
         effective_to: '',
         residual_exposure_note: '',
+        residual_exposure_note_rich: null,
     });
 
     const submitTo = (form, routeName, extra = {}) => (e) => {
@@ -150,16 +154,16 @@ export default function Show({ exception, evidence = [], users = [], units = [],
                         <div className="card-body space-y-4 text-sm">
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">Description</p>
-                                <p className="mt-1">{exception.description || '—'}</p>
+                                <RichTextViewer className="mt-1" value={exception.description_rich} fallback={exception.description} />
                             </div>
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">Root cause</p>
-                                <p className="mt-1">{exception.root_cause || '—'}</p>
+                                <RichTextViewer className="mt-1" value={exception.root_cause_rich} fallback={exception.root_cause} />
                             </div>
                             {exception.remediation_plan && (
                                 <div>
                                     <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">Remediation plan</p>
-                                    <p className="mt-1">{exception.remediation_plan}</p>
+                                    <RichTextViewer className="mt-1" value={exception.remediation_plan_rich} fallback={exception.remediation_plan} />
                                 </div>
                             )}
                             {exception.status === 'Verified-Closed' && (
@@ -168,13 +172,13 @@ export default function Show({ exception, evidence = [], users = [], units = [],
                                     <p className="mt-1 text-green-900">
                                         {exception.verification_method} — verified by {exception.verifier?.name} on {formatDateTime(exception.verified_at)}
                                     </p>
-                                    {exception.closure_notes && <p className="mt-1 text-xs text-green-800">{exception.closure_notes}</p>}
+                                    {exception.closure_notes && <RichTextViewer className="mt-1 text-xs" value={exception.closure_notes_rich} fallback={exception.closure_notes} />}
                                 </div>
                             )}
                             {exception.status === 'Risk Accepted' && (
                                 <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
                                     <p className="text-xs font-semibold uppercase text-amber-800">Risk accepted</p>
-                                    <p className="mt-1 text-amber-900">{exception.risk_acceptance_reason}</p>
+                                    <RichTextViewer className="mt-1" value={exception.risk_acceptance_reason_rich} fallback={exception.risk_acceptance_reason} />
                                     <p className="mt-1 text-xs text-amber-800">
                                         Expires {formatDate(exception.risk_acceptance_expiry)} — re-confirmation required at expiry.
                                     </p>
@@ -422,7 +426,12 @@ export default function Show({ exception, evidence = [], users = [], units = [],
                     </div>
                     <div>
                         <InputLabel value="Closure notes" />
-                        <TextArea value={closeForm.data.closure_notes} onChange={(e) => closeForm.setData('closure_notes', e.target.value)} />
+                        <RichTextEditor
+                            value={closeForm.data.closure_notes_rich ?? closeForm.data.closure_notes}
+                            onChange={(doc, plain) => closeForm.setData((d) => ({ ...d, closure_notes: plain, closure_notes_rich: doc }))}
+                            tools="minimal"
+                            minHeight={100}
+                        />
                     </div>
                     <div className="flex justify-end gap-2">
                         <SecondaryButton onClick={close}>Cancel</SecondaryButton>
@@ -493,7 +502,12 @@ export default function Show({ exception, evidence = [], users = [], units = [],
                 <form onSubmit={submitTo(riskForm, 'exceptions.accept-risk')} className="space-y-4">
                     <div>
                         <InputLabel value="Justification" required />
-                        <TextArea value={riskForm.data.reason} onChange={(e) => riskForm.setData('reason', e.target.value)} />
+                        <RichTextEditor
+                            value={riskForm.data.reason_rich ?? riskForm.data.reason}
+                            onChange={(doc, plain) => riskForm.setData((d) => ({ ...d, reason: plain, reason_rich: doc }))}
+                            tools="minimal"
+                            minHeight={100}
+                        />
                     </div>
                     <div>
                         <InputLabel value="Expiry date" required />
@@ -641,7 +655,12 @@ export default function Show({ exception, evidence = [], users = [], units = [],
                     <InputError message={compForm.errors.compensating} />
                     <div>
                         <InputLabel value="Description" required />
-                        <TextArea value={compForm.data.description} onChange={(e) => compForm.setData('description', e.target.value)} />
+                        <RichTextEditor
+                            value={compForm.data.description_rich ?? compForm.data.description}
+                            onChange={(doc, plain) => compForm.setData((d) => ({ ...d, description: plain, description_rich: doc }))}
+                            tools="default"
+                            minHeight={110}
+                        />
                         <InputError message={compForm.errors.description} className="mt-1" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -672,7 +691,12 @@ export default function Show({ exception, evidence = [], users = [], units = [],
                     </div>
                     <div>
                         <InputLabel value="Residual exposure NOT covered" />
-                        <TextArea rows={2} value={compForm.data.residual_exposure_note} onChange={(e) => compForm.setData('residual_exposure_note', e.target.value)} />
+                        <RichTextEditor
+                            value={compForm.data.residual_exposure_note_rich ?? compForm.data.residual_exposure_note}
+                            onChange={(doc, plain) => compForm.setData((d) => ({ ...d, residual_exposure_note: plain, residual_exposure_note_rich: doc }))}
+                            tools="minimal"
+                            minHeight={80}
+                        />
                     </div>
                     <div className="flex justify-end gap-2">
                         <SecondaryButton onClick={close}>Cancel</SecondaryButton>

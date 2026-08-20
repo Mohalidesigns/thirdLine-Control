@@ -7,6 +7,8 @@ import RelationshipsPanel from '@/Components/RelationshipsPanel';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import StatusBadge from '@/Components/StatusBadge';
+import RichTextEditor from '@/Components/RichTextEditor';
+import RichTextViewer from '@/Components/RichTextViewer';
 import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -177,7 +179,7 @@ export default function Show({
                         <div className="card-header">
                             <h3 className="text-sm font-semibold">Description</h3>
                         </div>
-                        <div className="card-body text-sm text-[var(--color-text-primary)]">{risk.description || '—'}</div>
+                        <div className="card-body"><RichTextViewer value={risk.description_rich} fallback={risk.description} /></div>
                     </div>
                 </div>
 
@@ -614,11 +616,13 @@ function TreatmentModal({ show, onClose, risk, users }) {
         strategy: 'Reduce',
         title: '',
         description: '',
+        description_rich: null,
         owner_id: '',
         target_rating: 'Moderate',
         cost_minor: '',
         currency: 'NGN',
         benefit_description: '',
+        benefit_description_rich: null,
         start_at: '',
         due_at: '',
         alerts_enabled: true,
@@ -668,7 +672,12 @@ function TreatmentModal({ show, onClose, risk, users }) {
 
                 <div>
                     <InputLabel value="Description" />
-                    <TextArea rows={2} value={form.data.description} onChange={(e) => form.setData('description', e.target.value)} />
+                    <RichTextEditor
+                        value={form.data.description_rich ?? form.data.description}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, description: plain, description_rich: doc }))}
+                        tools="default"
+                        minHeight={100}
+                    />
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">

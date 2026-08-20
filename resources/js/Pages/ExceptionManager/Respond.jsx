@@ -7,7 +7,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import SeverityBadge from '@/Components/SeverityBadge';
 import StatusBadge from '@/Components/StatusBadge';
-import TextArea from '@/Components/TextArea';
+import RichTextEditor from '@/Components/RichTextEditor';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime } from '@/utils';
@@ -24,9 +24,12 @@ export default function Respond({ escalation, draft = null, evidence = [] }) {
     const form = useForm({
         position: draft?.position ?? '',
         management_comment: draft?.management_comment ?? '',
+        management_comment_rich: draft?.management_comment_rich ?? null,
         root_cause: draft?.root_cause ?? '',
+        root_cause_rich: draft?.root_cause_rich ?? null,
         root_cause_category: draft?.root_cause_category ?? '',
         agreed_action_plan: draft?.agreed_action_plan ?? '',
+        agreed_action_plan_rich: draft?.agreed_action_plan_rich ?? null,
         proposed_target_date: draft?.proposed_target_date?.slice(0, 10) ?? '',
     });
 
@@ -111,23 +114,34 @@ export default function Respond({ escalation, draft = null, evidence = [] }) {
 
                         <div>
                             <InputLabel value={form.data.position === 'Disputed' ? 'Rebuttal — why is this exception disputed?' : 'Management comment'} required />
-                            <TextArea
-                                rows={4}
-                                value={form.data.management_comment}
-                                onChange={(e) => form.setData('management_comment', e.target.value)}
+                            <RichTextEditor
+                                value={form.data.management_comment_rich ?? form.data.management_comment}
+                                onChange={(doc, plain) => form.setData((d) => ({ ...d, management_comment: plain, management_comment_rich: doc }))}
+                                tools="default"
+                                minHeight={130}
                             />
                             <InputError message={form.errors.management_comment} className="mt-1" />
                         </div>
 
                         <div>
                             <InputLabel value={`Root cause${needsRootCause ? '' : ' (optional)'}`} required={needsRootCause} />
-                            <TextArea rows={3} value={form.data.root_cause} onChange={(e) => form.setData('root_cause', e.target.value)} />
+                            <RichTextEditor
+                                value={form.data.root_cause_rich ?? form.data.root_cause}
+                                onChange={(doc, plain) => form.setData((d) => ({ ...d, root_cause: plain, root_cause_rich: doc }))}
+                                tools="minimal"
+                                minHeight={100}
+                            />
                             <InputError message={form.errors.root_cause} className="mt-1" />
                         </div>
 
                         <div>
                             <InputLabel value={`Agreed action plan${needsActionPlan ? '' : ' (optional)'}`} required={needsActionPlan} />
-                            <TextArea rows={3} value={form.data.agreed_action_plan} onChange={(e) => form.setData('agreed_action_plan', e.target.value)} />
+                            <RichTextEditor
+                                value={form.data.agreed_action_plan_rich ?? form.data.agreed_action_plan}
+                                onChange={(doc, plain) => form.setData((d) => ({ ...d, agreed_action_plan: plain, agreed_action_plan_rich: doc }))}
+                                tools="default"
+                                minHeight={100}
+                            />
                             <InputError message={form.errors.agreed_action_plan} className="mt-1" />
                         </div>
 

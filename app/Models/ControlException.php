@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\GeneratesReference;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ControlException extends Model
 {
-    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, HasRichText, SoftDeletes;
 
     public const STATUSES = ['Open', 'Assigned', 'In Progress', 'Remediated', 'Verified-Closed', 'Risk Accepted'];
 
@@ -38,6 +39,9 @@ class ControlException extends Model
         'escalation_status', 'first_escalated_at', 'last_response_at',
         'open_escalation_count', 'is_response_overdue', 'closure_type',
     ];
+
+    /** Editor.js-backed fields — see HasRichText. */
+    protected array $richText = ['description', 'root_cause', 'remediation_plan', 'closure_notes', 'risk_acceptance_reason'];
 
     protected $casts = [
         'date_raised' => 'date',

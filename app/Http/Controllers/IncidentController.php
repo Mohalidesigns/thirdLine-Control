@@ -11,6 +11,7 @@ use App\Models\IncidentNotification;
 use App\Models\OrganisationUnit;
 use App\Models\Risk;
 use App\Models\User;
+use App\Rules\RichTextRule;
 use App\Services\IncidentService;
 use App\Services\LinkageService;
 use Illuminate\Http\RedirectResponse;
@@ -164,10 +165,12 @@ class IncidentController extends Controller
             'action' => ['required', 'in:investigate,contain,remediate'],
             'note' => ['required_if:action,contain', 'nullable', 'string', 'max:2000'],
             'root_cause' => ['nullable', 'string', 'max:4000'],
+            'root_cause_rich' => ['nullable', 'array', new RichTextRule],
             'root_cause_category' => ['nullable', 'string', 'max:120'],
             'contributing_factors' => ['nullable', 'array'],
             'contributing_factors.*' => ['string', 'max:255'],
             'lessons_learned' => ['nullable', 'string', 'max:4000'],
+            'lessons_learned_rich' => ['nullable', 'array', new RichTextRule],
         ]);
 
         match ($validated['action']) {

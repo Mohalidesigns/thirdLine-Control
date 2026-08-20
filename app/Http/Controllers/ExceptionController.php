@@ -10,6 +10,7 @@ use App\Models\Evidence;
 use App\Models\ExceptionEscalation;
 use App\Models\OrganisationUnit;
 use App\Models\User;
+use App\Rules\RichTextRule;
 use App\Services\ExceptionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -134,7 +135,16 @@ class ExceptionController extends Controller
     {
         $this->authorize('remediate', $exception);
 
-        $this->exceptionService->markInProgress($exception, $request->input('remediation_plan'));
+        $validated = $request->validate([
+            'remediation_plan' => ['nullable', 'string', 'max:10000'],
+            'remediation_plan_rich' => ['nullable', 'array', new RichTextRule],
+        ]);
+
+        $this->exceptionService->markInProgress(
+            $exception,
+            $validated['remediation_plan'] ?? null,
+            $validated['remediation_plan_rich'] ?? null,
+        );
 
         return back()->with('success', 'Remediation in progress.');
     }
@@ -157,6 +167,7 @@ class ExceptionController extends Controller
         $verification = $request->validate([
             'verification_method' => ['required', 'string', 'max:500'],
             'closure_notes' => ['nullable', 'string', 'max:2000'],
+            'closure_notes_rich' => ['nullable', 'array', new RichTextRule],
         ]);
 
         $this->exceptionService->verifyAndClose($exception, $request->user(), $verification);
@@ -216,10 +227,17 @@ class ExceptionController extends Controller
 
         $validated = $request->validate([
             'reason' => ['required', 'string', 'max:2000'],
+            'reason_rich' => ['nullable', 'array', new RichTextRule],
             'expiry_date' => ['required', 'date', 'after:today'],
         ]);
 
-        $this->exceptionService->acceptRisk($exception, $request->user(), $validated['reason'], $validated['expiry_date']);
+        $this->exceptionService->acceptRisk(
+            $exception,
+            $request->user(),
+            $validated['reason'],
+            $validated['expiry_date'],
+            $validated['reason_rich'] ?? null,
+        );
 
         return back()->with('success', 'Risk formally accepted with expiry.');
     }

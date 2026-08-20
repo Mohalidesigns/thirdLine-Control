@@ -7,7 +7,9 @@ export default function Edit({ control, categories, processes, units, users, typ
     const form = useForm({
         title: control.title ?? '',
         objective: control.objective ?? '',
+        objective_rich: control.objective_rich ?? null,
         description: control.description ?? '',
+        description_rich: control.description_rich ?? null,
         type: control.type,
         nature: control.nature,
         frequency: control.frequency,
@@ -24,7 +26,9 @@ export default function Edit({ control, categories, processes, units, users, typ
         department: control.department ?? '',
         owner_id: control.owner_id,
         control_documentation: control.control_documentation ?? '',
+        control_documentation_rich: control.control_documentation_rich ?? null,
         notes: control.notes ?? '',
+        notes_rich: control.notes_rich ?? null,
         change_reason: '',
     });
 

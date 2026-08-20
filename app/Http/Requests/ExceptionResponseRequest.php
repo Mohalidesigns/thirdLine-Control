@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\ExceptionResponse;
+use App\Rules\RichTextRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,9 +24,12 @@ class ExceptionResponseRequest extends FormRequest
         return [
             'position' => ['required', Rule::in(ExceptionResponse::POSITIONS)],
             'management_comment' => ['required', 'string', 'max:10000'],
+            'management_comment_rich' => ['nullable', 'array', new RichTextRule],
             'root_cause' => ['nullable', 'string', 'max:10000'],
+            'root_cause_rich' => ['nullable', 'array', new RichTextRule],
             'root_cause_category' => ['nullable', Rule::in(ExceptionResponse::ROOT_CAUSE_CATEGORIES)],
             'agreed_action_plan' => ['nullable', 'string', 'max:10000'],
+            'agreed_action_plan_rich' => ['nullable', 'array', new RichTextRule],
             'proposed_target_date' => ['nullable', 'date', 'after:today'],
         ];
     }

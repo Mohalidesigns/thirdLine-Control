@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\EffectivenessRating;
 use App\Models\Evidence;
 use App\Models\TestInstance;
+use App\Rules\RichTextRule;
 use App\Services\TestingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -156,8 +157,10 @@ class TestInstanceController extends Controller
         $validated = $request->validate([
             'design_effectiveness' => ['required', Rule::in(EffectivenessRating::SCALE)],
             'design_rationale' => ['nullable', 'string'],
+            'design_rationale_rich' => ['nullable', 'array', new RichTextRule],
             'operating_effectiveness' => ['required', Rule::in(EffectivenessRating::SCALE)],
             'operating_rationale' => ['nullable', 'string'],
+            'operating_rationale_rich' => ['nullable', 'array', new RichTextRule],
         ]);
 
         $this->testingService->rate($testInstance, $validated, $request->user());

@@ -8,6 +8,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import SeverityBadge from '@/Components/SeverityBadge';
+import RichTextViewer from '@/Components/RichTextViewer';
 import StatCard from '@/Components/StatCard';
 import StatusBadge from '@/Components/StatusBadge';
 import TabBar from '@/Components/TabBar';
@@ -172,9 +173,13 @@ export default function Show({
                             <div className="card-header"><h3 className="text-sm font-semibold">Control Information</h3></div>
                             <div className="card-body space-y-4">
                                 {control.description && (
-                                    <p className="text-sm text-[var(--color-text-primary)]">{control.description}</p>
+                                    <RichTextViewer value={control.description_rich} fallback={control.description} />
                                 )}
-                                {control.objective && <Field label="Objective">{control.objective}</Field>}
+                                {control.objective && (
+                                    <Field label="Objective">
+                                        <RichTextViewer value={control.objective_rich} fallback={control.objective} />
+                                    </Field>
+                                )}
                                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                     <Field label="Control Reference">
                                         <span className="font-mono">{control.control_ref}</span>
@@ -212,18 +217,18 @@ export default function Show({
                         <div className="card">
                             <div className="card-header"><h3 className="text-sm font-semibold">Control Documentation</h3></div>
                             <div className="card-body">
-                                <p className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap">
-                                    {control.control_documentation || <span className="text-gray-400">No documentation referenced.</span>}
-                                </p>
+                                {control.control_documentation
+                                    ? <RichTextViewer value={control.control_documentation_rich} fallback={control.control_documentation} />
+                                    : <span className="text-sm text-gray-400">No documentation referenced.</span>}
                             </div>
                         </div>
 
                         <div className="card">
                             <div className="card-header"><h3 className="text-sm font-semibold">Notes</h3></div>
                             <div className="card-body">
-                                <p className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap">
-                                    {control.notes || <span className="text-gray-400">No additional notes.</span>}
-                                </p>
+                                {control.notes
+                                    ? <RichTextViewer value={control.notes_rich} fallback={control.notes} />
+                                    : <span className="text-sm text-gray-400">No additional notes.</span>}
                             </div>
                         </div>
 

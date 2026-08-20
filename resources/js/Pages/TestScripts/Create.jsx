@@ -4,6 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
+import RichTextEditor from '@/Components/RichTextEditor';
 import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -17,7 +18,9 @@ export default function Create({ controls = [], preselectedControlId = null }) {
         control_id: preselectedControlId ?? '',
         title: '',
         objective: '',
+        objective_rich: null,
         sampling_guidance: '',
+        sampling_guidance_rich: null,
         check_items: [{ ...EMPTY_ITEM }],
     });
 
@@ -64,13 +67,20 @@ export default function Create({ controls = [], preselectedControlId = null }) {
                         </div>
                         <div>
                             <InputLabel value="Objective" />
-                            <TextArea value={data.objective} onChange={(e) => setData('objective', e.target.value)} />
+                            <RichTextEditor
+                                value={data.objective_rich ?? data.objective}
+                                onChange={(doc, plain) => setData((d) => ({ ...d, objective: plain, objective_rich: doc }))}
+                                tools="default"
+                                minHeight={100}
+                            />
                         </div>
                         <div>
                             <InputLabel value="Sampling guidance" />
-                            <TextArea
-                                value={data.sampling_guidance}
-                                onChange={(e) => setData('sampling_guidance', e.target.value)}
+                            <RichTextEditor
+                                value={data.sampling_guidance_rich ?? data.sampling_guidance}
+                                onChange={(doc, plain) => setData((d) => ({ ...d, sampling_guidance: plain, sampling_guidance_rich: doc }))}
+                                tools="default"
+                                minHeight={100}
                                 placeholder="e.g. Select 25 transactions at random across the period, covering all branches…"
                             />
                         </div>

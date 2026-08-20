@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\GeneratesReference;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RiskTreatment extends Model
 {
-    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, HasRichText, SoftDeletes;
 
     public const STRATEGIES = ['Avoid', 'Reduce', 'Transfer', 'Accept', 'Exploit'];
 
@@ -32,6 +33,9 @@ class RiskTreatment extends Model
         'control_id', 'acceptance_reason', 'accepted_by', 'acceptance_expiry',
         'alerts_enabled', 'alert_lead_days', 'last_alert_at',
     ];
+
+    /** Editor.js-backed fields — see HasRichText. */
+    protected array $richText = ['description', 'benefit_description'];
 
     protected $casts = [
         'start_at' => 'date',

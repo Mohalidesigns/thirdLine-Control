@@ -11,6 +11,7 @@ import SelectInput from '@/Components/SelectInput';
 import SeverityBadge from '@/Components/SeverityBadge';
 import StatCard from '@/Components/StatCard';
 import StatusBadge from '@/Components/StatusBadge';
+import RichTextEditor from '@/Components/RichTextEditor';
 import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -164,6 +165,7 @@ function CreateModal({ show, onClose, priorities, sources, controls, risks, user
     const { data, setData, post, processing, errors, reset } = useForm({
         title: '',
         description: '',
+        description_rich: null,
         category: '',
         priority: 'Medium',
         source_type: 'manual',
@@ -192,7 +194,12 @@ function CreateModal({ show, onClose, priorities, sources, controls, risks, user
                     </div>
                     <div>
                         <InputLabel value="Description" />
-                        <TextArea rows={3} value={data.description} onChange={(e) => setData('description', e.target.value)} />
+                        <RichTextEditor
+                            value={data.description_rich ?? data.description}
+                            onChange={(doc, plain) => setData((d) => ({ ...d, description: plain, description_rich: doc }))}
+                            tools="default"
+                            minHeight={110}
+                        />
                     </div>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <div>
