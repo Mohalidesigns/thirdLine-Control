@@ -1,0 +1,20 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+# Avoid overlapping deploys; let the latest push win.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy (self-hosted)
+    # Pinned to this server's runner via its unique label.
+    runs-on: [self-hosted, control]
+    steps:
+      - name: Run deploy script
+        run: /usr/local/bin/control-deploy main
