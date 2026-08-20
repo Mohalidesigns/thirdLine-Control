@@ -7,6 +7,7 @@ import VerificationBadge from '@/Components/VerificationBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatMoney } from '@/utils';
 import { Head, Link, router } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 
 export default function Index({
     obligations,
@@ -82,7 +83,7 @@ export default function Index({
                         </Link>
                         {can.manage && (
                             <Link href={route('obligations.create')} className="btn-primary">
-                                + Add Obligation
+                                <Plus className="h-4 w-4" strokeWidth={2} /> Add Obligation
                             </Link>
                         )}
                     </>
