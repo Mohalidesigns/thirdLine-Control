@@ -1,7 +1,8 @@
 <?php
 
+use App\Console\Commands\InstallAuditTriggers;
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * DEF-004 — audit_trails immutability was enforced only in
@@ -9,55 +10,38 @@ use Illuminate\Support\Facades\DB;
  * console command bypasses. These triggers put the guarantee in the
  * storage layer, where FR-12.5 ("tamper-evident, immutable") actually
  * needs it. Inserts remain unrestricted — the table is append-only.
+ *
+ * CREATE TRIGGER on a binlog-enabled MySQL needs SUPER (or
+ * log_bin_trust_function_creators=1). A hardened deploy user may lack it
+ * (error 1419) — that must not block the whole deploy, so the failure is
+ * downgraded to a LOUD warning and the operator installs the triggers via
+ * `php artisan audit:install-triggers` once the server flag is set. The
+ * model-layer guard still holds in the meantime.
  */
 return new class extends Migration
 {
     public function up(): void
     {
-        match (DB::getDriverName()) {
-            'mysql', 'mariadb' => $this->createMysqlTriggers(),
-            'sqlite' => $this->createSqliteTriggers(),
-            default => null,
-        };
+        try {
+            InstallAuditTriggers::install();
+        } catch (Throwable $e) {
+            if (! str_contains($e->getMessage(), '1419')) {
+                throw $e;
+            }
+
+            $message = 'audit_trails immutability triggers NOT installed — the database user lacks the '
+                .'privilege to create triggers while binary logging is on (error 1419). The audit trail is '
+                .'currently protected at the model layer only. Have a DBA run '
+                .'"SET GLOBAL log_bin_trust_function_creators = 1;" then run '
+                .'"php artisan audit:install-triggers".';
+
+            Log::warning($message);
+            fwrite(STDERR, "\nWARNING: {$message}\n\n");
+        }
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TRIGGER IF EXISTS audit_trails_immutable_update');
-        DB::unprepared('DROP TRIGGER IF EXISTS audit_trails_immutable_delete');
-    }
-
-    private function createMysqlTriggers(): void
-    {
-        DB::unprepared(<<<'SQL'
-            CREATE TRIGGER audit_trails_immutable_update
-            BEFORE UPDATE ON audit_trails FOR EACH ROW
-            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Audit trail records are immutable.'
-        SQL);
-
-        DB::unprepared(<<<'SQL'
-            CREATE TRIGGER audit_trails_immutable_delete
-            BEFORE DELETE ON audit_trails FOR EACH ROW
-            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Audit trail records are immutable.'
-        SQL);
-    }
-
-    private function createSqliteTriggers(): void
-    {
-        DB::unprepared(<<<'SQL'
-            CREATE TRIGGER audit_trails_immutable_update
-            BEFORE UPDATE ON audit_trails
-            BEGIN
-                SELECT RAISE(ABORT, 'Audit trail records are immutable.');
-            END
-        SQL);
-
-        DB::unprepared(<<<'SQL'
-            CREATE TRIGGER audit_trails_immutable_delete
-            BEFORE DELETE ON audit_trails
-            BEGIN
-                SELECT RAISE(ABORT, 'Audit trail records are immutable.');
-            END
-        SQL);
+        InstallAuditTriggers::drop();
     }
 };
