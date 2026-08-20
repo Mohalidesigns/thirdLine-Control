@@ -318,6 +318,33 @@ paths:
                     type: array
                     items: { $ref: '#/components/schemas/ThirdParty' }
 
+  /speak-up/metadata-access-log:
+    get:
+      summary: Pull the Speak Up Metadata Access Log
+      description: >
+        Every break-glass event on Speak Up reporter metadata (CR): reveal
+        requests, decisions, Tier 2 views and scheduled purges, so internal
+        audit can verify the reveal control independently. The payload is
+        deliberately Tier 1 only — who acted, the reason code, the written
+        justification and which field NAMES were revealed. No metadata
+        value and no reporter identity ever crosses this API: the
+        integration key carries no reveal-level scope.
+      parameters:
+        - name: since
+          in: query
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Access log events, most recent first
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/SpeakUpMetadataAccessLogEntry' }
+
   # ── Omnichannel webhooks (Phase 15) ─────────────────────────────────
   # These live on the web root (not /api/v1) and authenticate per channel:
   # Meta signs WhatsApp payloads (X-Hub-Signature-256 over the raw body,
@@ -614,3 +641,24 @@ components:
             risk_band: { type: string, nullable: true }
             approved_at: { type: string, format: date-time, nullable: true }
             expires_at: { type: string, format: date, nullable: true }
+    SpeakUpMetadataAccessLogEntry:
+      type: object
+      description: >
+        One break-glass event on Speak Up reporter metadata. Names the act,
+        never a value — no IP, hostname, ISP, city or reporter identity
+        appears in any field.
+      properties:
+        tenant_id: { type: integer }
+        source_system: { type: string, enum: [SecondLine] }
+        case_ref: { type: string, example: CASE-2026-014 }
+        action: { type: string, enum: [requested, approved, denied, revealed, purged] }
+        requested_by: { type: string, nullable: true, description: Name of the requesting officer }
+        approved_by: { type: string, nullable: true, description: Name of the second-person approver }
+        reason_code: { type: string, nullable: true, example: suspected_false_report }
+        justification: { type: string, nullable: true }
+        fields_revealed:
+          type: array
+          nullable: true
+          items: { type: string }
+          description: Field names only, never values
+        occurred_at: { type: string, format: date-time }

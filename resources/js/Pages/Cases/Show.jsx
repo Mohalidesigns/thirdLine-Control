@@ -1,11 +1,12 @@
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
+import ReporterSignals from '@/Components/ReporterSignals';
 import RelationshipsPanel from '@/Components/RelationshipsPanel';
 import SeverityBadge from '@/Components/SeverityBadge';
 import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate, formatDateTime } from '@/utils';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function Show({
@@ -15,6 +16,8 @@ export default function Show({
     allowlist = [],
     users = [],
     canSeePrivileged = false,
+    metadataCaptured = false,
+    reporterSignals = null,
     can = {},
 }) {
     const [concluding, setConcluding] = useState(false);
@@ -73,6 +76,28 @@ export default function Show({
                     </>
                 }
             />
+
+            {metadataCaptured && (
+                <div className="mb-6 rounded-lg border-l-4 border-l-[var(--color-primary)] bg-blue-50 p-4 text-sm">
+                    <div className="flex items-center justify-between gap-4">
+                        <div>
+                            <p className="font-semibold text-[var(--color-text-primary)]">
+                                Technical metadata captured — restricted access
+                            </p>
+                            <p className="mt-1 text-[var(--color-text-secondary)]">
+                                This confidential report carries reporter technical metadata. Identifying fields are held
+                                in a restricted vault and open only through a justified, second-person-approved reveal;
+                                every access is permanently logged.
+                            </p>
+                        </div>
+                        {can.metadata_view_basic && (
+                            <Link href={route('cases.metadata.show', investigationCase.id)} className="btn-secondary shrink-0">
+                                Reporter metadata
+                            </Link>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {investigationCase.is_anonymous && (
                 <div className="mb-6 rounded-lg border-l-4 border-l-[var(--color-accent)] bg-amber-50 p-4 text-sm">
@@ -198,6 +223,19 @@ export default function Show({
                 </div>
 
                 <div className="space-y-6">
+                    {reporterSignals && (
+                        <div className="card">
+                            <div className="card-header">Reporter Signals</div>
+                            <div className="card-body space-y-3">
+                                <ReporterSignals signals={reporterSignals} />
+                                <p className="text-xs text-gray-400">
+                                    Signals are decision support only. A signal is not evidence of a false report — every
+                                    report is assessed on its merits.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="card">
                         <div className="card-header">Detail</div>
                         <div className="card-body space-y-3 text-sm">

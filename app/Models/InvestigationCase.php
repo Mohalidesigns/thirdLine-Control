@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
@@ -74,6 +75,7 @@ class InvestigationCase extends Model
         'investigation_plan', 'findings', 'conclusion', 'actions_taken',
         'referred_to', 'closed_by', 'closed_at', 'related_incident_id',
         'related_complaint_id', 'access_user_ids',
+        'legal_hold', 'legal_hold_reason', 'legal_hold_by', 'legal_hold_at',
     ];
 
     protected $hidden = ['reporter_token_hash'];
@@ -85,6 +87,8 @@ class InvestigationCase extends Model
         'closed_at' => 'datetime',
         'subject_persons' => 'array',
         'access_user_ids' => 'array',
+        'legal_hold' => 'boolean',
+        'legal_hold_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -152,6 +156,16 @@ class InvestigationCase extends Model
     public function notes(): HasMany
     {
         return $this->hasMany(CaseNote::class, 'case_id')->orderByDesc('created_at');
+    }
+
+    /**
+     * Reporter technical metadata (CR). Exists only for confidential
+     * submissions — an anonymous case never has a row, and the relation
+     * serialises Tier 1 fields only (the model hides Tier 2).
+     */
+    public function metadata(): HasOne
+    {
+        return $this->hasOne(SpeakUpReportMetadata::class, 'report_id');
     }
 
     public function scopeOpen(Builder $query): Builder

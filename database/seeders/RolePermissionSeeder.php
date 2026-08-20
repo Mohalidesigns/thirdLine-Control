@@ -137,6 +137,16 @@ class RolePermissionSeeder extends Seeder
             // a branch runs.
             'view control-structure', 'manage control-structure',
             'attach control-entities', 'manage control-stakeholders',
+            // Speak Up reporter metadata (CR). Dotted names on purpose —
+            // they mirror the CR's specification and read as one family.
+            // Tier 1 ('view_basic') is device/geo-coarse signals only;
+            // Tier 2 opens on a break-glass request ('request_reveal')
+            // approved by a second person ('approve_reveal'); the
+            // immutable access log has its own read permission
+            // ('audit_log') because who watched the watchers is an
+            // assurance question, not an investigation one.
+            'speak_up.metadata.view_basic', 'speak_up.metadata.request_reveal',
+            'speak_up.metadata.approve_reveal', 'speak_up.metadata.audit_log',
         ];
 
         foreach ($permissions as $permission) {
@@ -157,6 +167,12 @@ class RolePermissionSeeder extends Seeder
             'review exception-responses', 'withdraw exceptions',
             // CR2-A: structure admin, yes; control assignment, no.
             'attach control-entities', 'manage control-stakeholders',
+            // CR (Speak Up metadata): holding the platform keys never opens
+            // a reporter's identity. The administrator keeps sight of the
+            // access log — oversight is sight — but takes no part in the
+            // reveal loop and sees no metadata tier.
+            'speak_up.metadata.view_basic', 'speak_up.metadata.request_reveal',
+            'speak_up.metadata.approve_reveal',
         ]));
 
         // Installing regulatory content packs changes platform-wide data, so
@@ -213,6 +229,12 @@ class RolePermissionSeeder extends Seeder
             'view incidents', 'create incidents', 'investigate incidents', 'notify regulators',
             'view complaints', 'create complaints', 'handle complaints', 'export complaint-returns',
             'view cases', 'create cases', 'investigate cases',
+            // CR (Speak Up metadata): an officer on a case reads Tier 1
+            // signals and may ask for a Tier 2 reveal; approving one is a
+            // second-person act that stays with the Control Function Head
+            // (and any tenant-defined approver role) — an officer can
+            // request, never grant (R2).
+            'speak_up.metadata.view_basic', 'speak_up.metadata.request_reveal',
             // Second line builds and tunes continuous monitoring rules and
             // maintains the toxic-combination matrix; approving a rule into
             // production and accepting a live SoD conflict both stay with
@@ -369,6 +391,19 @@ class RolePermissionSeeder extends Seeder
             // — but authors nothing and never runs due diligence.
             'view objectives', 'approve objectives',
             'view vendors', 'view sustainability', 'view assurance',
+        ]);
+
+        // CR (Speak Up metadata): a standalone reveal-approver role, so a
+        // tenant can name second-person approvers — a DPO, legal counsel —
+        // without handing them the Control Function Head's reach. The
+        // service still refuses a self-approval whatever roles someone
+        // holds; and note the role carries no case permissions at all:
+        // deciding a reveal is an authority over the metadata vault, not a
+        // seat on the investigation.
+        Role::findOrCreate('Speak Up Reveal Approver', 'web')->syncPermissions([
+            'speak_up.metadata.view_basic',
+            'speak_up.metadata.approve_reveal',
+            'speak_up.metadata.audit_log',
         ]);
     }
 }

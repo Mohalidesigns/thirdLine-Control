@@ -7,6 +7,7 @@ use App\Models\Control;
 use App\Models\ControlException;
 use App\Models\EffectivenessRating;
 use App\Models\IntegrationSyncLog;
+use App\Models\SpeakUpMetadataAccessLog;
 use App\Services\IntegrationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -151,5 +152,43 @@ class IntegrationApiController extends Controller
             ]);
 
         return response()->json(['data' => $exceptions]);
+    }
+
+    /**
+     * GET /api/v1/speak-up/metadata-access-log?since={ts} — every
+     * break-glass event on Speak Up reporter metadata (CR), read out so
+     * internal audit can verify the reveal control independently.
+     *
+     * Deliberately Tier 1 only: who requested, who approved, the reason
+     * code, the justification and which FIELD NAMES were revealed — never
+     * a metadata value and never a reporter identity. The integration key
+     * carries no reveal-level scope, so no caller of this API can widen
+     * the payload.
+     */
+    public function speakUpMetadataAccessLog(Request $request): JsonResponse
+    {
+        $tenantId = $request->attributes->get('integration_tenant_id');
+
+        $entries = SpeakUpMetadataAccessLog::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->with(['report:id,case_ref', 'requester:id,name', 'approver:id,name'])
+            ->when($request->query('since'), fn ($q, $since) => $q->where('occurred_at', '>=', $since))
+            ->orderByDesc('occurred_at')
+            ->limit(500)
+            ->get()
+            ->map(fn (SpeakUpMetadataAccessLog $entry) => [
+                'tenant_id' => $entry->tenant_id,
+                'source_system' => 'SecondLine',
+                'case_ref' => $entry->report?->case_ref,
+                'action' => $entry->action,
+                'requested_by' => $entry->requester?->name,
+                'approved_by' => $entry->approver?->name,
+                'reason_code' => $entry->reason_code,
+                'justification' => $entry->justification,
+                'fields_revealed' => $entry->fields_revealed,
+                'occurred_at' => $entry->occurred_at?->toIso8601String(),
+            ]);
+
+        return response()->json(['data' => $entries]);
     }
 }

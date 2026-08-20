@@ -8,6 +8,7 @@ use App\Models\OrganisationUnit;
 use App\Models\User;
 use App\Services\CaseService;
 use App\Services\LinkageService;
+use App\Services\SpeakUpMetadataService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -92,6 +93,12 @@ class CaseController extends Controller
             ->with('author:id,name')
             ->get();
 
+        // CR — reporter metadata surfaces here as a banner and a Tier 1
+        // signals card only. Identifying fields never reach this screen:
+        // Tier 2 lives behind the break-glass flow on the metadata page.
+        $metadataCaptured = ! $case->is_anonymous && $case->metadata()->exists();
+        $canMetadataBasic = $metadataCaptured && $request->user()->can('speak_up.metadata.view_basic');
+
         return Inertia::render('Cases/Show', [
             'case' => $case,
             'notes' => $notes,
@@ -99,6 +106,10 @@ class CaseController extends Controller
             'allowlist' => User::whereIn('id', $case->access_user_ids ?? [])->get(['id', 'name', 'email']),
             'users' => User::tenantPicker()->get(['id', 'name']),
             'canSeePrivileged' => $canSeePrivileged,
+            'metadataCaptured' => $metadataCaptured,
+            'reporterSignals' => $canMetadataBasic
+                ? app(SpeakUpMetadataService::class)->signals($case)
+                : null,
             'can' => [
                 'update' => $request->user()->can('update', $case),
                 'assess' => $request->user()->can('assess', $case),
@@ -106,6 +117,7 @@ class CaseController extends Controller
                 'conclude' => $request->user()->can('conclude', $case),
                 'close' => $request->user()->can('close', $case),
                 'manage_access' => $request->user()->can('manageAccess', $case),
+                'metadata_view_basic' => $canMetadataBasic,
             ],
         ]);
     }
