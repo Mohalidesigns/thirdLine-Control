@@ -14,6 +14,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate, formatDateTime, formatNumber } from '@/utils';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const HEALTH_CLASSES = {
     Healthy: 'badge-low',
@@ -148,7 +149,7 @@ export default function Show({
                 <div className="card lg:col-span-2">
                     <div className="card-header flex items-center justify-between">
                         <h2 className="text-sm font-semibold">Datasets</h2>
-                        {can.manage && <SecondaryButton onClick={() => setAddingDataset(true)}>+ Add dataset</SecondaryButton>}
+                        {can.manage && <SecondaryButton onClick={() => setAddingDataset(true)}><Plus className="h-4 w-4" strokeWidth={2} /> Add dataset</SecondaryButton>}
                     </div>
                     <div className="overflow-x-auto">
                         {datasets.length === 0 ? (

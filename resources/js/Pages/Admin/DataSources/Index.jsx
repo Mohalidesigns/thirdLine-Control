@@ -14,6 +14,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime } from '@/utils';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const HEALTH_CLASSES = {
     Healthy: 'badge-low',
@@ -105,7 +106,7 @@ export default function Index({
                 actions={
                     <div className="flex flex-wrap gap-2">
                         <SecondaryButton onClick={() => setShowMatrix(true)}>Connector matrix</SecondaryButton>
-                        {can.manage && <PrimaryButton onClick={() => setCreating(true)}>+ Register source</PrimaryButton>}
+                        {can.manage && <PrimaryButton onClick={() => setCreating(true)}><Plus className="h-4 w-4" strokeWidth={2} /> Register source</PrimaryButton>}
                     </div>
                 }
             />

@@ -13,6 +13,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 export default function Filings({
     filings = [],
@@ -41,7 +42,7 @@ export default function Filings({
                         <Link href={route('sustainability.index')} className="btn-secondary">
                             Materiality
                         </Link>
-                        {can.manage && <PrimaryButton onClick={() => setPlanning(true)}>+ Plan a filing</PrimaryButton>}
+                        {can.manage && <PrimaryButton onClick={() => setPlanning(true)}><Plus className="h-4 w-4" strokeWidth={2} /> Plan a filing</PrimaryButton>}
                     </>
                 }
             />

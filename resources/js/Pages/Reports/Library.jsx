@@ -4,6 +4,7 @@ import Pagination from '@/Components/Pagination';
 import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 
 export default function Library({ definitions, filters = {}, types = [], can = {} }) {
     const filter = (changes) => router.get(route('reports.library'), { ...filters, ...changes }, {
@@ -30,7 +31,7 @@ export default function Library({ definitions, filters = {}, types = [], can = {
                         </Link>
                         {can.design && (
                             <Link href={route('reports.definitions.create')} className="btn-primary">
-                                + New report
+                                <Plus className="h-4 w-4" strokeWidth={2} /> New report
                             </Link>
                         )}
                     </>

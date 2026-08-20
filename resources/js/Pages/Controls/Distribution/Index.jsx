@@ -12,6 +12,7 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
+import { Plus } from 'lucide-react';
 
 /**
  * Corporater-style distribution overview: stat tiles + an org-tree table of
@@ -243,7 +244,7 @@ function DistributeModal({ show, onClose, groupControls, entities, owners }) {
                         <div className="flex items-center justify-between">
                             <InputLabel value="Implementation tasks" />
                             <button type="button" className="text-xs font-semibold text-[var(--color-primary)]" onClick={addTask}>
-                                + Add task
+                                <Plus className="h-4 w-4" strokeWidth={2} /> Add task
                             </button>
                         </div>
                         <div className="mt-1 space-y-2">

@@ -5,6 +5,7 @@ import Pagination from '@/Components/Pagination';
 import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 
 export default function Index({ scripts, filters = {} }) {
     return (
@@ -16,7 +17,7 @@ export default function Index({ scripts, filters = {} }) {
                 subtitle="Reusable, checklist-driven test procedures per control"
                 actions={
                     <Link href={route('test-scripts.create')} className="btn-primary">
-                        + New script
+                        <Plus className="h-4 w-4" strokeWidth={2} /> New script
                     </Link>
                 }
             />

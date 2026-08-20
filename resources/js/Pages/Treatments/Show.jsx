@@ -13,6 +13,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate, formatDateTime, formatMoney } from '@/utils';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 export default function Show({ treatment, links = [], users = [], can = {} }) {
     const { features = [] } = usePage().props;
@@ -94,7 +95,7 @@ export default function Show({ treatment, links = [], users = [], can = {} }) {
                                     className="text-xs font-semibold text-[var(--color-primary)] hover:underline"
                                     onClick={() => setAddingMilestone(true)}
                                 >
-                                    + Add
+                                    <Plus className="h-4 w-4" strokeWidth={2} /> Add
                                 </button>
                             )}
                         </div>

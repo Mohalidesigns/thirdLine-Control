@@ -8,6 +8,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 export default function Index({
     packs,
@@ -49,7 +50,7 @@ export default function Index({
                 subtitle={`Generated returns, their completeness and where each sits in the approval chain. The filing floor is ${threshold}%.`}
                 actions={can.generate && (
                     <button type="button" onClick={() => setCreating(true)} className="btn-primary">
-                        + Generate a return
+                        <Plus className="h-4 w-4" strokeWidth={2} /> Generate a return
                     </button>
                 )}
             />

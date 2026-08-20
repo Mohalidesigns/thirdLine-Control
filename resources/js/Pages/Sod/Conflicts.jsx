@@ -13,6 +13,7 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const RISK_CLASSES = {
     Critical: 'badge-critical',
@@ -125,7 +126,7 @@ export default function Conflicts({ rules, filters = {}, options = {}, controls 
                         <Link href={route('sod.violations')} className="btn-secondary">
                             Violations
                         </Link>
-                        {can.manage && <PrimaryButton onClick={() => setCreating(true)}>+ New conflict</PrimaryButton>}
+                        {can.manage && <PrimaryButton onClick={() => setCreating(true)}><Plus className="h-4 w-4" strokeWidth={2} /> New conflict</PrimaryButton>}
                     </div>
                 }
             />

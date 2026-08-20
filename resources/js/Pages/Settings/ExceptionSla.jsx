@@ -11,6 +11,7 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const EMPTY = {
     name: '',
@@ -73,7 +74,7 @@ export default function ExceptionSla({ policies = [], severities = [] }) {
             <PageHeader
                 title="Exception SLA policies"
                 subtitle="Business-day clocks per severity — acknowledgement, response, reminders and the hand-off to the escalation matrix"
-                actions={<PrimaryButton onClick={() => open()}>+ New policy</PrimaryButton>}
+                actions={<PrimaryButton onClick={() => open()}><Plus className="h-4 w-4" strokeWidth={2} /> New policy</PrimaryButton>}
             />
 
             <div className="card">

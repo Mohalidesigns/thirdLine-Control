@@ -8,6 +8,7 @@ import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 
 const EMPTY_ITEM = { question: '', guidance: '', expected_result: '', is_mandatory: true, default_severity_on_fail: 'Medium' };
 
@@ -80,7 +81,7 @@ export default function Create({ controls = [], preselectedControlId = null }) {
                     <div className="card-header">
                         <h3 className="text-sm font-semibold">Check items ({data.check_items.length})</h3>
                         <SecondaryButton onClick={() => setData('check_items', [...data.check_items, { ...EMPTY_ITEM }])}>
-                            + Add item
+                            <Plus className="h-4 w-4" strokeWidth={2} /> Add item
                         </SecondaryButton>
                     </div>
                     <div className="card-body space-y-5">

@@ -13,6 +13,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate, formatMoney } from '@/utils';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const BAND_CLASSES = {
     Low: 'badge-low',
@@ -61,11 +62,11 @@ export default function Show({
                 actions={
                     <>
                         {features.includes('risk-assessments') && can.assess && (
-                            <PrimaryButton onClick={() => setAssessing(true)}>+ Assessment</PrimaryButton>
+                            <PrimaryButton onClick={() => setAssessing(true)}><Plus className="h-4 w-4" strokeWidth={2} /> Assessment</PrimaryButton>
                         )}
                         {features.includes('risk-treatments') && can.treat && (
                             <SecondaryButton type="button" onClick={() => setTreating(true)}>
-                                + Treatment plan
+                                <Plus className="h-4 w-4" strokeWidth={2} /> Treatment plan
                             </SecondaryButton>
                         )}
                     </>
@@ -701,7 +702,7 @@ function TreatmentModal({ show, onClose, risk, users }) {
                     <div className="flex items-center justify-between">
                         <InputLabel value="Milestones" />
                         <button type="button" className="text-xs font-semibold text-[var(--color-primary)] hover:underline" onClick={addMilestone}>
-                            + Add milestone
+                            <Plus className="h-4 w-4" strokeWidth={2} /> Add milestone
                         </button>
                     </div>
                     {form.data.milestones.map((milestone, index) => (

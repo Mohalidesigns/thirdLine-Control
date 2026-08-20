@@ -14,6 +14,7 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const SEVERITY_CLASSES = {
     Critical: 'badge-critical',
@@ -111,7 +112,7 @@ export default function Index({
                         <Link href={route('monitoring-runs.index')} className="btn-secondary">
                             Runs
                         </Link>
-                        {can.manage && <PrimaryButton onClick={() => setCreating(true)}>+ New rule</PrimaryButton>}
+                        {can.manage && <PrimaryButton onClick={() => setCreating(true)}><Plus className="h-4 w-4" strokeWidth={2} /> New rule</PrimaryButton>}
                     </div>
                 }
             />

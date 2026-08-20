@@ -6,6 +6,7 @@ import StatCard from '@/Components/StatCard';
 import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 
 const TYPE_BADGES = {
     Preventive: 'bg-blue-50 text-blue-700',
@@ -120,7 +121,7 @@ export default function Index({
                                     Starter library
                                 </Link>
                                 <Link href={route('controls.create')} className="btn-primary">
-                                    + Add Control
+                                    <Plus className="h-4 w-4" strokeWidth={2} /> Add Control
                                 </Link>
                             </>
                         )}

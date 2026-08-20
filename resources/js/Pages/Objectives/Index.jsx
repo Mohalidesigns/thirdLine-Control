@@ -15,6 +15,7 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 export default function Index({
     objectives,
@@ -106,7 +107,7 @@ export default function Index({
                         <Link href={route('strategy.scorecard')} className="btn-secondary">
                             Scorecard
                         </Link>
-                        {can.manage && <PrimaryButton onClick={() => setCreating(true)}>+ New objective</PrimaryButton>}
+                        {can.manage && <PrimaryButton onClick={() => setCreating(true)}><Plus className="h-4 w-4" strokeWidth={2} /> New objective</PrimaryButton>}
                     </>
                 }
             />
@@ -312,7 +313,7 @@ function CreateModal({ show, onClose, perspectives, entities, owners, parents, m
                     <div className="mb-2 flex items-center justify-between">
                         <InputLabel value="Measures" />
                         <button type="button" className="text-xs font-semibold text-[var(--color-primary)]" onClick={addMeasure}>
-                            + Add measure
+                            <Plus className="h-4 w-4" strokeWidth={2} /> Add measure
                         </button>
                     </div>
                     <p className="mb-2 text-xs text-[var(--color-text-secondary)]">

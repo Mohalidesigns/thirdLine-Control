@@ -14,6 +14,7 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const BAND_CLASSES = {
     Low: 'badge-low',
@@ -141,7 +142,7 @@ export default function Index({
                         <Link href={route('risks.gaps')} className="btn-secondary">
                             Gap analysis
                         </Link>
-                        {canCreate && <PrimaryButton onClick={() => setShowCreate(true)}>+ New risk</PrimaryButton>}
+                        {canCreate && <PrimaryButton onClick={() => setShowCreate(true)}><Plus className="h-4 w-4" strokeWidth={2} /> New risk</PrimaryButton>}
                     </>
                 }
             />

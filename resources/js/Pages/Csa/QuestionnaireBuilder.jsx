@@ -2,6 +2,7 @@ import Checkbox from '@/Components/Checkbox';
 import SelectInput from '@/Components/SelectInput';
 import TextInput from '@/Components/TextInput';
 import { useForm } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 
 const RESPONSE_TYPES = [
     ['yes_no', 'Yes / No'],
@@ -51,7 +52,7 @@ export default function QuestionnaireBuilder({ campaign, questionnaire, controls
             <div className="card-header flex items-center justify-between">
                 <h3 className="text-sm font-semibold">Questionnaire builder</h3>
                 <div className="flex gap-2">
-                    <button type="button" className="btn-secondary !py-1.5 text-xs" onClick={addQuestion}>+ Add question</button>
+                    <button type="button" className="btn-secondary !py-1.5 text-xs" onClick={addQuestion}><Plus className="h-4 w-4" strokeWidth={2} /> Add question</button>
                     <button type="button" className="btn-primary !py-1.5 text-xs" onClick={save} disabled={processing || data.questions.length === 0}>
                         Save questionnaire
                     </button>

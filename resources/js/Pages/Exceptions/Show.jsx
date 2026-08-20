@@ -16,6 +16,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate, formatDateTime } from '@/utils';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const ACTIVITY_ICONS = {
     Comment: '💬',
@@ -191,7 +192,7 @@ export default function Show({ exception, evidence = [], users = [], units = [],
                                 nothing to register it against (FR-6.3). */}
                             {exception.control && ['Open', 'Assigned', 'In Progress', 'Remediated'].includes(exception.status) && (
                                 <button type="button" className="text-sm text-[var(--color-primary)] hover:underline" onClick={() => setModal('compensating')}>
-                                    + Register
+                                    <Plus className="h-4 w-4" strokeWidth={2} /> Register
                                 </button>
                             )}
                         </div>
@@ -616,7 +617,7 @@ export default function Show({ exception, evidence = [], users = [], units = [],
                             className="text-sm text-[var(--color-primary)] hover:underline"
                             onClick={() => escalateForm.setData('targets', [...escalateForm.data.targets, { ...emptyTarget }])}
                         >
-                            + Add another department
+                            <Plus className="h-4 w-4" strokeWidth={2} /> Add another department
                         </button>
                         <div className="flex gap-2">
                             <SecondaryButton onClick={close}>Cancel</SecondaryButton>

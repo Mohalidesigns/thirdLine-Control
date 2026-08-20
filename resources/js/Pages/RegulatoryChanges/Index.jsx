@@ -15,6 +15,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 export default function Index({ changes, filters = {}, regulators = [], statuses = [], stats = {}, can = {} }) {
     const { auth } = usePage().props;
@@ -126,7 +127,7 @@ export default function Index({ changes, filters = {}, regulators = [], statuses
                 actions={
                     can.assess && (
                         <button type="button" onClick={() => setLogging(true)} className="btn-primary">
-                            + Log a publication
+                            <Plus className="h-4 w-4" strokeWidth={2} /> Log a publication
                         </button>
                     )
                 }

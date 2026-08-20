@@ -14,6 +14,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatNumber } from '@/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 export default function Ghg({
     points,
@@ -138,7 +139,7 @@ export default function Ghg({
                         <Link href={route('sustainability.index')} className="btn-secondary">
                             Materiality
                         </Link>
-                        {can.prepare && <PrimaryButton onClick={() => setCapturing(true)}>+ Capture figure</PrimaryButton>}
+                        {can.prepare && <PrimaryButton onClick={() => setCapturing(true)}><Plus className="h-4 w-4" strokeWidth={2} /> Capture figure</PrimaryButton>}
                     </>
                 }
             />

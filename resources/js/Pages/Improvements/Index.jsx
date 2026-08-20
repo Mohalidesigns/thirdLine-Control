@@ -17,6 +17,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 export default function Index({
     improvements,
@@ -72,7 +73,7 @@ export default function Index({
             <PageHeader
                 title="Improvement Database"
                 subtitle="Actions from tests, CSAs, spot checks, exceptions and surveys — approved, owned and independently verified"
-                actions={canCreate && <PrimaryButton onClick={() => setShowCreate(true)}>+ Propose improvement</PrimaryButton>}
+                actions={canCreate && <PrimaryButton onClick={() => setShowCreate(true)}><Plus className="h-4 w-4" strokeWidth={2} /> Propose improvement</PrimaryButton>}
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
