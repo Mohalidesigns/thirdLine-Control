@@ -7,7 +7,7 @@ import VerificationBadge from '@/Components/VerificationBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatMoney } from '@/utils';
 import { Head, Link, router } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { Activity, AlertTriangle, BadgeCheck, Plus, Send } from 'lucide-react';
 
 export default function Index({
     obligations,
@@ -91,15 +91,15 @@ export default function Index({
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
-                <StatCard title="Active obligations" value={stats.total ?? 0} color="primary" />
-                <StatCard
+                <StatCard icon={Activity} title="Active obligations" value={stats.total ?? 0} color="primary" />
+                <StatCard icon={BadgeCheck}
                     title="Verified"
                     value={stats.verified ?? 0}
                     color="success"
                     subtitle="Usable in submissions"
                 />
-                <StatCard title="Assigned" value={stats.assigned ?? 0} color="info" />
-                <StatCard
+                <StatCard icon={Send} title="Assigned" value={stats.assigned ?? 0} color="info" />
+                <StatCard icon={AlertTriangle}
                     title="Overdue now"
                     value={stats.overdue ?? 0}
                     color="danger"

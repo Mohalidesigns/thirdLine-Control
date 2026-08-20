@@ -62,7 +62,7 @@ class DataSourceController extends Controller
                 'health_statuses' => DataSource::HEALTH_STATUSES,
             ],
             'capabilities' => ConnectorRegistry::matrix(),
-            'owners' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'owners' => User::tenantPicker()->get(['id', 'name']),
             'stats' => [
                 'total' => DataSource::count(),
                 'healthy' => DataSource::where('health_status', 'Healthy')->count(),

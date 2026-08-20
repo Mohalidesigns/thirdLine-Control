@@ -69,7 +69,10 @@ class TestingService
             'period_start' => $start,
             'period_end' => $end,
             'due_date' => $end->addDays(5),
-            'assigned_tester_id' => $control->owner_id ? null : null,
+            // FR-3.4: a generated instance carries an assigned tester — the
+            // control owner performs the periodic test (SoD bites at review,
+            // where the tester may not review their own work). DEF-013.
+            'assigned_tester_id' => $control->owner_id,
             'status' => 'Scheduled',
         ]);
     }
@@ -98,7 +101,11 @@ class TestingService
 
         $instance->update([
             'status' => 'In Progress',
-            'assigned_tester_id' => $instance->assigned_tester_id ?? $tester->id,
+            // Whoever actually performs the test becomes the tester of
+            // record — the review SoD check (FR-3.8) compares against this,
+            // so a generation-time default assignee must not mask the real
+            // performer.
+            'assigned_tester_id' => $tester->id,
             'started_at' => $instance->started_at ?? now(),
         ]);
 
@@ -251,6 +258,11 @@ class TestingService
                 'overall_rating' => $overall,
                 'status' => 'Pending Approval',
                 'rated_by' => $rater->id,
+                // DEF-014: nobody has approved the NEW values — a stale
+                // approver on a Pending Approval row mis-attributes the
+                // rating in any export that renders approved_by alone.
+                'approved_by' => null,
+                'approved_at' => null,
             ],
         );
     }

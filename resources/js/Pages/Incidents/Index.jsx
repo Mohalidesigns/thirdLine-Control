@@ -9,6 +9,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { AlertCircle, AlertTriangle, CalendarClock, Gauge } from 'lucide-react';
 
 export default function Index({
     incidents,
@@ -103,10 +104,10 @@ export default function Index({
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-                <StatCard title="Open" value={stats.open ?? 0} color="primary" />
-                <StatCard title="Near misses" value={stats.near_misses ?? 0} color="info" subtitle="leading indicator" />
-                <StatCard title="Notifications due" value={stats.notification_due ?? 0} color="warning" />
-                <StatCard
+                <StatCard icon={AlertCircle} title="Open" value={stats.open ?? 0} color="primary" />
+                <StatCard icon={Gauge} title="Near misses" value={stats.near_misses ?? 0} color="info" subtitle="leading indicator" />
+                <StatCard icon={CalendarClock} title="Notifications due" value={stats.notification_due ?? 0} color="warning" />
+                <StatCard icon={AlertTriangle}
                     title="Windows missed"
                     value={stats.notification_breached ?? 0}
                     color="danger"

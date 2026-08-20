@@ -109,6 +109,12 @@ class FrameworkService
                 'is_certifiable' => (bool) ($definition['is_certifiable'] ?? false),
                 'source_url' => $definition['source_url'] ?? null,
                 'verification_status' => $definition['verification_status'] ?? 'unverified',
+                // D.7 step 3: a record that claims 'verified' must say who
+                // confirmed it against the primary document, and when. The
+                // pack-level attribution applies unless the framework block
+                // carries its own.
+                'verified_by' => $definition['verified_by'] ?? ($pack['verified_by'] ?? null) ?: null,
+                'verified_at' => $definition['verified_at'] ?? $pack['verified_at'] ?? null,
                 'description' => $definition['description'] ?? null,
                 'is_active' => $definition['is_active'] ?? true,
             ])->save();

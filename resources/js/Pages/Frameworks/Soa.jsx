@@ -10,6 +10,7 @@ import TextArea from '@/Components/TextArea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { CheckCircle2, CircleSlash, Gauge } from 'lucide-react';
 
 const STATUS_LABELS = {
     implemented: 'Implemented',
@@ -46,10 +47,10 @@ export default function Soa({ framework, statement = [], can = {} }) {
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <StatCard title="Requirements" value={statement.length} />
-                <StatCard title="Applicable" value={applicable.length} />
-                <StatCard title="Excluded" value={statement.length - applicable.length} subtitle="justification required" />
-                <StatCard title="Implemented" value={implemented.length} />
+                <StatCard icon={Gauge} tone="blue" title="Requirements" value={statement.length} />
+                <StatCard icon={CheckCircle2} tone="emerald" title="Applicable" value={applicable.length} />
+                <StatCard icon={CircleSlash} tone="slate" title="Excluded" value={statement.length - applicable.length} subtitle="justification required" />
+                <StatCard icon={CheckCircle2} tone="emerald" title="Implemented" value={implemented.length} />
             </div>
 
             <div className="card">

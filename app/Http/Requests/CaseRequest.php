@@ -27,9 +27,9 @@ class CaseRequest extends FormRequest
             'subject_persons' => ['nullable', 'array', 'max:20'],
             'subject_persons.*.name' => ['required', 'string', 'max:255'],
             'subject_persons.*.role' => ['nullable', 'string', 'max:120'],
-            'lead_investigator_id' => ['nullable', 'exists:users,id'],
+            'lead_investigator_id' => ['nullable', 'tenant_user'],
             'access_user_ids' => ['nullable', 'array', 'max:50'],
-            'access_user_ids.*' => ['integer', 'exists:users,id'],
+            'access_user_ids.*' => ['integer', 'tenant_user'],
             'related_incident_id' => ['nullable', 'exists:incidents,id'],
             'related_complaint_id' => ['nullable', 'exists:complaints,id'],
         ];

@@ -150,6 +150,17 @@ export default function Show({ obligation, assignments = [], instances = [], ent
                                             : obligation.penalty_basis === 'percentage'
                                               ? `${(obligation.penalty_amount_minor / 100).toFixed(2)}% of the stated base`
                                               : 'None recorded'}
+                                        {obligation.penalty_fixed_amount_minor !== null &&
+                                            obligation.penalty_fixed_amount_minor !== undefined && (
+                                                <span className="block text-xs text-gray-400">
+                                                    Plus a fixed{' '}
+                                                    {formatMoney(
+                                                        obligation.penalty_fixed_amount_minor,
+                                                        obligation.penalty_currency,
+                                                    )}{' '}
+                                                    on default.
+                                                </span>
+                                            )}
                                         {obligation.penalty_description && (
                                             <span className="block text-xs text-gray-400">{obligation.penalty_description}</span>
                                         )}

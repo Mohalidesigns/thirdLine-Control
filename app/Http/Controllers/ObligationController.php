@@ -97,7 +97,7 @@ class ObligationController extends Controller
             'filters' => $request->only(['regulator_id', 'entity_id', 'owner_id', 'status', 'date', 'view']),
             'regulators' => Regulator::active()->orderBy('name')->get(['id', 'name']),
             'entities' => OrganisationUnit::orderBy('name')->get(['id', 'name']),
-            'owners' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'owners' => User::tenantPicker()->get(['id', 'name']),
             'statuses' => ObligationInstance::STATUSES,
             'exposure' => $this->obligations->exposureByCurrency(),
         ]);
@@ -118,7 +118,7 @@ class ObligationController extends Controller
                 ->with(['assignment.entity:id,name', 'submitter:id,name'])
                 ->orderByDesc('due_at')->limit(24)->get(),
             'entities' => OrganisationUnit::orderBy('name')->get(['id', 'name', 'entity_type', 'licence_categories']),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'can' => [
                 'manage' => $request->user()->can('update', $obligation),
                 'assign' => $request->user()->can('assign', $obligation),
@@ -189,7 +189,7 @@ class ObligationController extends Controller
                 'verification_status' => $o->verification_status,
                 'is_assigned' => in_array($o->id, $assigned, true),
             ])->values(),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'can' => ['assign' => $request->user()->can('assign obligations')],
         ]);
     }

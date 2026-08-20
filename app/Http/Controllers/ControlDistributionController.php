@@ -32,7 +32,7 @@ class ControlDistributionController extends Controller
                 ->where('is_distributable', true)
                 ->orderBy('control_ref')
                 ->get(['id', 'control_ref', 'title', 'status']),
-            'owners' => User::orderBy('name')->get(['id', 'name']),
+            'owners' => User::tenantPicker()->get(['id', 'name']),
             'filters' => $request->only(['control_id']),
         ]);
     }

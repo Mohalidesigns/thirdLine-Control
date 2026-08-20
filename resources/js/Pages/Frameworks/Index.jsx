@@ -6,7 +6,7 @@ import StatCard from '@/Components/StatCard';
 import VerificationBadge from '@/Components/VerificationBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { BadgeCheck, Gauge, Plus } from 'lucide-react';
 
 const CATEGORY_LABELS = {
     internal_control: 'Internal control',
@@ -85,10 +85,10 @@ export default function Index({
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
-                <StatCard title="Frameworks" value={stats.total ?? 0} color="primary" />
-                <StatCard title="Verified" value={stats.verified ?? 0} color="success" subtitle="Usable in submissions" />
-                <StatCard title="Nigerian" value={stats.nigerian ?? 0} color="accent" />
-                <StatCard title="Certifiable" value={stats.certifiable ?? 0} color="info" />
+                <StatCard icon={Gauge} title="Frameworks" value={stats.total ?? 0} color="primary" />
+                <StatCard icon={BadgeCheck} title="Verified" value={stats.verified ?? 0} color="success" subtitle="Usable in submissions" />
+                <StatCard icon={Gauge} title="Nigerian" value={stats.nigerian ?? 0} color="accent" />
+                <StatCard icon={Gauge} title="Certifiable" value={stats.certifiable ?? 0} color="info" />
             </div>
 
             <FilterBar

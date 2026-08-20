@@ -15,7 +15,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { CheckCircle2, Clock, FilePlus2, Plus } from 'lucide-react';
 
 export default function Index({ changes, filters = {}, regulators = [], statuses = [], stats = {}, can = {} }) {
     const { auth } = usePage().props;
@@ -134,10 +134,10 @@ export default function Index({ changes, filters = {}, regulators = [], statuses
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
-                <StatCard title="New" value={stats.new ?? 0} color="warning" prominent={(stats.new ?? 0) > 0} />
-                <StatCard title="Under review" value={stats.underReview ?? 0} color="info" />
-                <StatCard title="Impact assessed" value={stats.assessed ?? 0} color="primary" />
-                <StatCard title="Actioned" value={stats.actioned ?? 0} color="success" />
+                <StatCard icon={FilePlus2} title="New" value={stats.new ?? 0} color="warning" prominent={(stats.new ?? 0) > 0} />
+                <StatCard icon={Clock} title="Under review" value={stats.underReview ?? 0} color="info" />
+                <StatCard icon={CheckCircle2} title="Impact assessed" value={stats.assessed ?? 0} color="primary" />
+                <StatCard icon={CheckCircle2} title="Actioned" value={stats.actioned ?? 0} color="success" />
             </div>
 
             <FilterBar

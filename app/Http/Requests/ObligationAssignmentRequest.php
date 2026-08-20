@@ -16,8 +16,8 @@ class ObligationAssignmentRequest extends FormRequest
         return [
             'obligation_id' => ['required', 'exists:regulatory_obligations,id'],
             'entity_id' => ['required', 'exists:organisation_units,id'],
-            'owner_id' => ['required', 'exists:users,id'],
-            'reviewer_id' => ['nullable', 'different:owner_id', 'exists:users,id'],
+            'owner_id' => ['required', 'tenant_user'],
+            'reviewer_id' => ['nullable', 'different:owner_id', 'tenant_user'],
         ];
     }
 

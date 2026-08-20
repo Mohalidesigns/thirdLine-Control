@@ -90,3 +90,8 @@ const STATE_ICONS = {
 export function iconFor(state) {
     return STATE_ICONS[String(state ?? '').trim().toLowerCase()] ?? TONE_ICONS[toneFor(state)];
 }
+
+/** The default icon for a tone — the StatCard fallback when no icon is given. */
+export function toneIcon(tone) {
+    return TONE_ICONS[tone] ?? Circle;
+}

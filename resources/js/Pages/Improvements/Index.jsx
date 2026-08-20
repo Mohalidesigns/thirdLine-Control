@@ -18,7 +18,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { AlertCircle, BadgeCheck, Clock, Plus } from 'lucide-react';
 
 export default function Index({
     improvements,
@@ -78,10 +78,10 @@ export default function Index({
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-                <StatCard title="Open" value={stats.open ?? 0} color="primary" />
-                <StatCard title="Awaiting approval" value={stats.proposed ?? 0} color="warning" />
-                <StatCard title="Implemented (to verify)" value={stats.implemented ?? 0} color="primary" />
-                <StatCard title="Verified" value={stats.verified ?? 0} color="success" />
+                <StatCard icon={AlertCircle} title="Open" value={stats.open ?? 0} color="primary" />
+                <StatCard icon={Clock} title="Awaiting approval" value={stats.proposed ?? 0} color="warning" />
+                <StatCard icon={Clock} title="Implemented (to verify)" value={stats.implemented ?? 0} color="primary" />
+                <StatCard icon={BadgeCheck} title="Verified" value={stats.verified ?? 0} color="success" />
             </div>
 
             <FilterBar

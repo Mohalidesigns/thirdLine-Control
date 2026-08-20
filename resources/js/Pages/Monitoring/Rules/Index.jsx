@@ -14,7 +14,7 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Activity, CircleSlash, Clock, Plus } from 'lucide-react';
 
 const SEVERITY_CLASSES = {
     Critical: 'badge-critical',
@@ -118,14 +118,14 @@ export default function Index({
             />
 
             <div className="mb-6 grid grid-cols-3 gap-4">
-                <StatCard title="Active" value={stats.active ?? 0} color="success" />
-                <StatCard
+                <StatCard icon={Activity} title="Active" value={stats.active ?? 0} color="success" />
+                <StatCard icon={Clock}
                     title="Awaiting approval"
                     value={stats.pending ?? 0}
                     color="warning"
                     prominent={(stats.pending ?? 0) > 0}
                 />
-                <StatCard title="Paused" value={stats.paused ?? 0} color="info" />
+                <StatCard icon={CircleSlash} title="Paused" value={stats.paused ?? 0} color="info" />
             </div>
 
             <FilterBar

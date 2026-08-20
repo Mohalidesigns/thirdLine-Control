@@ -163,6 +163,9 @@ class IntegrationService
             $failed->payload,
             $failed->payload['_endpoint'] ?? '/api/v1/controls',
             replayedFrom: $failed->id,
+            // A replay is a redelivery of the SAME event: it must carry the
+            // original key or the receiver cannot de-duplicate it (DEF-017).
+            idempotencyKey: $failed->idempotency_key,
         );
     }
 
@@ -175,7 +178,7 @@ class IntegrationService
             ->first();
     }
 
-    private function send(IntegrationConfig $config, string $entityType, ?int $localId, array $payload, string $endpoint, ?int $replayedFrom = null): IntegrationSyncLog
+    private function send(IntegrationConfig $config, string $entityType, ?int $localId, array $payload, string $endpoint, ?int $replayedFrom = null, ?string $idempotencyKey = null): IntegrationSyncLog
     {
         $payload['_endpoint'] = $endpoint;
 
@@ -186,7 +189,7 @@ class IntegrationService
             'local_id' => $localId,
             'external_ref' => $payload['external_ref'] ?? null,
             'direction' => 'outbound',
-            'idempotency_key' => (string) Str::uuid(),
+            'idempotency_key' => $idempotencyKey ?? (string) Str::uuid(),
             'payload' => $payload,
             'status' => 'Pending',
             'replayed_from_id' => $replayedFrom,

@@ -33,7 +33,7 @@ class VendorContractRequest extends FormRequest
             'sla_commitments.*.obligation_id' => ['nullable', 'exists:regulatory_obligations,id'],
             'obligation_id' => ['nullable', 'exists:regulatory_obligations,id'],
             'document_id' => ['nullable', 'exists:documents,id'],
-            'owner_id' => ['nullable', 'exists:users,id'],
+            'owner_id' => ['nullable', 'tenant_user'],
             'status' => ['required', Rule::in(VendorContract::STATUSES)],
         ];
     }

@@ -7,6 +7,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime, formatMoney } from '@/utils';
 import { Head, router } from '@inertiajs/react';
+import { Gauge } from 'lucide-react';
 
 /**
  * Omnichannel messaging admin (15.3/15.4): template catalogue with Meta
@@ -59,7 +60,7 @@ export default function Index({ whatsappTemplates, smsTemplates, logs, costs, ch
 
             <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {Object.entries(channels).map(([channel, configured]) => (
-                    <StatCard
+                    <StatCard icon={Gauge}
                         key={channel}
                         title={channel.toUpperCase()}
                         value={configured ? 'Configured' : 'Dormant'}
@@ -102,7 +103,7 @@ export default function Index({ whatsappTemplates, smsTemplates, logs, costs, ch
             {costs.length > 0 && (
                 <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
                     {costs.map((row) => (
-                        <StatCard
+                        <StatCard icon={Gauge} tone="blue"
                             key={`${row.channel}-${row.cost_currency}`}
                             title={`${row.channel.toUpperCase()} spend`}
                             value={formatMoney(row.total_minor, row.cost_currency)}

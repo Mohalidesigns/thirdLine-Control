@@ -1,0 +1,35 @@
+§10 SECURITY CHECKS — live verification against http://127.0.0.1:8123 (APP_ENV=e2e, APP_DEBUG=false)
+2026-08-14T14:46:27Z
+
+=== Response headers on /login ===
+X-Powered-By: PHP/8.4.18
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+Referrer-Policy: same-origin
+Permissions-Policy: camera=(self), microphone=(), geolocation=()
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+Set-Cookie: XSRF-TOKEN=eyJpdiI6IjdHcXFjZ1VlSk9tQVJ5L3hoWUFOZmc9PSIsInZhbHVlIjoibzhZZ1lKT0hoMUJrTTBwaks1QTIzSG12b2JkVzd2OHlSOWgyOXc3Z0ZCNzdtbE5aMTRwNW1jcTFnZW5JU1ZUYUdNNXc4UU52S3JNREJnR0FhUVJVaUp0bTNuNy9jREdKM01pM0VwUjllSzFOdzA1TnhxNlBEWmpYMkhoNXRRN0wiLCJtYWMiOiJkMDViODMzNDkwY2YxYjQwYjZhYmYwY2QyNTI1NTM3Yzc3NjliNmIzNmRhOWVmZjRhYTYzMzY0NzE5YTU0OTk4IiwidGFnIjoiIn0%3D; expires=Fri, 14 Aug 2026 16:46:27 GMT; Max-Age=7200; path=/; samesite=lax
+Set-Cookie: secondline-session=eyJpdiI6IlM2WUhUNHpLWDlyVVRrMEdRbkpic3c9PSIsInZhbHVlIjoib2gzV0dTclBvVWN6aDQ0ckxQUTQ5SG5XV2xRZlBmM0dqbWFRTVpGNHZvV2RxY2NkTGNvYXJtWWE1dWZLdEVNd0tDS0FBTlA4cmxPSlIxNCttbXdHcWh1ZzNVbUkrM2ZoV2tqREdVaDhHdEtMQmtjWjNEL2RIZEhQWlVXNDNLamMiLCJtYWMiOiJjM2VjY2JhOTI2OWI1YjY4OGViYTVkNjliZDE5YWYwYzZkMmY2ZjIzY2FjMWQwMWM4YmM4MjZkNzZjOGY3NDZiIiwidGFnIjoiIn0%3D; expires=Fri, 14 Aug 2026 16:46:27 GMT; Max-Age=7200; path=/; httponly; samesite=lax
+
+=== Cookie flags ===
+Set-Cookie: XSRF-TOKEN=<redacted>; expires=Fri, 14 Aug 2026 16:46:27 GMT; Max-Age=7200; path=/; samesite=lax
+Set-Cookie: secondline-session=<redacted>; expires=Fri, 14 Aug 2026 16:46:27 GMT; Max-Age=7200; path=/; httponly; samesite=lax
+
+=== Verbose errors / debug mode (request a non-existent route) ===
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Not Found</title>
+
+        <style>
+            /*! normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */html{line
+
+=== Directory listing ===
+  GET /storage         -> HTTP 404
+  GET /build           -> HTTP 404
+  GET /vendor          -> HTTP 404
+  GET /.env            -> HTTP 404
+  GET /.git/config     -> HTTP 404

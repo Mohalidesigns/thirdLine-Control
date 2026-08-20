@@ -4,6 +4,7 @@ import StatCard from '@/Components/StatCard';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { BadgeCheck, Banknote, Gauge, Timer } from 'lucide-react';
 
 /**
  * Admin → AI (§C.8).
@@ -181,20 +182,20 @@ export default function AiIndex({ capabilities, budget, usage, quality, rejectio
             )}
 
             <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <StatCard title="Calls (30 days)" value={totalCalls.toLocaleString()} color="primary" />
-                <StatCard
+                <StatCard icon={Timer} title="Calls (30 days)" value={totalCalls.toLocaleString()} color="primary" />
+                <StatCard icon={BadgeCheck} tone="emerald"
                     title="Kept by reviewers"
                     value={decided > 0 ? `${Math.round((kept / decided) * 100)}%` : '—'}
                     subtitle={`${decided.toLocaleString()} decided`}
                     color={decided > 0 && kept / decided < 0.5 ? 'warning' : 'success'}
                 />
-                <StatCard
+                <StatCard icon={Banknote}
                     title="Spend this period"
                     value={money(budget.cost_used_minor, budget.currency)}
                     subtitle={`of ${money(budget.cost_budget_minor, budget.currency)} · ${budget.period_label}`}
                     color={budget.exhausted ? 'danger' : 'info'}
                 />
-                <StatCard
+                <StatCard icon={Gauge} tone="blue"
                     title="Indexed records"
                     value={index.total_chunks.toLocaleString()}
                     subtitle={index.stale_chunks > 0 ? `${index.stale_chunks.toLocaleString()} awaiting re-index` : 'up to date'}

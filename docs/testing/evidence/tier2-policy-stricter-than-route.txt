@@ -1,0 +1,9 @@
+Tier 2 sweep — pages where the in-controller policy is STRICTER than the route's declared
+role/permission middleware. This is the codebase's defence-in-depth pattern working as intended:
+the route admits, the policy refuses. Recorded as an inventory, not a defect.
+
+admin                   exceptions/create
+officer                 frameworks/create, obligations/create, cases/board-extract
+owner                   controls/create, links/candidates, exceptions/create, frameworks/create, obligations/create, csa-campaigns/create, regulatory-changes, policies/create
+manager                 controls/create, links/candidates, exceptions/create, frameworks/create, obligations/create, csa-campaigns/create, policies/create
+exec                    controls/create, links/candidates, exceptions/create, frameworks/create, obligations/create, csa-campaigns/create, policies/create, incidents/create

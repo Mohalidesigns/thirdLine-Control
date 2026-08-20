@@ -23,7 +23,7 @@ class RiskTreatmentRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:4000'],
             'description_rich' => ['nullable', 'array', new RichTextRule],
-            'owner_id' => ['required', 'exists:users,id'],
+            'owner_id' => ['required', 'tenant_user'],
             'target_rating' => ['nullable', Rule::in(RiskAssessment::RATINGS)],
             'cost_minor' => ['nullable', 'integer', 'min:0'],
             'currency' => ['nullable', Rule::in(Money::SUPPORTED)],
@@ -37,7 +37,7 @@ class RiskTreatmentRequest extends FormRequest
             'milestones' => ['nullable', 'array', 'max:20'],
             'milestones.*.title' => ['required', 'string', 'max:255'],
             'milestones.*.due_at' => ['nullable', 'date'],
-            'milestones.*.owner_id' => ['nullable', 'exists:users,id'],
+            'milestones.*.owner_id' => ['nullable', 'tenant_user'],
         ];
     }
 }

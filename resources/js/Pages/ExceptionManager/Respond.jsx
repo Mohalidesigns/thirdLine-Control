@@ -12,6 +12,7 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime } from '@/utils';
 import { Head, useForm } from '@inertiajs/react';
+import useUnsavedChanges from '@/hooks/useUnsavedChanges';
 
 const POSITIONS = ['Accepted', 'Partially Accepted', 'Disputed', 'Already Remediated', 'More Information Required'];
 const ROOT_CAUSE_CATEGORIES = ['people', 'process', 'technology', 'governance', 'external'];
@@ -32,6 +33,8 @@ export default function Respond({ escalation, draft = null, evidence = [] }) {
         agreed_action_plan_rich: draft?.agreed_action_plan_rich ?? null,
         proposed_target_date: draft?.proposed_target_date?.slice(0, 10) ?? '',
     });
+
+    useUnsavedChanges(form.isDirty, !form.processing);
 
     const needsRootCause = ['root_cause', 'both'].includes(escalation.required_response) && form.data.position !== 'Disputed';
     const needsActionPlan = ['action_plan', 'both'].includes(escalation.required_response) && form.data.position !== 'Disputed';

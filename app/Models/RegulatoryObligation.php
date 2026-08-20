@@ -34,7 +34,8 @@ class RegulatoryObligation extends Model
         'tenant_id', 'regulator_id', 'framework_id', 'requirement_id', 'obligation_ref',
         'title', 'description', 'obligation_type', 'applies_to', 'trigger_type',
         'frequency', 'due_rule', 'grace_period_days', 'penalty_description',
-        'penalty_amount_minor', 'penalty_currency', 'penalty_basis', 'legal_reference',
+        'penalty_amount_minor', 'penalty_fixed_amount_minor', 'penalty_currency',
+        'penalty_basis', 'legal_reference',
         'source_url', 'effective_from', 'effective_to', 'verification_status', 'is_active',
     ];
 
@@ -43,6 +44,7 @@ class RegulatoryObligation extends Model
         'due_rule' => 'array',
         'grace_period_days' => 'integer',
         'penalty_amount_minor' => 'integer',
+        'penalty_fixed_amount_minor' => 'integer',
         'effective_from' => 'date',
         'effective_to' => 'date',
         'is_active' => 'boolean',

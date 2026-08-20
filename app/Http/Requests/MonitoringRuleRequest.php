@@ -43,7 +43,7 @@ class MonitoringRuleRequest extends FormRequest
             'exception_template.severity' => ['nullable', Rule::in(['Critical', 'High', 'Medium', 'Low'])],
             'auto_create_exception' => ['nullable', 'boolean'],
             'auto_create_incident' => ['nullable', 'boolean'],
-            'owner_id' => ['nullable', 'exists:users,id'],
+            'owner_id' => ['nullable', 'tenant_user'],
         ];
     }
 

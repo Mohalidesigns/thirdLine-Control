@@ -42,6 +42,15 @@ records anything that lawfully leaves (NDPA Part VIII basis required).
 
 ## Environment
 
+Production hardening, before anything else:
+
+```
+APP_ENV=production
+APP_DEBUG=false     # never true in production — debug pages serve stack
+                    # traces, file paths, SQL and configuration to any
+                    # caller who triggers an exception (DEF-020)
+```
+
 ```
 RESIDENCY_DEFAULT_COUNTRY=NG
 RESIDENCY_DISK_LOCAL=NG

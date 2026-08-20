@@ -16,7 +16,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Activity, AlertCircle, CalendarClock, Plus } from 'lucide-react';
 
 const CLASSIFICATION_LABELS = {
     none: 'No data access',
@@ -134,21 +134,21 @@ export default function Index({
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-                <StatCard title="Active relationships" value={stats.active ?? 0} color="primary" />
-                <StatCard
+                <StatCard icon={Activity} title="Active relationships" value={stats.active ?? 0} color="primary" />
+                <StatCard icon={CalendarClock}
                     title="Lapsed reviews"
                     value={stats.expired_reviews ?? 0}
                     subtitle={`${stats.due_reviews ?? 0} due within 60 days`}
                     color="danger"
                     prominent={(stats.expired_reviews ?? 0) > 0}
                 />
-                <StatCard
+                <StatCard icon={AlertCircle}
                     title="Open findings"
                     value={stats.open_findings ?? 0}
                     subtitle={`${stats.outstanding_screenings ?? 0} screening hit(s) open`}
                     color="warning"
                 />
-                <StatCard
+                <StatCard icon={CalendarClock}
                     title="Contracts in notice"
                     value={stats.contracts_expiring ?? 0}
                     subtitle={`${stats.notifications_outstanding ?? 0} regulator notification(s) due`}

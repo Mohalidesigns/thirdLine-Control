@@ -14,6 +14,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate, formatDateTime } from '@/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { AlertCircle, CalendarClock, CheckCircle2 } from 'lucide-react';
 
 const RISK_CLASSES = {
     Critical: 'badge-critical',
@@ -53,9 +54,9 @@ export default function Violations({
             />
 
             <div className="mb-6 grid grid-cols-3 gap-4">
-                <StatCard title="Open" value={stats.open ?? 0} color="danger" prominent={(stats.open ?? 0) > 0} />
-                <StatCard title="Accepted" value={stats.accepted ?? 0} color="warning" />
-                <StatCard
+                <StatCard icon={AlertCircle} title="Open" value={stats.open ?? 0} color="danger" prominent={(stats.open ?? 0) > 0} />
+                <StatCard icon={CheckCircle2} title="Accepted" value={stats.accepted ?? 0} color="warning" />
+                <StatCard icon={CalendarClock}
                     title="Acceptances expiring in 30 days"
                     value={stats.expiring ?? 0}
                     color="info"

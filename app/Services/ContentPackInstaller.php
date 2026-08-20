@@ -99,12 +99,43 @@ class ContentPackInstaller
             throw new RuntimeException("Content pack {$code} {$version} is not valid JSON.");
         }
 
+        $this->assertVerificationAttribution($pack, $code, $version);
+
         return [
             'pack' => $pack,
             'checksum' => hash('sha256', $raw),
             'version' => $version,
             'file' => $file,
         ];
+    }
+
+    /**
+     * D.7 step 3, made enforceable rather than advisory.
+     *
+     * 'verified' is the status that lets a record into a generated regulatory
+     * submission (R10), so a pack that claims it anywhere — on the pack, the
+     * framework, a requirement or an obligation — must record who confirmed it
+     * against the regulator's primary document and when. Without that the
+     * claim is unattributable and the pack refuses to install.
+     */
+    private function assertVerificationAttribution(array $pack, string $code, string $version): void
+    {
+        $statuses = array_merge(
+            [$pack['verification_status'] ?? 'unverified', $pack['framework']['verification_status'] ?? 'unverified'],
+            array_column($pack['requirements'] ?? [], 'verification_status'),
+            array_column($pack['obligations'] ?? [], 'verification_status'),
+        );
+
+        if (! in_array('verified', $statuses, true)) {
+            return;
+        }
+
+        if (empty($pack['verified_by']) || empty($pack['verified_at'])) {
+            throw new RuntimeException(
+                "Content pack {$code} {$version} ships verified records but carries no verified_by/verified_at ".
+                '(Part D §D.7). Record the verifier and the date, or demote the records to unverified.'
+            );
+        }
     }
 
     /**
@@ -291,6 +322,7 @@ class ContentPackInstaller
                     'grace_period_days' => (int) ($row['grace_period_days'] ?? 0),
                     'penalty_description' => $row['penalty_description'] ?? null,
                     'penalty_amount_minor' => $row['penalty_amount_minor'] ?? null,
+                    'penalty_fixed_amount_minor' => $row['penalty_fixed_amount_minor'] ?? null,
                     'penalty_currency' => $row['penalty_currency'] ?? null,
                     'penalty_basis' => $row['penalty_basis'] ?? null,
                     'legal_reference' => $row['legal_reference'] ?? null,

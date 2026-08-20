@@ -10,6 +10,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import { AlertCircle, Clock, EyeOff } from 'lucide-react';
 
 export default function Index({
     cases,
@@ -114,9 +115,9 @@ export default function Index({
             </div>
 
             <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <StatCard title="Open" value={stats.open ?? 0} color="primary" />
-                <StatCard title="Under investigation" value={stats.under_investigation ?? 0} color="warning" />
-                <StatCard title="Anonymous reports" value={stats.anonymous ?? 0} color="info" />
+                <StatCard icon={AlertCircle} title="Open" value={stats.open ?? 0} color="primary" />
+                <StatCard icon={Clock} title="Under investigation" value={stats.under_investigation ?? 0} color="warning" />
+                <StatCard icon={EyeOff} title="Anonymous reports" value={stats.anonymous ?? 0} color="info" />
             </div>
 
             <FilterBar

@@ -7,6 +7,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Activity, AlertCircle, CalendarClock } from 'lucide-react';
 
 export default function Exceptions({
     exceptions,
@@ -94,9 +95,9 @@ export default function Exceptions({
             />
 
             <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <StatCard title="Open requests" value={stats.open ?? 0} color="warning" />
-                <StatCard title="Live waivers" value={stats.live ?? 0} color="info" />
-                <StatCard
+                <StatCard icon={AlertCircle} title="Open requests" value={stats.open ?? 0} color="warning" />
+                <StatCard icon={Activity} title="Live waivers" value={stats.live ?? 0} color="info" />
+                <StatCard icon={CalendarClock}
                     title="Expiring in 30 days"
                     value={stats.expiring ?? 0}
                     color="danger"

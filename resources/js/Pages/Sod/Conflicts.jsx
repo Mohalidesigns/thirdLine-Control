@@ -13,7 +13,7 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Activity, AlertCircle, Plus, ShieldAlert } from 'lucide-react';
 
 const RISK_CLASSES = {
     Critical: 'badge-critical',
@@ -132,9 +132,9 @@ export default function Conflicts({ rules, filters = {}, options = {}, controls 
             />
 
             <div className="mb-6 grid grid-cols-3 gap-4">
-                <StatCard title="Active conflict rules" value={stats.rules ?? 0} color="primary" />
-                <StatCard title="Open violations" value={stats.open_violations ?? 0} color="warning" />
-                <StatCard
+                <StatCard icon={Activity} title="Active conflict rules" value={stats.rules ?? 0} color="primary" />
+                <StatCard icon={AlertCircle} title="Open violations" value={stats.open_violations ?? 0} color="warning" />
+                <StatCard icon={ShieldAlert}
                     title="Critical unmitigated"
                     value={stats.unmitigated_critical ?? 0}
                     color="danger"

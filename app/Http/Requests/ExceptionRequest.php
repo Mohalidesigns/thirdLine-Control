@@ -25,8 +25,8 @@ class ExceptionRequest extends FormRequest
             'severity' => ['required', Rule::in(ControlException::SEVERITIES)],
             'control_id' => ['nullable', 'exists:controls,id'],
             'risk_id' => ['nullable', 'exists:risks,id'],
-            'owner_id' => ['nullable', 'exists:users,id'],
-            'responsible_party_id' => ['nullable', 'exists:users,id'],
+            'owner_id' => ['nullable', 'tenant_user'],
+            'responsible_party_id' => ['nullable', 'tenant_user'],
             'unit_id' => ['nullable', 'exists:organisation_units,id'],
             'target_closure_date' => ['required', 'date', 'after_or_equal:today'],
         ];

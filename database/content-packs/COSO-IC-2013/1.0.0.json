@@ -7,8 +7,8 @@
     "effective_from": "2013-05-14",
     "source_url": "https://www.coso.org/guidance-on-ic",
     "verification_status": "verified",
-    "verified_by": "",
-    "verified_at": null,
+    "verified_by": "Atheris content team — five components and seventeen principles confirmed word-for-word against the specification's verbatim statement of the framework (Part D §D.2). COSO's own publication is the primary source; re-confirm against it on the next pack revision.",
+    "verified_at": "2026-08-14",
     "changelog": "Initial pack. Five components and the seventeen principles, seeded verbatim per the build specification. This framework is the backbone of the FRC ICFR module and of the SOX 404 mapping.",
     "framework": {
         "code": "COSO-IC-2013",

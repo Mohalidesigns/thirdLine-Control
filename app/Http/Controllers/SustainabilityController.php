@@ -183,7 +183,7 @@ class SustainabilityController extends Controller
                 ]),
             'entities' => Entity::query()->orderBy('legal_name')->get(['id', 'legal_name', 'fiscal_year_end']),
             'regulators' => Regulator::query()->orderBy('code')->get(['id', 'code', 'name']),
-            'owners' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'owners' => User::tenantPicker()->get(['id', 'name']),
             // The shipped schedule and adoption years are surfaced so an
             // officer can see exactly what a computed deadline came from —
             // and that it is unverified until they say otherwise (R10).
@@ -209,7 +209,7 @@ class SustainabilityController extends Controller
             'adoption_year' => ['nullable', 'integer', 'min:2020', 'max:2100'],
             'fiscal_year_start' => ['required', 'date'],
             'period_label' => ['required', 'string', 'max:40'],
-            'owner_id' => ['nullable', 'exists:users,id'],
+            'owner_id' => ['nullable', 'tenant_user'],
         ]);
 
         $filing = $this->sustainability->createFiling(

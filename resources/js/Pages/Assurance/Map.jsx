@@ -13,7 +13,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Gauge, Plus } from 'lucide-react';
 
 const COVERAGE_MARK = {
     full: { label: '●', title: 'Full coverage' },
@@ -54,16 +54,16 @@ export default function Map({ map = {}, stats = {}, filters = {}, periods = [], 
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-                <StatCard title="Assurance providers" value={stats.providers ?? 0} color="primary" />
-                <StatCard title="Subjects covered" value={stats.subjects_covered ?? 0} color="info" />
-                <StatCard
+                <StatCard icon={Gauge} title="Assurance providers" value={stats.providers ?? 0} color="primary" />
+                <StatCard icon={CheckCircle2} title="Subjects covered" value={stats.subjects_covered ?? 0} color="info" />
+                <StatCard icon={AlertTriangle}
                     title="Assurance gaps"
                     value={stats.gaps ?? 0}
                     subtitle="Significant risks with no independent assurance"
                     color="danger"
                     prominent={(stats.gaps ?? 0) > 0}
                 />
-                <StatCard
+                <StatCard icon={AlertTriangle}
                     title="Duplicated coverage"
                     value={stats.duplication ?? 0}
                     subtitle={`${stats.stale ?? 0} out-of-date activit${(stats.stale ?? 0) === 1 ? 'y' : 'ies'}`}

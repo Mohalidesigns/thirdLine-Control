@@ -14,7 +14,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatNumber } from '@/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { BadgeCheck, CheckCircle2, CircleSlash, Plus } from 'lucide-react';
 
 export default function Ghg({
     points,
@@ -145,25 +145,25 @@ export default function Ghg({
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-                <StatCard
+                <StatCard icon={BadgeCheck}
                     title="Verified total"
                     value={`${formatNumber(inventory.verified_total ?? 0)} tCO2e`}
                     subtitle="Reportable"
                     color="success"
                 />
-                <StatCard
+                <StatCard icon={CircleSlash}
                     title="Unverified"
                     value={`${formatNumber(inventory.unverified_total ?? 0)} tCO2e`}
                     subtitle="Excluded from a filing until verified"
                     color="warning"
                 />
-                <StatCard
+                <StatCard icon={CheckCircle2}
                     title="Assurable figures"
                     value={`${inventory.assurable ?? 0}/${inventory.total_points ?? 0}`}
                     subtitle="Complete lineage"
                     color="info"
                 />
-                <StatCard
+                <StatCard icon={CircleSlash}
                     title="Scope 3 deferred"
                     value={inventory.scopes?.['3']?.deferred_points ?? 0}
                     subtitle="Under the transition reliefs"

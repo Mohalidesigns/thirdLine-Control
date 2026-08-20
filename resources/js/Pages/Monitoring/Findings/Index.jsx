@@ -13,6 +13,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime } from '@/utils';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { AlertCircle, CheckCircle2, CircleSlash, ShieldAlert } from 'lucide-react';
 
 const SEVERITY_CLASSES = {
     Critical: 'badge-critical',
@@ -55,10 +56,10 @@ export default function Index({ findings, filters = {}, statuses = [], severitie
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <StatCard title="Open" value={stats.open ?? 0} color="warning" />
-                <StatCard title="Critical open" value={stats.critical ?? 0} color="danger" prominent={(stats.critical ?? 0) > 0} />
-                <StatCard title="Confirmed" value={stats.confirmed ?? 0} color="primary" />
-                <StatCard title="False positives" value={stats.false_positives ?? 0} color="info" />
+                <StatCard icon={AlertCircle} title="Open" value={stats.open ?? 0} color="warning" />
+                <StatCard icon={ShieldAlert} title="Critical open" value={stats.critical ?? 0} color="danger" prominent={(stats.critical ?? 0) > 0} />
+                <StatCard icon={CheckCircle2} title="Confirmed" value={stats.confirmed ?? 0} color="primary" />
+                <StatCard icon={CircleSlash} title="False positives" value={stats.false_positives ?? 0} color="info" />
             </div>
 
             <FilterBar

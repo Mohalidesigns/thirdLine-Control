@@ -10,6 +10,7 @@ use App\Models\IntegrationSyncLog;
 use App\Services\IntegrationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 /**
  * /api/v1 — the SecondLine side of the ThirdLine/NexusRisk contract
@@ -57,11 +58,20 @@ class IntegrationApiController extends Controller
             return response()->json(['message' => 'This tenant is configured as SecondLine-master; inbound control writes are disabled.'], 409);
         }
 
+        // validate() returns only the keys named in the rules, so every
+        // control.* attribute must be listed or it is silently stripped
+        // before ingestControl() ever sees it (DEF-016).
         $validated = $request->validate([
             'external_ref' => ['required', 'string', 'max:255'],
             'last_approved_at' => ['nullable', 'date'],
             'control' => ['required', 'array'],
             'control.title' => ['required', 'string', 'max:255'],
+            'control.description' => ['nullable', 'string'],
+            'control.objective' => ['nullable', 'string'],
+            'control.type' => ['nullable', Rule::in(['Preventive', 'Detective', 'Corrective'])],
+            'control.nature' => ['nullable', Rule::in(['Manual', 'Automated', 'Hybrid', 'IT-Dependent Manual'])],
+            'control.frequency' => ['nullable', Rule::in(['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Semi-annual', 'Annual', 'Event-driven'])],
+            'control.is_key_control' => ['nullable', 'boolean'],
         ]);
 
         // Idempotency: a repeated delivery with the same key returns the prior result.

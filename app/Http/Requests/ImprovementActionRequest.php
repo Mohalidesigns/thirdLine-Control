@@ -24,7 +24,7 @@ class ImprovementActionRequest extends FormRequest
             'priority' => ['required', Rule::in(ImprovementAction::PRIORITIES)],
             'source_type' => ['required', Rule::in(ImprovementAction::SOURCES)],
             'source_id' => ['nullable', 'integer'],
-            'owner_id' => ['nullable', 'exists:users,id'],
+            'owner_id' => ['nullable', 'tenant_user'],
             'due_at' => ['nullable', 'date', 'after_or_equal:today'],
             'benefit_description' => ['nullable', 'string'],
             'effort_estimate' => ['nullable', 'string', 'max:100'],

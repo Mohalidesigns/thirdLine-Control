@@ -30,7 +30,7 @@ class VendorRequest extends FormRequest
             'relationship_end' => ['nullable', 'date', 'after_or_equal:relationship_start'],
             'annual_spend_minor' => ['nullable', 'integer', 'min:0'],
             'spend_currency' => ['required', Rule::in(Money::SUPPORTED)],
-            'owner_id' => ['nullable', 'exists:users,id'],
+            'owner_id' => ['nullable', 'tenant_user'],
             'regulator_notification_required' => ['nullable', 'boolean'],
             'notification_obligation_id' => ['nullable', 'exists:regulatory_obligations,id'],
             'data_access_classification' => ['required', Rule::in(Vendor::DATA_CLASSIFICATIONS)],

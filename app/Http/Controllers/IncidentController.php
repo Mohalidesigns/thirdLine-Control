@@ -77,7 +77,7 @@ class IncidentController extends Controller
             'severities' => Incident::SEVERITIES,
             'entities' => OrganisationUnit::orderBy('name')->get(['id', 'name']),
             'processes' => BusinessProcess::orderBy('name')->get(['id', 'name']),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'controls' => Control::where('status', 'Active')->orderBy('control_ref')->get(['id', 'control_ref', 'title']),
             'risks' => Risk::orderBy('code')->get(['id', 'code', 'title']),
         ]);
@@ -110,7 +110,7 @@ class IncidentController extends Controller
         return Inertia::render('Incidents/Show', [
             'incident' => $incident,
             'links' => $this->linkage->neighbours('incident', $incident->id),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'controls' => Control::where('status', 'Active')->orderBy('control_ref')->get(['id', 'control_ref', 'title']),
             'actionTypes' => IncidentAction::TYPES,
             'can' => [
@@ -145,8 +145,8 @@ class IncidentController extends Controller
             'severity' => ['required', 'in:'.implode(',', Incident::SEVERITIES)],
             'incident_type' => ['required', 'in:'.implode(',', Incident::TYPES)],
             'basel_event_type' => ['nullable', 'in:'.implode(',', Incident::BASEL_EVENT_TYPES)],
-            'owner_id' => ['nullable', 'exists:users,id'],
-            'investigator_id' => ['nullable', 'exists:users,id'],
+            'owner_id' => ['nullable', 'tenant_user'],
+            'investigator_id' => ['nullable', 'tenant_user'],
             'entity_id' => ['nullable', 'exists:organisation_units,id'],
             'process_id' => ['nullable', 'exists:business_processes,id'],
             'near_miss' => ['nullable', 'boolean'],
@@ -229,7 +229,7 @@ class IncidentController extends Controller
             'action_type' => ['required', 'in:'.implode(',', IncidentAction::TYPES)],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:4000'],
-            'owner_id' => ['nullable', 'exists:users,id'],
+            'owner_id' => ['nullable', 'tenant_user'],
             'due_at' => ['nullable', 'date'],
             'is_mandatory' => ['nullable', 'boolean'],
         ]);

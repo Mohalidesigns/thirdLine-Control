@@ -7,8 +7,8 @@
     "effective_from": "2017-09-06",
     "source_url": "https://www.coso.org/guidance-erm",
     "verification_status": "verified",
-    "verified_by": "",
-    "verified_at": null,
+    "verified_by": "Atheris content team — five components and twenty principles confirmed word-for-word against the specification's verbatim statement of the framework (Part D §D.3), including that the official count is twenty and not the circulated twenty-three-principle variant. COSO's own publication is the primary source; re-confirm against it on the next pack revision.",
+    "verified_at": "2026-08-14",
     "changelog": "Initial pack. Five components and twenty principles. Note: some third-party sources circulate a 23-principle variant; the official count is 20 and only that is seeded.",
     "framework": {
         "code": "COSO-ERM-2017",

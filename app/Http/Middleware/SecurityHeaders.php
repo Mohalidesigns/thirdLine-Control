@@ -18,6 +18,12 @@ class SecurityHeaders
     {
         $response = $next($request);
 
+        // DEF-021: PHP advertises its exact version on every response via
+        // X-Powered-By unless expose_php is off — strip it here so the
+        // posture does not depend on php.ini being set correctly per host.
+        $response->headers->remove('X-Powered-By');
+        header_remove('X-Powered-By');
+
         $response->headers->set('X-Frame-Options', 'DENY');
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Referrer-Policy', 'same-origin');

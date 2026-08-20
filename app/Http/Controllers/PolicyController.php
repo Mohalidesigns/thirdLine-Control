@@ -43,7 +43,7 @@ class PolicyController extends Controller
             'statuses' => Policy::STATUSES,
             'types' => Policy::TYPES,
             'categories' => PolicyCategory::active()->orderBy('sort_order')->get(['id', 'name']),
-            'owners' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'owners' => User::tenantPicker()->get(['id', 'name']),
             'stats' => [
                 'published' => Policy::published()->count(),
                 'in_draft' => Policy::whereIn('status', ['Draft', 'Under Review', 'Under Revision'])->count(),
@@ -62,7 +62,7 @@ class PolicyController extends Controller
             'reviewFrequencies' => Policy::REVIEW_FREQUENCIES,
             'attestationFrequencies' => Policy::ATTESTATION_FREQUENCIES,
             'categories' => PolicyCategory::active()->orderBy('sort_order')->get(['id', 'name']),
-            'owners' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'owners' => User::tenantPicker()->get(['id', 'name']),
             'publishedPolicies' => Policy::published()->orderBy('policy_ref')->get(['id', 'policy_ref', 'title']),
         ]);
     }
@@ -100,7 +100,7 @@ class PolicyController extends Controller
                 'invited' => $campaign->responses()->count(),
                 'response_rate' => $campaign->responseRate(),
             ] : null,
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'can' => [
                 'update' => $request->user()->can('update', $policy),
                 'submit' => $request->user()->can('submit', $policy),
@@ -165,7 +165,7 @@ class PolicyController extends Controller
             'scope.all_staff' => ['nullable', 'boolean'],
             'scope.role_names' => ['nullable', 'array'],
             'scope.user_ids' => ['nullable', 'array'],
-            'scope.user_ids.*' => ['integer', 'exists:users,id'],
+            'scope.user_ids.*' => ['integer', 'tenant_user'],
         ]);
 
         $published = $this->policies->publish($policy, $request->user(), $validated['scope'] ?? null);

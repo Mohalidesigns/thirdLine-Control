@@ -14,7 +14,7 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Activity, AlertTriangle, FilePlus2, Plus } from 'lucide-react';
 
 const BAND_CLASSES = {
     Low: 'badge-low',
@@ -148,15 +148,15 @@ export default function Index({
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-                <StatCard title="Active risks" value={stats.total ?? 0} color="primary" />
-                <StatCard
+                <StatCard icon={Activity} title="Active risks" value={stats.total ?? 0} color="primary" />
+                <StatCard icon={AlertTriangle}
                     title="Outside appetite"
                     value={stats.breaching ?? 0}
                     color="danger"
                     prominent={(stats.breaching ?? 0) > 0}
                 />
-                <StatCard title="Emerging" value={stats.emerging ?? 0} color="warning" />
-                <StatCard title="No open treatment" value={stats.untreated ?? 0} color="info" />
+                <StatCard icon={FilePlus2} title="Emerging" value={stats.emerging ?? 0} color="warning" />
+                <StatCard icon={AlertTriangle} title="No open treatment" value={stats.untreated ?? 0} color="info" />
             </div>
 
             <FilterBar

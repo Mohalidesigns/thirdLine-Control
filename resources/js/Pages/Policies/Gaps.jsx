@@ -4,6 +4,7 @@ import ProgressBar from '@/Components/ProgressBar';
 import StatCard from '@/Components/StatCard';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { CheckCircle2, CircleSlash, Gauge } from 'lucide-react';
 
 export default function Gaps({ analysis = {}, frameworks = [], filters = {} }) {
     const columns = [
@@ -36,9 +37,9 @@ export default function Gaps({ analysis = {}, frameworks = [], filters = {} }) {
             />
 
             <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <StatCard title="Requirements" value={analysis.total_requirements ?? 0} color="primary" />
-                <StatCard title="Governed by a policy" value={analysis.governed ?? 0} color="success" />
-                <StatCard
+                <StatCard icon={Gauge} title="Requirements" value={analysis.total_requirements ?? 0} color="primary" />
+                <StatCard icon={CheckCircle2} title="Governed by a policy" value={analysis.governed ?? 0} color="success" />
+                <StatCard icon={CircleSlash}
                     title="Ungoverned"
                     value={(analysis.gaps ?? []).length}
                     color="danger"

@@ -6,6 +6,15 @@
             "runtimeExecutable": "php",
             "runtimeArgs": ["artisan", "serve", "--port=8090"],
             "port": 8090
+        },
+        {
+            "name": "secondline-e2e",
+            "runtimeExecutable": "sh",
+            "runtimeArgs": [
+                "-c",
+                "APP_ENV=e2e php artisan serve --host=127.0.0.1 --port=8123"
+            ],
+            "port": 8123
         }
     ]
 }

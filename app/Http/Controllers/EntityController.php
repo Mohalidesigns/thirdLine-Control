@@ -24,7 +24,7 @@ class EntityController extends Controller
             'tree' => $this->entities->tree(),
             'accessibleIds' => $request->user()->accessibleEntityIds(),
             'units' => OrganisationUnit::orderBy('name')->get(['id', 'name']),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'grants' => Entity::with(['grantedUsers:id,name'])->get(['id', 'legal_name'])
                 ->map(fn ($entity) => [
                     'id' => $entity->id,
@@ -60,7 +60,7 @@ class EntityController extends Controller
         $this->authorize('grantAccess', $entity);
 
         $data = $request->validate([
-            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'user_id' => ['required', 'integer', 'tenant_user'],
             'note' => ['nullable', 'string', 'max:255'],
         ]);
 

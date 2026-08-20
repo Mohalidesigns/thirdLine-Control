@@ -4,6 +4,7 @@ import ProgressBar from '@/Components/ProgressBar';
 import StatCard from '@/Components/StatCard';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
+import { Banknote, CircleSlash, Gauge } from 'lucide-react';
 
 /**
  * Concentration by vendor, by service and by jurisdiction. Spend that
@@ -26,15 +27,15 @@ export default function Concentration({ concentration = {}, filters = {}, entiti
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-                <StatCard title={`Total spend (${base})`} value={total?.formatted ?? '—'} color="primary" />
-                <StatCard title="Third parties counted" value={concentration.vendor_count ?? 0} color="info" />
-                <StatCard
+                <StatCard icon={Banknote} title={`Total spend (${base})`} value={total?.formatted ?? '—'} color="primary" />
+                <StatCard icon={Gauge} title="Third parties counted" value={concentration.vendor_count ?? 0} color="info" />
+                <StatCard icon={Gauge}
                     title={`Above ${threshold}% of spend`}
                     value={breaches.length}
                     color="danger"
                     prominent={breaches.length > 0}
                 />
-                <StatCard
+                <StatCard icon={CircleSlash} tone="slate"
                     title="Unconverted"
                     value={unconverted.length}
                     subtitle={unconverted.length > 0 ? 'No reference rate — excluded from totals' : 'All spend converted'}

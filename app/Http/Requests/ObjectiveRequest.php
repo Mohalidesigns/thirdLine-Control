@@ -31,7 +31,7 @@ class ObjectiveRequest extends FormRequest
             ],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:4000'],
-            'owner_id' => ['nullable', 'exists:users,id'],
+            'owner_id' => ['nullable', 'tenant_user'],
             'period' => ['nullable', 'string', 'max:40'],
             'start_date' => ['nullable', 'date'],
             'target_date' => ['nullable', 'date', 'after_or_equal:start_date'],

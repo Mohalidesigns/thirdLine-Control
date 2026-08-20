@@ -1,4 +1,4 @@
-import { TONES } from '@/utils/tones';
+import { TONES, toneIcon } from '@/utils/tones';
 import { Link } from '@inertiajs/react';
 import { isValidElement } from 'react';
 
@@ -29,26 +29,27 @@ export default function StatCard({ title, value, subtitle, icon, tone, color, hr
         ? palette.value
         : 'text-[var(--color-text-primary)]';
 
-    const tile = icon && (
-        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${palette.tile}`}>
-            {isValidElement(icon)
-                ? <span className={palette.icon}>{icon}</span>
-                : (() => { const Icon = icon; return <Icon className={`h-5 w-5 ${palette.icon}`} strokeWidth={1.8} aria-hidden="true" />; })()}
+    // Every card carries a tile — a call site that names no icon falls
+    // back to the tone's default rather than rendering bare. It floats in
+    // the top-right corner so the title and value keep the full card width
+    // even in dense six-up grids; only the title's first lines dodge it.
+    const resolvedIcon = icon ?? toneIcon(resolvedTone);
+    const tile = (
+        <div className={`absolute end-4 top-4 flex h-11 w-11 items-center justify-center rounded-xl ${palette.tile}`}>
+            {isValidElement(resolvedIcon)
+                ? <span className={palette.icon}>{resolvedIcon}</span>
+                : (() => { const Icon = resolvedIcon; return <Icon className={`h-5 w-5 ${palette.icon}`} strokeWidth={1.8} aria-hidden="true" />; })()}
         </div>
     );
 
     const content = (
-        <div className={`stat-card h-full ${prominent ? 'border-l-4 border-l-[var(--color-error)]' : ''} ${href ? 'cursor-pointer' : ''}`}>
-            <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
-                        {title}
-                    </p>
-                    <p className={`mt-2 text-3xl font-bold ${valueClass}`}>{value}</p>
-                    {subtitle && <p className="mt-1 text-xs text-[var(--color-text-secondary)]">{subtitle}</p>}
-                </div>
-                {tile}
-            </div>
+        <div className={`stat-card relative h-full ${prominent ? 'border-l-4 border-l-[var(--color-error)]' : ''} ${href ? 'cursor-pointer' : ''}`}>
+            {tile}
+            <p className="min-h-11 pe-12 text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
+                {title}
+            </p>
+            <p className={`mt-2 text-3xl font-bold ${valueClass}`}>{value}</p>
+            {subtitle && <p className="mt-1 text-xs text-[var(--color-text-secondary)]">{subtitle}</p>}
         </div>
     );
 

@@ -12,6 +12,7 @@ import VerificationBadge from '@/Components/VerificationBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { CalendarClock, CircleSlash, Gauge } from 'lucide-react';
 
 export default function Index({
     topics = [],
@@ -47,25 +48,25 @@ export default function Index({
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-                <StatCard
+                <StatCard icon={Gauge}
                     title="Topics in register"
                     value={stats.topics ?? 0}
                     subtitle={`${stats.unverified_topics ?? 0} not yet verified against the standard`}
                     color="primary"
                 />
-                <StatCard
+                <StatCard icon={Gauge}
                     title="Material this period"
                     value={stats.material_topics ?? 0}
                     subtitle={`${stats.awaiting_approval ?? 0} awaiting a second person`}
                     color="info"
                 />
-                <StatCard
+                <StatCard icon={CircleSlash}
                     title="Figures unverified"
                     value={stats.unverified_figures ?? 0}
                     subtitle={`${stats.lineage_gaps ?? 0} with a lineage gap`}
                     color="warning"
                 />
-                <StatCard
+                <StatCard icon={CalendarClock}
                     title="Filing stages late"
                     value={stats.stages_late ?? 0}
                     subtitle={`${stats.stages_due_90 ?? 0} due within 90 days`}

@@ -34,7 +34,7 @@ class ReportScheduleController extends Controller
             'deliveryMethods' => ReportSchedule::DELIVERY_METHODS,
             'formats' => $this->designer->formats(),
             'roles' => Role::orderBy('name')->pluck('name'),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'presets' => CronSchedule::PRESETS,
         ]);
     }

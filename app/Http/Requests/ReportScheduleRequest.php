@@ -27,7 +27,7 @@ class ReportScheduleRequest extends FormRequest
             'output_format' => ['required', Rule::in(ReportDefinition::FORMATS)],
             'recipients' => ['nullable', 'array'],
             'recipients.user_ids' => ['nullable', 'array'],
-            'recipients.user_ids.*' => ['integer', 'exists:users,id'],
+            'recipients.user_ids.*' => ['integer', 'tenant_user'],
             'recipients.role_names' => ['nullable', 'array'],
             'recipients.role_names.*' => ['string', 'exists:roles,name'],
             'delivery_method' => ['required', Rule::in(ReportSchedule::DELIVERY_METHODS)],

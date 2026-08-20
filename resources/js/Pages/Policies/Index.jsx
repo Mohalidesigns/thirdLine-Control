@@ -7,6 +7,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { CalendarClock, CheckCircle2, Clock, FilePlus2 } from 'lucide-react';
 
 export default function Index({
     policies,
@@ -109,10 +110,10 @@ export default function Index({
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-                <StatCard title="Published" value={stats.published ?? 0} color="success" />
-                <StatCard title="In draft" value={stats.in_draft ?? 0} color="info" />
-                <StatCard title="Awaiting approval" value={stats.awaiting_approval ?? 0} color="warning" />
-                <StatCard
+                <StatCard icon={CheckCircle2} title="Published" value={stats.published ?? 0} color="success" />
+                <StatCard icon={FilePlus2} title="In draft" value={stats.in_draft ?? 0} color="info" />
+                <StatCard icon={Clock} title="Awaiting approval" value={stats.awaiting_approval ?? 0} color="warning" />
+                <StatCard icon={CalendarClock}
                     title="Review due"
                     value={stats.review_due ?? 0}
                     color="danger"

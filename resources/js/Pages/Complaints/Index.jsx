@@ -10,6 +10,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime } from '@/utils';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import { AlertCircle, AlertTriangle, CircleSlash, Landmark } from 'lucide-react';
 
 export default function Index({
     complaints,
@@ -120,15 +121,15 @@ export default function Index({
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-                <StatCard title="Open" value={stats.open ?? 0} color="primary" />
-                <StatCard
+                <StatCard icon={AlertCircle} title="Open" value={stats.open ?? 0} color="primary" />
+                <StatCard icon={CircleSlash}
                     title="Unacknowledged"
                     value={stats.unacknowledged ?? 0}
                     color="warning"
                     prominent={(stats.unacknowledged ?? 0) > 0}
                 />
-                <StatCard title="SLA breached" value={stats.breached ?? 0} color="danger" />
-                <StatCard title="With the regulator" value={stats.escalated ?? 0} color="info" />
+                <StatCard icon={AlertTriangle} title="SLA breached" value={stats.breached ?? 0} color="danger" />
+                <StatCard icon={Landmark} title="With the regulator" value={stats.escalated ?? 0} color="info" />
             </div>
 
             {Object.keys(exposure).length > 0 && (

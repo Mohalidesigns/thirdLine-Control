@@ -50,7 +50,7 @@ class CaseController extends Controller
             'severities' => InvestigationCase::SEVERITIES,
             'confidentialityLevels' => InvestigationCase::CONFIDENTIALITY_LEVELS,
             'entities' => OrganisationUnit::orderBy('name')->get(['id', 'name']),
-            'investigators' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'investigators' => User::tenantPicker()->get(['id', 'name']),
             // Counts are of cases the viewer may see — never of the register.
             'stats' => [
                 'open' => InvestigationCase::open()->count(),
@@ -97,7 +97,7 @@ class CaseController extends Controller
             'notes' => $notes,
             'links' => $this->linkage->neighbours('case', $case->id),
             'allowlist' => User::whereIn('id', $case->access_user_ids ?? [])->get(['id', 'name', 'email']),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'canSeePrivileged' => $canSeePrivileged,
             'can' => [
                 'update' => $request->user()->can('update', $case),
@@ -117,7 +117,7 @@ class CaseController extends Controller
         $validated = $request->validate([
             'severity' => ['required', 'in:'.implode(',', InvestigationCase::SEVERITIES)],
             'confidentiality' => ['required', 'in:'.implode(',', InvestigationCase::CONFIDENTIALITY_LEVELS)],
-            'lead_investigator_id' => ['nullable', 'exists:users,id'],
+            'lead_investigator_id' => ['nullable', 'tenant_user'],
             'entity_id' => ['nullable', 'exists:organisation_units,id'],
             'subject_persons' => ['nullable', 'array', 'max:20'],
             'subject_persons.*.name' => ['required', 'string', 'max:255'],
@@ -193,7 +193,7 @@ class CaseController extends Controller
     {
         $this->authorize('manageAccess', $case);
 
-        $validated = $request->validate(['user_id' => ['required', 'exists:users,id']]);
+        $validated = $request->validate(['user_id' => ['required', 'tenant_user']]);
 
         $this->cases->grantAccess($case, User::findOrFail($validated['user_id']), $request->user());
 
@@ -204,7 +204,7 @@ class CaseController extends Controller
     {
         $this->authorize('manageAccess', $case);
 
-        $validated = $request->validate(['user_id' => ['required', 'exists:users,id']]);
+        $validated = $request->validate(['user_id' => ['required', 'tenant_user']]);
 
         $this->cases->revokeAccess($case, User::findOrFail($validated['user_id']), $request->user());
 

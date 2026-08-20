@@ -40,7 +40,7 @@ class MetricRequest extends FormRequest
             'currency' => ['nullable', Rule::in(Money::SUPPORTED), 'required_if:data_type,currency'],
             'direction' => ['required', Rule::in(Metric::DIRECTIONS)],
             'frequency' => ['required', Rule::in(Metric::FREQUENCIES)],
-            'owner_id' => ['nullable', 'exists:users,id'],
+            'owner_id' => ['nullable', 'tenant_user'],
             'source' => ['required', Rule::in(Metric::SOURCES)],
             'calculation_expression' => ['nullable', 'string', 'max:1000', 'required_if:source,calculated'],
             'entity_id' => ['nullable', 'exists:organisation_units,id'],

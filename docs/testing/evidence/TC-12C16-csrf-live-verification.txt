@@ -1,0 +1,11 @@
+TC-12.C.16 — CSRF enforcement verified against the live e2e application
+APP_ENV=e2e (CSRF active), http://127.0.0.1:8123, 2026-08-14T14:31:30Z
+
+POST /controls                 no CSRF token -> HTTP 419
+POST /login                    no CSRF token -> HTTP 419
+POST /exceptions               no CSRF token -> HTTP 419
+POST /webhooks/whatsapp        no CSRF token -> HTTP 403
+POST /webhooks/sms/receipts    no CSRF token -> HTTP 403
+
+419 = CSRF token missing/invalid, request rejected.
+403 on webhooks/* = CSRF-exempt by design, rejected instead by the route's own signature check.

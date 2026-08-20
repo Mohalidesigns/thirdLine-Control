@@ -8,9 +8,10 @@ import RichTextEditor from '@/Components/RichTextEditor';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
+import useUnsavedChanges from '@/hooks/useUnsavedChanges';
 
 export default function Create({ controls = [], users = [], units = [], severities = [] }) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, isDirty } = useForm({
         title: '',
         description: '',
         description_rich: null,
@@ -23,6 +24,8 @@ export default function Create({ controls = [], users = [], units = [], severiti
         unit_id: '',
         target_closure_date: '',
     });
+
+    useUnsavedChanges(isDirty, !processing);
 
     const onControlChange = (controlId) => {
         const control = controls.find((c) => String(c.id) === String(controlId));

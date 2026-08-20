@@ -6,6 +6,7 @@ import VerificationBadge from '@/Components/VerificationBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
+import { CheckCircle2, CircleSlash, Gauge } from 'lucide-react';
 
 function CoverageDot({ coverage }) {
     const state = coverage.effective > 0 ? 'effective' : coverage.mapped > 0 ? 'mapped' : 'unmapped';
@@ -165,10 +166,10 @@ export default function Show({ framework, tree = [], coverage = {}, can = {} }) 
             )}
 
             <div className="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
-                <StatCard title="Testable requirements" value={coverage.testable_requirements ?? 0} color="primary" />
-                <StatCard title="Mapped" value={coverage.mapped_requirements ?? 0} color="info" subtitle={`${totals.mapped}% of testable`} />
-                <StatCard title="Effective" value={coverage.effective_requirements ?? 0} color="success" subtitle={`${totals.effective}% of testable`} />
-                <StatCard title="Unmapped" value={coverage.unmapped_requirements ?? 0} color="danger" prominent={(coverage.unmapped_requirements ?? 0) > 0} />
+                <StatCard icon={Gauge} title="Testable requirements" value={coverage.testable_requirements ?? 0} color="primary" />
+                <StatCard icon={CheckCircle2} title="Mapped" value={coverage.mapped_requirements ?? 0} color="info" subtitle={`${totals.mapped}% of testable`} />
+                <StatCard icon={CheckCircle2} title="Effective" value={coverage.effective_requirements ?? 0} color="success" subtitle={`${totals.effective}% of testable`} />
+                <StatCard icon={CircleSlash} title="Unmapped" value={coverage.unmapped_requirements ?? 0} color="danger" prominent={(coverage.unmapped_requirements ?? 0) > 0} />
             </div>
 
             <div className="mb-6 card">

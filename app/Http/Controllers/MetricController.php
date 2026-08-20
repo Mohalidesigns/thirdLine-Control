@@ -58,7 +58,7 @@ class MetricController extends Controller
             'filters' => $request->only(['metric_type', 'category_id', 'owner_id', 'breached_only', 'search']),
             'types' => Metric::TYPES,
             'categories' => RiskCategory::query()->orderBy('sort_order')->get(['id', 'code', 'name']),
-            'owners' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'owners' => User::tenantPicker()->get(['id', 'name']),
             'entities' => OrganisationUnit::query()->orderBy('name')->get(['id', 'name']),
             'levels' => MetricThreshold::LEVELS,
             'operators' => MetricThreshold::OPERATORS,

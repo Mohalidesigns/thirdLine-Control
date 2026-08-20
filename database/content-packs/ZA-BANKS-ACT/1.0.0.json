@@ -1,0 +1,114 @@
+{
+    "code": "ZA-BANKS-ACT",
+    "name": "Banks Act 94 of 1990 and the Regulations relating to Banks",
+    "version": "1.0.0",
+    "jurisdiction": "ZA",
+    "issuing_body": "Prudential Authority (South African Reserve Bank)",
+    "effective_from": "1991-02-01",
+    "source_url": "https://www.resbank.co.za",
+    "verification_status": "draft",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "This pack ships as DRAFT — requirement shells only, no obligations. Nothing in it has been verified against the Act or the Regulations relating to Banks, and its records are excluded from generated regulatory submissions. Section numbers, the BA-return schedule and the South African Basel III/IV position are all unconfirmed and are deliberately not seeded; the BIS RCAP profile is the reference for the last of these. Verify before selling or relying on this content in-market (rule R10).",
+    "regulator": {
+        "code": "ZA-PA",
+        "name": "Prudential Authority (South African Reserve Bank)",
+        "jurisdiction": "ZA",
+        "sector": [
+            "banking"
+        ],
+        "website": "https://www.resbank.co.za",
+        "is_active": true
+    },
+    "framework": {
+        "code": "ZA-BANKS-ACT",
+        "name": "Banks Act 94 of 1990 and Regulations relating to Banks",
+        "issuing_body": "Prudential Authority (South African Reserve Bank)",
+        "jurisdiction": "ZA",
+        "version": "1.0.0",
+        "category": "sector",
+        "effective_from": "1991-02-01",
+        "is_certifiable": false,
+        "source_url": "https://www.resbank.co.za",
+        "verification_status": "draft",
+        "description": "The prudential baseline for South African banks: registration and permissible activities, governance of a registered bank and its controlling company, capital adequacy and liquidity, large exposures, and supervisory returns to the Prudential Authority."
+    },
+    "requirements": [
+        {
+            "ref_code": "REG",
+            "title": "Registration, permissible activities and controlling companies",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "GOV",
+            "title": "Governance of a registered bank — board, directors and committees",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft",
+            "guidance": "Read with King IV, which applies on an apply-and-explain basis to banks alongside the Act."
+        },
+        {
+            "ref_code": "AUD",
+            "title": "Audit committee and internal audit",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "CAP",
+            "title": "Capital adequacy and leverage",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "draft",
+            "guidance": "The South African Basel III/IV implementation position is unconfirmed; confirm against the BIS RCAP profile before any threshold is seeded."
+        },
+        {
+            "ref_code": "LIQ",
+            "title": "Liquidity requirements",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Monthly",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "LEXP",
+            "title": "Large exposures and connected lending",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Quarterly",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "RET",
+            "title": "Supervisory returns to the Prudential Authority",
+            "level": 1,
+            "sort_order": 7,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Monthly",
+            "verification_status": "draft",
+            "guidance": "The BA-return schedule and its cadence are unconfirmed and no obligations are seeded from them."
+        }
+    ],
+    "obligations": [],
+    "controls": [],
+    "mappings": []
+}

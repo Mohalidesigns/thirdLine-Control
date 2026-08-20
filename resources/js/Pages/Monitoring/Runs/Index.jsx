@@ -7,6 +7,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime, formatNumber } from '@/utils';
 import { Head, Link, router } from '@inertiajs/react';
+import { Gauge, RefreshCw, XCircle } from 'lucide-react';
 
 export default function Index({ runs, filters = {}, statuses = [], rules = [], stats = {} }) {
     const columns = [
@@ -88,9 +89,9 @@ export default function Index({ runs, filters = {}, statuses = [], rules = [], s
             />
 
             <div className="mb-6 grid grid-cols-3 gap-4">
-                <StatCard title="Runs today" value={stats.today ?? 0} color="primary" />
-                <StatCard title="With findings" value={stats.with_findings ?? 0} color="warning" />
-                <StatCard title="Failed to run" value={stats.failed ?? 0} color="danger" prominent={(stats.failed ?? 0) > 0} />
+                <StatCard icon={RefreshCw} title="Runs today" value={stats.today ?? 0} color="primary" />
+                <StatCard icon={Gauge} title="With findings" value={stats.with_findings ?? 0} color="warning" />
+                <StatCard icon={XCircle} title="Failed to run" value={stats.failed ?? 0} color="danger" prominent={(stats.failed ?? 0) > 0} />
             </div>
 
             <FilterBar

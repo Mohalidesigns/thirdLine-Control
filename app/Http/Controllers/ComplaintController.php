@@ -50,7 +50,7 @@ class ComplaintController extends Controller
             'statuses' => Complaint::STATUSES,
             'channels' => Complaint::CHANNELS,
             'categories' => ComplaintCategory::ofKind('category')->active()->orderBy('sort_order')->get(['id', 'name']),
-            'handlers' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'handlers' => User::tenantPicker()->get(['id', 'name']),
             'stats' => [
                 'open' => Complaint::open()->count(),
                 'unacknowledged' => Complaint::unacknowledged()->count(),
@@ -99,7 +99,7 @@ class ComplaintController extends Controller
             ]),
             'resolutionDays' => $this->complaints->resolutionDays($complaint->tenant_id),
             'rootCauses' => ComplaintCategory::ofKind('root_cause')->active()->orderBy('sort_order')->get(['id', 'name']),
-            'handlers' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'handlers' => User::tenantPicker()->get(['id', 'name']),
             'controls' => Control::where('status', 'Active')->orderBy('control_ref')->get(['id', 'control_ref', 'title']),
             'incidents' => Incident::open()->orderByDesc('id')->limit(50)->get(['id', 'incident_ref', 'title']),
             'can' => [
@@ -141,7 +141,7 @@ class ComplaintController extends Controller
     {
         $this->authorize('update', $complaint);
 
-        $validated = $request->validate(['assigned_to' => ['required', 'exists:users,id']]);
+        $validated = $request->validate(['assigned_to' => ['required', 'tenant_user']]);
 
         $this->complaints->assign($complaint, User::findOrFail($validated['assigned_to']), $request->user());
 

@@ -14,7 +14,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime } from '@/utils';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { CheckCircle2, Clock, Gauge, Plus, XCircle } from 'lucide-react';
 
 const HEALTH_CLASSES = {
     Healthy: 'badge-low',
@@ -112,10 +112,10 @@ export default function Index({
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <StatCard title="Registered" value={stats.total ?? 0} color="primary" />
-                <StatCard title="Healthy" value={stats.healthy ?? 0} color="success" />
-                <StatCard title="Failed" value={stats.failed ?? 0} color="danger" prominent={(stats.failed ?? 0) > 0} />
-                <StatCard title="Awaiting approval" value={stats.awaiting_approval ?? 0} color="warning" />
+                <StatCard icon={Gauge} title="Registered" value={stats.total ?? 0} color="primary" />
+                <StatCard icon={CheckCircle2} title="Healthy" value={stats.healthy ?? 0} color="success" />
+                <StatCard icon={XCircle} title="Failed" value={stats.failed ?? 0} color="danger" prominent={(stats.failed ?? 0) > 0} />
+                <StatCard icon={Clock} title="Awaiting approval" value={stats.awaiting_approval ?? 0} color="warning" />
             </div>
 
             <FilterBar

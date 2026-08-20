@@ -58,7 +58,7 @@ class DocumentController extends Controller
                 'manageFolders' => $user->can('manage document-folders'),
             ],
             'roles' => Role::orderBy('name')->get(['id', 'name']),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
         ]);
     }
 
@@ -98,7 +98,7 @@ class DocumentController extends Controller
             ],
             'documentTypes' => Document::TYPES,
             'roles' => Role::orderBy('name')->get(['id', 'name']),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'folderTree' => $this->documentService->folderTree(),
         ]);
     }
