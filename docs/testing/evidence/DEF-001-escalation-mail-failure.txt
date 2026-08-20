@@ -1,0 +1,20 @@
+=== ESCALATION EVENTS (source: escalation_events) ===
+id=1 tier=1 channel=both delivery_status=Sent exception_id=NULL test_instance_id=NULL risk_id=4 metric_id=NULL recipient=2
+   summary: RSK-004 outside risk appetite — score 12 vs tolerance 9
+id=2 tier=1 channel=both delivery_status=Sent exception_id=NULL test_instance_id=NULL risk_id=NULL metric_id=1 recipient=2
+   summary: KRI-FRAUD Red breach — Attempted internal fraud cases
+id=3 tier=1 channel=both delivery_status=Sent exception_id=NULL test_instance_id=NULL risk_id=NULL metric_id=3 recipient=2
+   summary: KRI-DOWNTIME Red breach — Core banking unplanned downtime
+
+=== FAILED JOBS (source: failed_jobs) ===
+failed_at=2026-08-14 10:57:31  job=App\Notifications\EscalationNotification
+  Illuminate\Routing\Exceptions\UrlGenerationException: Missing required parameter for [Route: test-instances.show] [URI: test-instances/{test_instance}] [Missing parameter: test_instance]. in /Users/mac/Documents/devs/laravel/atheris-control/vendor/laravel/framework/src/Illuminate/Routing/Exceptions/UrlGenerationException.php:35
+failed_at=2026-08-14 10:57:31  job=App\Notifications\EscalationNotification
+  Illuminate\Routing\Exceptions\UrlGenerationException: Missing required parameter for [Route: test-instances.show] [URI: test-instances/{test_instance}] [Missing parameter: test_instance]. in /Users/mac/Documents/devs/laravel/atheris-control/vendor/laravel/framework/src/Illuminate/Routing/Exceptions/UrlGenerationException.php:35
+failed_at=2026-08-14 10:57:31  job=App\Notifications\EscalationNotification
+  Illuminate\Routing\Exceptions\UrlGenerationException: Missing required parameter for [Route: test-instances.show] [URI: test-instances/{test_instance}] [Missing parameter: test_instance]. in /Users/mac/Documents/devs/laravel/atheris-control/vendor/laravel/framework/src/Illuminate/Routing/Exceptions/UrlGenerationException.php:35
+
+=== IN-APP DELIVERY (source: notifications, type=escalation) ===
+notifiable_id=2  summary=KRI-FRAUD Red breach — Attempted internal fraud cases
+notifiable_id=2  summary=RSK-004 outside risk appetite — score 12 vs tolerance 9
+notifiable_id=2  summary=KRI-DOWNTIME Red breach — Core banking unplanned downtime

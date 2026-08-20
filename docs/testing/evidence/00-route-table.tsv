@@ -1,0 +1,502 @@
+GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS	/	-	Illuminate\\Routing\\RedirectController	
+GET|HEAD	_inertia/devtools/entries	-	Inertia\\DevTools\\Http\\EntriesController@index	Inertia\\DevTools\\Http\\PreventPreviousUrlTracking + Inertia\\DevTools\\Http\\PreserveFlashData + Inertia\\DevTools\\Http\\Authorize
+GET|HEAD	_inertia/devtools/entries/{id}	-	Inertia\\DevTools\\Http\\EntriesController@show	Inertia\\DevTools\\Http\\PreventPreviousUrlTracking + Inertia\\DevTools\\Http\\PreserveFlashData + Inertia\\DevTools\\Http\\Authorize
+GET|HEAD	admin/ai	admin.ai.index	App\\Http\\Controllers\\Admin\\AiGovernanceController@index	role:System Administrator|Control Function Head + feature:ai-governance
+PUT	admin/ai/budget	admin.ai.budget.update	App\\Http\\Controllers\\Admin\\AiGovernanceController@updateBudget	role:System Administrator|Control Function Head + feature:ai-governance + permission:manage ai
+PUT	admin/ai/capabilities	admin.ai.capabilities.update	App\\Http\\Controllers\\Admin\\AiGovernanceController@updateCapability	role:System Administrator|Control Function Head + feature:ai-governance + permission:manage ai
+GET|HEAD	admin/ai/log	admin.ai.log	App\\Http\\Controllers\\Admin\\AiGovernanceController@log	role:System Administrator|Control Function Head + feature:ai-governance + permission:view ai-log
+GET|HEAD	admin/ai/log/export	admin.ai.log.export	App\\Http\\Controllers\\Admin\\AiGovernanceController@exportLog	role:System Administrator|Control Function Head + feature:ai-governance + permission:export ai-log
+GET|HEAD	admin/ai/prompts	admin.ai.prompts	App\\Http\\Controllers\\Admin\\AiGovernanceController@prompts	role:System Administrator|Control Function Head + feature:ai-governance + permission:manage ai
+POST	admin/ai/prompts	admin.ai.prompts.store	App\\Http\\Controllers\\Admin\\AiGovernanceController@storePrompt	role:System Administrator|Control Function Head + feature:ai-governance + permission:manage ai
+POST	admin/ai/prompts/{prompt}/activate	admin.ai.prompts.activate	App\\Http\\Controllers\\Admin\\AiGovernanceController@activatePrompt	role:System Administrator|Control Function Head + feature:ai-governance + permission:manage ai
+GET|HEAD	admin/audit-log	admin.audit-log	App\\Http\\Controllers\\AuditLogController@index	role:System Administrator|Control Function Head + permission:view audit log + feature:audit-log-ui
+GET|HEAD	admin/audit-log/export	admin.audit-log.export	App\\Http\\Controllers\\AuditLogController@export	role:System Administrator|Control Function Head + permission:view audit log + feature:audit-log-ui + permission:export audit log
+GET|HEAD	admin/branding	admin.branding	App\\Http\\Controllers\\TenantBrandingController@edit	role:System Administrator|Control Function Head + permission:manage settings + feature:branding
+POST	admin/branding	admin.branding.update	App\\Http\\Controllers\\TenantBrandingController@update	role:System Administrator|Control Function Head + permission:manage settings + feature:branding
+GET|HEAD	admin/content-packs	admin.content-packs	App\\Http\\Controllers\\ContentPackController@index	role:System Administrator|Control Function Head + feature:content-packs
+POST	admin/content-packs/install	admin.content-packs.install	App\\Http\\Controllers\\ContentPackController@install	role:System Administrator|Control Function Head + feature:content-packs + permission:install content-packs
+POST	admin/content-packs/preview	admin.content-packs.preview	App\\Http\\Controllers\\ContentPackController@preview	role:System Administrator|Control Function Head + feature:content-packs + permission:install content-packs
+GET|HEAD	admin/data-sources	admin.data-sources.index	App\\Http\\Controllers\\DataSourceController@index	role:System Administrator|Control Function Head + feature:data-sources + permission:view data-sources
+POST	admin/data-sources	admin.data-sources.store	App\\Http\\Controllers\\DataSourceController@store	role:System Administrator|Control Function Head + feature:data-sources + permission:view data-sources
+GET|HEAD	admin/data-sources/{data_source}	admin.data-sources.show	App\\Http\\Controllers\\DataSourceController@show	role:System Administrator|Control Function Head + feature:data-sources + permission:view data-sources
+PUT	admin/data-sources/{data_source}	admin.data-sources.update	App\\Http\\Controllers\\DataSourceController@update	role:System Administrator|Control Function Head + feature:data-sources + permission:view data-sources
+POST	admin/data-sources/{data_source}/approve	admin.data-sources.approve	App\\Http\\Controllers\\DataSourceController@approve	role:System Administrator|Control Function Head + feature:data-sources + permission:view data-sources
+POST	admin/data-sources/{data_source}/datasets	admin.data-sources.datasets.store	App\\Http\\Controllers\\DataSourceController@storeDataset	role:System Administrator|Control Function Head + feature:data-sources + permission:view data-sources
+PUT	admin/data-sources/{data_source}/datasets/{dataset}	admin.data-sources.datasets.update	App\\Http\\Controllers\\DataSourceController@updateDataset	role:System Administrator|Control Function Head + feature:data-sources + permission:view data-sources
+POST	admin/data-sources/{data_source}/datasets/{dataset}/authorise-retention	admin.data-sources.datasets.authorise-retention	App\\Http\\Controllers\\DataSourceController@authoriseRetention	role:System Administrator|Control Function Head + feature:data-sources + permission:view data-sources
+DELETE	admin/data-sources/{data_source}/datasets/{dataset}/authorise-retention	admin.data-sources.datasets.revoke-retention	App\\Http\\Controllers\\DataSourceController@revokeRetention	role:System Administrator|Control Function Head + feature:data-sources + permission:view data-sources
+POST	admin/data-sources/{data_source}/datasets/{dataset}/capture	admin.data-sources.datasets.capture	App\\Http\\Controllers\\DataSourceController@capture	role:System Administrator|Control Function Head + feature:data-sources + permission:view data-sources + throttle:20,1
+POST	admin/data-sources/{data_source}/resume	admin.data-sources.resume	App\\Http\\Controllers\\DataSourceController@resume	role:System Administrator|Control Function Head + feature:data-sources + permission:view data-sources
+POST	admin/data-sources/{data_source}/test	admin.data-sources.test	App\\Http\\Controllers\\DataSourceController@test	role:System Administrator|Control Function Head + feature:data-sources + permission:view data-sources + throttle:20,1
+GET|HEAD	admin/escalation-matrix	admin.escalation-matrix	App\\Http\\Controllers\\EscalationMatrixController@index	role:System Administrator|Control Function Head
+POST	admin/escalation-matrix	admin.escalation-matrix.store	App\\Http\\Controllers\\EscalationMatrixController@store	role:System Administrator|Control Function Head
+DELETE	admin/escalation-matrix/{escalation_matrix}	admin.escalation-matrix.destroy	App\\Http\\Controllers\\EscalationMatrixController@destroy	role:System Administrator|Control Function Head
+PUT	admin/escalation-matrix/{escalation_matrix}	admin.escalation-matrix.update	App\\Http\\Controllers\\EscalationMatrixController@update	role:System Administrator|Control Function Head
+GET|HEAD	admin/evidence-disposal	admin.evidence-disposal	App\\Http\\Controllers\\EvidenceController@disposalQueue	role:System Administrator|Control Function Head
+POST	admin/evidence/{evidence}/approve-disposal	admin.evidence.approve-disposal	App\\Http\\Controllers\\EvidenceController@approveDisposal	role:System Administrator|Control Function Head
+GET|HEAD	admin/feature-flags	admin.feature-flags	App\\Http\\Controllers\\FeatureFlagController@index	role:System Administrator|Control Function Head + permission:manage settings
+PUT	admin/feature-flags/{key}	admin.feature-flags.update	App\\Http\\Controllers\\FeatureFlagController@update	role:System Administrator|Control Function Head + permission:manage settings
+GET|HEAD	admin/import	admin.import	App\\Http\\Controllers\\ImportController@index	role:System Administrator|Control Function Head + permission:import data + feature:bulk-import
+POST	admin/import/{resource}	admin.import.store	App\\Http\\Controllers\\ImportController@store	role:System Administrator|Control Function Head + permission:import data + feature:bulk-import
+POST	admin/import/{resource}/dry-run	admin.import.dry-run	App\\Http\\Controllers\\ImportController@dryRun	role:System Administrator|Control Function Head + permission:import data + feature:bulk-import
+GET|HEAD	admin/import/{resource}/template	admin.import.template	App\\Http\\Controllers\\ImportController@template	role:System Administrator|Control Function Head + permission:import data + feature:bulk-import
+GET|HEAD	admin/integrations	admin.integrations	App\\Http\\Controllers\\IntegrationController@index	role:System Administrator|Control Function Head
+POST	admin/integrations	admin.integrations.store	App\\Http\\Controllers\\IntegrationController@store	role:System Administrator|Control Function Head
+POST	admin/integrations/sync-logs/{sync_log}/replay	admin.integrations.replay	App\\Http\\Controllers\\IntegrationController@replay	role:System Administrator|Control Function Head
+GET|HEAD	admin/messaging	admin.messaging	App\\Http\\Controllers\\Admin\\MessagingController@index	role:System Administrator|Control Function Head + permission:manage messaging
+POST	admin/messaging/sync-templates	admin.messaging.sync-templates	App\\Http\\Controllers\\Admin\\MessagingController@syncTemplates	role:System Administrator|Control Function Head + permission:manage messaging
+POST	admin/retention-policies	admin.retention-policies.store	App\\Http\\Controllers\\EvidenceController@storePolicy	role:System Administrator|Control Function Head
+GET|HEAD	admin/roles	admin.roles	App\\Http\\Controllers\\Admin\\RoleController@index	role:System Administrator|Control Function Head + permission:manage users
+POST	admin/roles	admin.roles.store	App\\Http\\Controllers\\Admin\\RoleController@store	role:System Administrator|Control Function Head + permission:manage users
+DELETE	admin/roles/{role}	admin.roles.destroy	App\\Http\\Controllers\\Admin\\RoleController@destroy	role:System Administrator|Control Function Head + permission:manage users
+PUT	admin/roles/{role}	admin.roles.update	App\\Http\\Controllers\\Admin\\RoleController@update	role:System Administrator|Control Function Head + permission:manage users
+GET|HEAD	admin/security	admin.security	App\\Http\\Controllers\\TenantSecurityController@edit	role:System Administrator|Control Function Head + permission:manage settings
+PUT	admin/security	admin.security.update	App\\Http\\Controllers\\TenantSecurityController@update	role:System Administrator|Control Function Head + permission:manage settings
+GET|HEAD	admin/sso	admin.sso	App\\Http\\Controllers\\SsoConfigurationController@index	role:System Administrator|Control Function Head + permission:manage sso + feature:sso
+POST	admin/sso	admin.sso.store	App\\Http\\Controllers\\SsoConfigurationController@store	role:System Administrator|Control Function Head + permission:manage sso + feature:sso
+PUT	admin/sso/{sso_configuration}	admin.sso.update	App\\Http\\Controllers\\SsoConfigurationController@update	role:System Administrator|Control Function Head + permission:manage sso + feature:sso
+POST	admin/sso/{sso_configuration}/approve	admin.sso.approve	App\\Http\\Controllers\\SsoConfigurationController@approve	role:System Administrator|Control Function Head + permission:manage sso + feature:sso
+POST	admin/sso/{sso_configuration}/reject	admin.sso.reject	App\\Http\\Controllers\\SsoConfigurationController@reject	role:System Administrator|Control Function Head + permission:manage sso + feature:sso
+POST	admin/sso/{sso_configuration}/test	admin.sso.test	App\\Http\\Controllers\\SsoConfigurationController@test	role:System Administrator|Control Function Head + permission:manage sso + feature:sso
+PUT	admin/users/{user}/roles	admin.users.roles.update	App\\Http\\Controllers\\Admin\\RoleController@updateUserRoles	role:System Administrator|Control Function Head + permission:manage users
+POST	ai/assist	ai.assist	App\\Http\\Controllers\\AiAssistController@store	feature:ai-assist + permission:use ai + throttle:30,1
+POST	ai/atlas	ai.atlas	App\\Http\\Controllers\\AtlasController@ask	feature:ai-atlas + permission:use ai + throttle:30,1
+GET|HEAD	ai/interactions/{interaction}	ai.interactions.show	App\\Http\\Controllers\\AiAssistController@show	feature:ai-assist + permission:use ai
+POST	ai/interactions/{interaction}/decide	ai.interactions.decide	App\\Http\\Controllers\\AiAssistController@decide	feature:ai-assist + permission:use ai
+POST	ai/interactions/{interaction}/feedback	ai.interactions.feedback	App\\Http\\Controllers\\AiAssistController@feedback	feature:ai-assist + permission:use ai
+POST	api/v1/assurance/activities	-	App\\Http\\Controllers\\Api\\AssuranceApiController@upsertActivity	api + integration.auth
+GET|HEAD	api/v1/assurance/coverage	-	App\\Http\\Controllers\\Api\\AssuranceApiController@coverage	api + integration.auth
+POST	api/v1/assurance/findings	-	App\\Http\\Controllers\\Api\\AssuranceApiController@pushFinding	api + integration.auth
+GET|HEAD	api/v1/assurance/gaps	-	App\\Http\\Controllers\\Api\\AssuranceApiController@gaps	api + integration.auth
+GET|HEAD	api/v1/controls	-	App\\Http\\Controllers\\Api\\IntegrationApiController@controls	api + integration.auth
+POST	api/v1/controls	-	App\\Http\\Controllers\\Api\\IntegrationApiController@upsertControl	api + integration.auth
+GET|HEAD	api/v1/exceptions	-	App\\Http\\Controllers\\Api\\IntegrationApiController@exceptions	api + integration.auth
+GET|HEAD	api/v1/frameworks/coverage	-	App\\Http\\Controllers\\Api\\ComplianceApiController@frameworkCoverage	api + integration.auth
+GET|HEAD	api/v1/obligations/instances	-	App\\Http\\Controllers\\Api\\ComplianceApiController@obligationInstances	api + integration.auth
+GET|HEAD	api/v1/test-results	-	App\\Http\\Controllers\\Api\\IntegrationApiController@testResults	api + integration.auth
+GET|HEAD	api/v1/third-parties	-	App\\Http\\Controllers\\Api\\AssuranceApiController@thirdParties	api + integration.auth
+GET|HEAD	assurance	assurance.map	App\\Http\\Controllers\\AssuranceController@map	feature:assurance + permission:view assurance
+POST	assurance/activities	assurance.activities.store	App\\Http\\Controllers\\AssuranceController@storeActivity	feature:assurance + permission:view assurance
+POST	assurance/activities/{activity}/reliance	assurance.activities.reliance	App\\Http\\Controllers\\AssuranceController@recordReliance	feature:assurance + permission:view assurance
+POST	assurance/providers	assurance.providers.store	App\\Http\\Controllers\\AssuranceController@storeProvider	feature:assurance + permission:view assurance
+GET|HEAD	attestations	attestations.index	App\\Http\\Controllers\\AttestationController@index	feature:attestations
+POST	attestations/{campaign}	attestations.store	App\\Http\\Controllers\\AttestationController@store	feature:attestations
+GET|HEAD	audit-trail/{alias}/{id}	audit-trail.entity	App\\Http\\Controllers\\AuditLogController@entity	feature:audit-log-ui
+POST	auth/sso/{sso_configuration}/acs	sso.acs	App\\Http\\Controllers\\Auth\\SsoController@acs	feature:sso
+GET|HEAD	auth/sso/{sso_configuration}/callback	sso.callback	App\\Http\\Controllers\\Auth\\SsoController@callback	feature:sso
+GET|HEAD	auth/sso/{sso_configuration}/metadata	sso.metadata	App\\Http\\Controllers\\Auth\\SsoController@metadata	feature:sso
+GET|HEAD	auth/sso/{sso_configuration}/redirect	sso.redirect	App\\Http\\Controllers\\Auth\\SsoController@redirect	feature:sso
+GET|HEAD	cases	cases.index	App\\Http\\Controllers\\CaseController@index	feature:cases + permission:view cases
+POST	cases	cases.store	App\\Http\\Controllers\\CaseController@store	feature:cases + permission:view cases
+GET|HEAD	cases/board-extract	cases.board-extract	App\\Http\\Controllers\\CaseController@boardExtract	feature:cases + permission:view cases
+GET|HEAD	cases/{case}	cases.show	App\\Http\\Controllers\\CaseController@show	feature:cases + permission:view cases
+POST	cases/{case}/access	cases.access.grant	App\\Http\\Controllers\\CaseController@grantAccess	feature:cases + permission:view cases
+DELETE	cases/{case}/access	cases.access.revoke	App\\Http\\Controllers\\CaseController@revokeAccess	feature:cases + permission:view cases
+POST	cases/{case}/assess	cases.assess	App\\Http\\Controllers\\CaseController@assess	feature:cases + permission:view cases
+POST	cases/{case}/close	cases.close	App\\Http\\Controllers\\CaseController@close	feature:cases + permission:view cases
+POST	cases/{case}/conclude	cases.conclude	App\\Http\\Controllers\\CaseController@conclude	feature:cases + permission:view cases
+POST	cases/{case}/investigate	cases.investigate	App\\Http\\Controllers\\CaseController@investigate	feature:cases + permission:view cases
+POST	cases/{case}/notes	cases.notes.store	App\\Http\\Controllers\\CaseController@storeNote	feature:cases + permission:view cases
+GET|HEAD	compensating-controls	compensating-controls.index	App\\Http\\Controllers\\CompensatingControlController@index	
+POST	compensating-controls/{compensating_control}/approve	compensating-controls.approve	App\\Http\\Controllers\\CompensatingControlController@approve	
+POST	compensating-controls/{compensating_control}/withdraw	compensating-controls.withdraw	App\\Http\\Controllers\\CompensatingControlController@withdraw	
+GET|HEAD	complaints	complaints.index	App\\Http\\Controllers\\ComplaintController@index	feature:complaints + permission:view complaints
+POST	complaints	complaints.store	App\\Http\\Controllers\\ComplaintController@store	feature:complaints + permission:view complaints
+GET|HEAD	complaints/analysis	complaints.analysis	App\\Http\\Controllers\\ComplaintController@analysis	feature:complaints + permission:view complaints
+GET|HEAD	complaints/cpd-return.xlsx	complaints.cpd-return	App\\Http\\Controllers\\ComplaintController@cpdReturn	feature:complaints + permission:view complaints
+GET|HEAD	complaints/{complaint}	complaints.show	App\\Http\\Controllers\\ComplaintController@show	feature:complaints + permission:view complaints
+PUT|PATCH	complaints/{complaint}	complaints.update	App\\Http\\Controllers\\ComplaintController@update	feature:complaints + permission:view complaints
+POST	complaints/{complaint}/acknowledge	complaints.acknowledge	App\\Http\\Controllers\\ComplaintController@acknowledge	feature:complaints + permission:view complaints
+POST	complaints/{complaint}/assign	complaints.assign	App\\Http\\Controllers\\ComplaintController@assign	feature:complaints + permission:view complaints
+POST	complaints/{complaint}/close	complaints.close	App\\Http\\Controllers\\ComplaintController@close	feature:complaints + permission:view complaints
+POST	complaints/{complaint}/escalate	complaints.escalate	App\\Http\\Controllers\\ComplaintController@escalate	feature:complaints + permission:view complaints
+POST	complaints/{complaint}/incident	complaints.link-incident	App\\Http\\Controllers\\ComplaintController@linkIncident	feature:complaints + permission:view complaints
+POST	complaints/{complaint}/progress	complaints.progress	App\\Http\\Controllers\\ComplaintController@progress	feature:complaints + permission:view complaints
+POST	complaints/{complaint}/reopen	complaints.reopen	App\\Http\\Controllers\\ComplaintController@reopen	feature:complaints + permission:view complaints
+POST	complaints/{complaint}/resolve	complaints.resolve	App\\Http\\Controllers\\ComplaintController@resolve	feature:complaints + permission:view complaints
+GET|HEAD	control-mappings	control-mappings.index	App\\Http\\Controllers\\ControlRequirementMapController@index	feature:frameworks
+POST	control-mappings	control-mappings.store	App\\Http\\Controllers\\ControlRequirementMapController@store	feature:frameworks
+DELETE	control-mappings/{mapping}	control-mappings.destroy	App\\Http\\Controllers\\ControlRequirementMapController@destroy	feature:frameworks
+POST	control-mappings/{mapping}/approve	control-mappings.approve	App\\Http\\Controllers\\ControlRequirementMapController@approve	feature:frameworks
+POST	control-mappings/{mapping}/reject	control-mappings.reject	App\\Http\\Controllers\\ControlRequirementMapController@reject	feature:frameworks
+GET|HEAD	controls	controls.index	App\\Http\\Controllers\\ControlController@index	
+POST	controls	controls.store	App\\Http\\Controllers\\ControlController@store	
+GET|HEAD	controls/create	controls.create	App\\Http\\Controllers\\ControlController@create	
+GET|HEAD	controls/distribution	distributions.index	App\\Http\\Controllers\\ControlDistributionController@index	feature:control-distribution
+GET|HEAD	controls/templates	controls.templates	App\\Http\\Controllers\\ControlController@templates	role:System Administrator|Control Function Head|Control Officer
+POST	controls/templates/{template}/adopt	controls.adopt	App\\Http\\Controllers\\ControlController@adopt	role:System Administrator|Control Function Head|Control Officer
+DELETE	controls/{control}	controls.destroy	App\\Http\\Controllers\\ControlController@destroy	
+GET|HEAD	controls/{control}	controls.show	App\\Http\\Controllers\\ControlController@show	
+PUT|PATCH	controls/{control}	controls.update	App\\Http\\Controllers\\ControlController@update	
+POST	controls/{control}/approve	controls.approve	App\\Http\\Controllers\\ControlController@approve	
+POST	controls/{control}/assess	controls.assess	App\\Http\\Controllers\\ControlController@assess	
+POST	controls/{control}/distribute	controls.distribute	App\\Http\\Controllers\\ControlDistributionController@store	feature:control-distribution
+GET|HEAD	controls/{control}/edit	controls.edit	App\\Http\\Controllers\\ControlController@edit	
+GET|HEAD	controls/{control}/frameworks	controls.frameworks	App\\Http\\Controllers\\ControlRequirementMapController@crossFramework	feature:frameworks
+POST	controls/{control}/propagate	controls.propagate	App\\Http\\Controllers\\ControlDistributionController@propagate	feature:control-distribution
+POST	controls/{control}/propagation-preview	controls.propagation-preview	App\\Http\\Controllers\\ControlDistributionController@propagationPreview	feature:control-distribution
+POST	controls/{control}/reject	controls.reject	App\\Http\\Controllers\\ControlController@reject	
+POST	controls/{control}/retire	controls.retire	App\\Http\\Controllers\\ControlController@retire	
+POST	controls/{control}/submit	controls.submit	App\\Http\\Controllers\\ControlController@submit	
+GET|HEAD	csa-campaigns	csa-campaigns.index	App\\Http\\Controllers\\CsaCampaignController@index	feature:csa
+POST	csa-campaigns	csa-campaigns.store	App\\Http\\Controllers\\CsaCampaignController@store	feature:csa
+GET|HEAD	csa-campaigns/create	csa-campaigns.create	App\\Http\\Controllers\\CsaCampaignController@create	feature:csa
+GET|HEAD	csa-campaigns/{csa_campaign}	csa-campaigns.show	App\\Http\\Controllers\\CsaCampaignController@show	feature:csa
+POST	csa-campaigns/{csa_campaign}/approve	csa-campaigns.approve	App\\Http\\Controllers\\CsaCampaignController@approve	feature:csa
+POST	csa-campaigns/{csa_campaign}/close	csa-campaigns.close	App\\Http\\Controllers\\CsaCampaignController@close	feature:csa
+POST	csa-campaigns/{csa_campaign}/open	csa-campaigns.open	App\\Http\\Controllers\\CsaCampaignController@open	feature:csa
+PUT	csa-campaigns/{csa_campaign}/questions	csa-campaigns.questions	App\\Http\\Controllers\\CsaCampaignController@syncQuestions	feature:csa
+GET|HEAD	csa-responses/{response}	csa-responses.show	App\\Http\\Controllers\\CsaResponseController@show	feature:csa
+POST	csa-responses/{response}/answers	csa-responses.answers	App\\Http\\Controllers\\CsaResponseController@save	feature:csa
+POST	csa-responses/{response}/approve-rating	csa-responses.approve-rating	App\\Http\\Controllers\\CsaResponseController@approveRating	feature:csa
+POST	csa-responses/{response}/review	csa-responses.review	App\\Http\\Controllers\\CsaResponseController@review	feature:csa
+GET|HEAD	csa/my-responses	csa-responses.mine	App\\Http\\Controllers\\CsaResponseController@index	feature:csa
+GET|HEAD	dashboard	dashboard	App\\Http\\Controllers\\DashboardController@index	
+GET|HEAD	dashboards	dashboards.index	App\\Http\\Controllers\\DashboardController@library	feature:dashboard-builder + permission:view dashboards
+POST	dashboards	dashboards.store	App\\Http\\Controllers\\DashboardBuilderController@store	feature:dashboard-builder + permission:manage dashboards
+GET|HEAD	dashboards/new	dashboards.create	App\\Http\\Controllers\\DashboardBuilderController@create	feature:dashboard-builder + permission:manage dashboards
+DELETE	dashboards/{dashboard}	dashboards.destroy	App\\Http\\Controllers\\DashboardBuilderController@destroy	feature:dashboard-builder + permission:manage dashboards
+GET|HEAD	dashboards/{dashboard}	dashboards.show	App\\Http\\Controllers\\DashboardController@show	feature:dashboard-builder + permission:view dashboards
+PUT	dashboards/{dashboard}	dashboards.update	App\\Http\\Controllers\\DashboardBuilderController@update	feature:dashboard-builder + permission:manage dashboards
+POST	dashboards/{dashboard}/duplicate	dashboards.duplicate	App\\Http\\Controllers\\DashboardBuilderController@duplicate	feature:dashboard-builder + permission:manage dashboards
+GET|HEAD	dashboards/{dashboard}/edit	dashboards.edit	App\\Http\\Controllers\\DashboardBuilderController@edit	feature:dashboard-builder + permission:manage dashboards
+PUT	dashboards/{dashboard}/layout	dashboards.layout	App\\Http\\Controllers\\DashboardBuilderController@layout	feature:dashboard-builder + permission:manage dashboards
+POST	dashboards/{dashboard}/widgets	dashboards.widgets.store	App\\Http\\Controllers\\DashboardBuilderController@storeWidget	feature:dashboard-builder + permission:manage dashboards
+DELETE	dashboards/{dashboard}/widgets/{widget}	dashboards.widgets.destroy	App\\Http\\Controllers\\DashboardBuilderController@destroyWidget	feature:dashboard-builder + permission:manage dashboards
+PUT	dashboards/{dashboard}/widgets/{widget}	dashboards.widgets.update	App\\Http\\Controllers\\DashboardBuilderController@updateWidget	feature:dashboard-builder + permission:manage dashboards
+GET|HEAD	distributions/{distribution}	distributions.show	App\\Http\\Controllers\\ControlDistributionController@show	feature:control-distribution
+POST	distributions/{distribution}/acknowledge	distributions.acknowledge	App\\Http\\Controllers\\ControlDistributionController@acknowledge	feature:control-distribution
+POST	distributions/{distribution}/decide-decline	distributions.decide-decline	App\\Http\\Controllers\\ControlDistributionController@decideDecline	feature:control-distribution
+POST	distributions/{distribution}/request-decline	distributions.request-decline	App\\Http\\Controllers\\ControlDistributionController@requestDecline	feature:control-distribution
+PUT	distributions/{distribution}/tasks/{task}	distributions.tasks.update	App\\Http\\Controllers\\ControlDistributionController@updateTask	feature:control-distribution
+POST	document-folders	document-folders.store	App\\Http\\Controllers\\DocumentController@storeFolder	feature:documents
+GET|HEAD	documents	documents.index	App\\Http\\Controllers\\DocumentController@index	feature:documents
+POST	documents	documents.store	App\\Http\\Controllers\\DocumentController@store	feature:documents
+GET|HEAD	documents/{document}	documents.show	App\\Http\\Controllers\\DocumentController@show	feature:documents
+POST	documents/{document}	documents.update	App\\Http\\Controllers\\DocumentController@update	feature:documents
+POST	documents/{document}/approve	documents.approve	App\\Http\\Controllers\\DocumentController@approve	feature:documents
+GET|HEAD	documents/{document}/download	documents.download	App\\Http\\Controllers\\DocumentController@download	feature:documents
+POST	documents/{document}/publish	documents.publish	App\\Http\\Controllers\\DocumentController@publish	feature:documents
+POST	documents/{document}/reject	documents.reject	App\\Http\\Controllers\\DocumentController@reject	feature:documents
+POST	documents/{document}/submit	documents.submit	App\\Http\\Controllers\\DocumentController@submit	feature:documents
+GET|HEAD	entities	entities.index	App\\Http\\Controllers\\EntityController@index	feature:entities + permission:view entities
+POST	entities	entities.store	App\\Http\\Controllers\\EntityController@store	feature:entities + permission:manage entities
+PUT	entities/{entity}	entities.update	App\\Http\\Controllers\\EntityController@update	feature:entities + permission:manage entities
+POST	entities/{entity}/grants	entities.grants.store	App\\Http\\Controllers\\EntityController@grantAccess	feature:entities + permission:grant entity-access
+DELETE	entities/{entity}/grants/{user}	entities.grants.destroy	App\\Http\\Controllers\\EntityController@revokeAccess	feature:entities + permission:grant entity-access
+GET|HEAD	entities/{entity}/obligations	entities.obligations	App\\Http\\Controllers\\ObligationController@applicability	feature:obligations
+POST	entities/{entity}/obligations	entities.obligations.bulk	App\\Http\\Controllers\\ObligationAssignmentController@bulkStore	feature:obligations
+POST	evidence	evidence.store	App\\Http\\Controllers\\EvidenceController@store	
+GET|HEAD	evidence/{evidence}/download	evidence.download	App\\Http\\Controllers\\EvidenceController@download	
+POST	evidence/{evidence}/legal-hold	evidence.legal-hold	App\\Http\\Controllers\\EvidenceController@legalHold	
+GET|HEAD	exceptions	exceptions.index	App\\Http\\Controllers\\ExceptionController@index	
+POST	exceptions	exceptions.store	App\\Http\\Controllers\\ExceptionController@store	
+GET|HEAD	exceptions/create	exceptions.create	App\\Http\\Controllers\\ExceptionController@create	
+GET|HEAD	exceptions/{exception}	exceptions.show	App\\Http\\Controllers\\ExceptionController@show	
+POST	exceptions/{exception}/accept-risk	exceptions.accept-risk	App\\Http\\Controllers\\ExceptionController@acceptRisk	
+POST	exceptions/{exception}/assign	exceptions.assign	App\\Http\\Controllers\\ExceptionController@assign	
+POST	exceptions/{exception}/close	exceptions.close	App\\Http\\Controllers\\ExceptionController@close	
+POST	exceptions/{exception}/comments	exceptions.comments	App\\Http\\Controllers\\ExceptionController@comment	
+POST	exceptions/{exception}/compensating-controls	compensating-controls.store	App\\Http\\Controllers\\CompensatingControlController@store	
+POST	exceptions/{exception}/decide-extension	exceptions.decide-extension	App\\Http\\Controllers\\ExceptionController@decideExtension	
+POST	exceptions/{exception}/fail-verification	exceptions.fail-verification	App\\Http\\Controllers\\ExceptionController@failVerification	
+POST	exceptions/{exception}/in-progress	exceptions.in-progress	App\\Http\\Controllers\\ExceptionController@markInProgress	
+POST	exceptions/{exception}/remediated	exceptions.remediated	App\\Http\\Controllers\\ExceptionController@markRemediated	
+POST	exceptions/{exception}/request-extension	exceptions.request-extension	App\\Http\\Controllers\\ExceptionController@requestExtension	
+POST	framework-mappings/{framework_mapping}/verify	framework-mappings.verify	App\\Http\\Controllers\\ControlRequirementMapController@verifyLink	feature:frameworks
+GET|HEAD	frameworks	frameworks.index	App\\Http\\Controllers\\FrameworkController@index	feature:frameworks
+POST	frameworks	frameworks.store	App\\Http\\Controllers\\FrameworkController@store	feature:frameworks
+GET|HEAD	frameworks/coverage-summary	frameworks.coverage-summary	App\\Http\\Controllers\\FrameworkController@coverageSummary	feature:frameworks
+GET|HEAD	frameworks/create	frameworks.create	App\\Http\\Controllers\\FrameworkController@create	feature:frameworks
+POST	frameworks/import	frameworks.import	App\\Http\\Controllers\\FrameworkController@import	feature:frameworks
+DELETE	frameworks/{framework}	frameworks.destroy	App\\Http\\Controllers\\FrameworkController@destroy	feature:frameworks
+GET|HEAD	frameworks/{framework}	frameworks.show	App\\Http\\Controllers\\FrameworkController@show	feature:frameworks
+PUT|PATCH	frameworks/{framework}	frameworks.update	App\\Http\\Controllers\\FrameworkController@update	feature:frameworks
+GET|HEAD	frameworks/{framework}/coverage	frameworks.coverage	App\\Http\\Controllers\\FrameworkController@coverage	feature:frameworks
+GET|HEAD	frameworks/{framework}/export	frameworks.export	App\\Http\\Controllers\\FrameworkController@export	feature:frameworks
+POST	frameworks/{framework}/requirements	frameworks.requirements.store	App\\Http\\Controllers\\FrameworkRequirementController@store	feature:frameworks
+POST	frameworks/{framework}/requirements/reorder	frameworks.requirements.reorder	App\\Http\\Controllers\\FrameworkRequirementController@reorder	feature:frameworks
+DELETE	frameworks/{framework}/requirements/{requirement}	frameworks.requirements.destroy	App\\Http\\Controllers\\FrameworkRequirementController@destroy	feature:frameworks
+PUT	frameworks/{framework}/requirements/{requirement}	frameworks.requirements.update	App\\Http\\Controllers\\FrameworkRequirementController@update	feature:frameworks
+GET|HEAD	frameworks/{framework}/requirements/{requirement}/suggestions	frameworks.requirements.suggestions	App\\Http\\Controllers\\FrameworkRequirementController@suggestions	feature:frameworks
+GET|HEAD	frameworks/{framework}/soa	frameworks.soa	App\\Http\\Controllers\\SoaController@show	feature:frameworks
+PUT	frameworks/{framework}/soa	frameworks.soa.decide	App\\Http\\Controllers\\SoaController@decide	feature:frameworks + permission:manage soa
+GET|HEAD	frameworks/{framework}/soa/export	frameworks.soa.export	App\\Http\\Controllers\\SoaController@export	feature:frameworks
+GET|HEAD	group	group.dashboard	App\\Http\\Controllers\\GroupDashboardController@index	feature:entities + permission:view group-dashboard
+GET|HEAD	health	health	App\\Http\\Controllers\\HealthController	
+GET|HEAD	improvements	improvements.index	App\\Http\\Controllers\\ImprovementActionController@index	feature:improvements
+POST	improvements	improvements.store	App\\Http\\Controllers\\ImprovementActionController@store	feature:improvements
+POST	improvements/{improvement}/decide	improvements.decide	App\\Http\\Controllers\\ImprovementActionController@decide	feature:improvements
+POST	improvements/{improvement}/progress	improvements.progress	App\\Http\\Controllers\\ImprovementActionController@progress	feature:improvements
+POST	improvements/{improvement}/verify	improvements.verify	App\\Http\\Controllers\\ImprovementActionController@verify	feature:improvements
+GET|HEAD	incidents	incidents.index	App\\Http\\Controllers\\IncidentController@index	feature:incidents + permission:view incidents
+POST	incidents	incidents.store	App\\Http\\Controllers\\IncidentController@store	feature:incidents + permission:view incidents
+GET|HEAD	incidents/create	incidents.create	App\\Http\\Controllers\\IncidentController@create	feature:incidents + permission:view incidents
+GET|HEAD	incidents/{incident}	incidents.show	App\\Http\\Controllers\\IncidentController@show	feature:incidents + permission:view incidents
+PUT|PATCH	incidents/{incident}	incidents.update	App\\Http\\Controllers\\IncidentController@update	feature:incidents + permission:view incidents
+POST	incidents/{incident}/actions	incidents.actions.store	App\\Http\\Controllers\\IncidentController@storeAction	feature:incidents + permission:view incidents
+PUT	incidents/{incident}/actions/{action}	incidents.actions.update	App\\Http\\Controllers\\IncidentController@updateAction	feature:incidents + permission:view incidents
+POST	incidents/{incident}/close	incidents.close	App\\Http\\Controllers\\IncidentController@close	feature:incidents + permission:view incidents
+POST	incidents/{incident}/controls	incidents.controls.link	App\\Http\\Controllers\\IncidentController@linkControls	feature:incidents + permission:view incidents
+POST	incidents/{incident}/loss	incidents.loss	App\\Http\\Controllers\\IncidentController@recordLoss	feature:incidents + permission:view incidents
+POST	incidents/{incident}/notifications/refresh	incidents.notifications.refresh	App\\Http\\Controllers\\IncidentController@refreshNotifications	feature:incidents + permission:view incidents
+POST	incidents/{incident}/notifications/{notification}	incidents.notifications.record	App\\Http\\Controllers\\IncidentController@recordNotification	feature:incidents + permission:view incidents
+POST	incidents/{incident}/notifications/{notification}/waive	incidents.notifications.waive	App\\Http\\Controllers\\IncidentController@waiveNotification	feature:incidents + permission:view incidents
+POST	incidents/{incident}/progress	incidents.progress	App\\Http\\Controllers\\IncidentController@progress	feature:incidents + permission:view incidents
+POST	incidents/{incident}/reopen	incidents.reopen	App\\Http\\Controllers\\IncidentController@reopen	feature:incidents + permission:view incidents
+POST	incidents/{incident}/triage	incidents.triage	App\\Http\\Controllers\\IncidentController@triage	feature:incidents + permission:view incidents
+POST	initiatives	initiatives.store	App\\Http\\Controllers\\InitiativeController@store	feature:objectives + permission:view objectives
+PUT	initiatives/{initiative}	initiatives.update	App\\Http\\Controllers\\InitiativeController@update	feature:objectives + permission:view objectives
+POST	initiatives/{initiative}/milestones/{milestone}	initiatives.milestones.update	App\\Http\\Controllers\\InitiativeController@completeMilestone	feature:objectives + permission:view objectives
+POST	links	links.store	App\\Http\\Controllers\\LinkageController@store	feature:linkage
+GET|HEAD	links/candidates	links.candidates	App\\Http\\Controllers\\LinkageController@candidates	feature:linkage
+GET|HEAD	links/graph/{type}/{id}	links.graph	App\\Http\\Controllers\\LinkageController@graph	feature:linkage
+DELETE	links/{link}	links.destroy	App\\Http\\Controllers\\LinkageController@destroy	feature:linkage
+POST	login	-	App\\Http\\Controllers\\Auth\\AuthenticatedSessionController@store	guest
+GET|HEAD	login	login	App\\Http\\Controllers\\Auth\\AuthenticatedSessionController@create	guest
+POST	logout	logout	App\\Http\\Controllers\\Auth\\AuthenticatedSessionController@destroy	
+GET|HEAD	manifest.webmanifest	pwa.manifest	App\\Http\\Controllers\\PwaController@manifest	
+GET|HEAD	metrics	metrics.index	App\\Http\\Controllers\\MetricController@index	feature:metrics + permission:view metrics
+POST	metrics	metrics.store	App\\Http\\Controllers\\MetricController@store	feature:metrics + permission:view metrics
+GET|HEAD	metrics/{metric}	metrics.show	App\\Http\\Controllers\\MetricController@show	feature:metrics + permission:view metrics
+PUT	metrics/{metric}	metrics.update	App\\Http\\Controllers\\MetricController@update	feature:metrics + permission:view metrics
+POST	metrics/{metric}/breaches/{breach}/acknowledge	metrics.breaches.acknowledge	App\\Http\\Controllers\\MetricController@acknowledgeBreach	feature:metrics + permission:view metrics
+POST	metrics/{metric}/breaches/{breach}/resolve	metrics.breaches.resolve	App\\Http\\Controllers\\MetricController@resolveBreach	feature:metrics + permission:view metrics
+POST	metrics/{metric}/values	metrics.capture	App\\Http\\Controllers\\MetricController@capture	feature:metrics + permission:view metrics
+DELETE	mfa	mfa.disable	App\\Http\\Controllers\\Auth\\MfaController@disable	feature:mfa
+GET|HEAD	mfa/challenge	mfa.challenge	App\\Http\\Controllers\\Auth\\MfaController@challenge	feature:mfa
+POST	mfa/confirm	mfa.confirm	App\\Http\\Controllers\\Auth\\MfaController@confirm	feature:mfa
+POST	mfa/email-otp	mfa.email-otp	App\\Http\\Controllers\\Auth\\MfaController@sendEmailOtp	feature:mfa + throttle:3,10
+POST	mfa/verify	mfa.verify	App\\Http\\Controllers\\Auth\\MfaController@verify	feature:mfa + throttle:6,1
+GET|HEAD	monitoring	monitoring.dashboard	App\\Http\\Controllers\\MonitoringDashboardController	feature:continuous-monitoring + permission:view monitoring
+GET|HEAD	monitoring/findings	monitoring-findings.index	App\\Http\\Controllers\\MonitoringFindingController@index	feature:continuous-monitoring + permission:view monitoring
+POST	monitoring/findings/bulk-review	monitoring-findings.bulk-review	App\\Http\\Controllers\\MonitoringFindingController@bulkReview	feature:continuous-monitoring + permission:view monitoring
+POST	monitoring/findings/{finding}/review	monitoring-findings.review	App\\Http\\Controllers\\MonitoringFindingController@review	feature:continuous-monitoring + permission:view monitoring
+GET|HEAD	monitoring/rules	monitoring-rules.index	App\\Http\\Controllers\\MonitoringRuleController@index	feature:continuous-monitoring + permission:view monitoring
+POST	monitoring/rules	monitoring-rules.store	App\\Http\\Controllers\\MonitoringRuleController@store	feature:continuous-monitoring + permission:view monitoring
+GET|HEAD	monitoring/rules/{rule}	monitoring-rules.show	App\\Http\\Controllers\\MonitoringRuleController@show	feature:continuous-monitoring + permission:view monitoring
+PUT	monitoring/rules/{rule}	monitoring-rules.update	App\\Http\\Controllers\\MonitoringRuleController@update	feature:continuous-monitoring + permission:view monitoring
+POST	monitoring/rules/{rule}/approve	monitoring-rules.approve	App\\Http\\Controllers\\MonitoringRuleController@approve	feature:continuous-monitoring + permission:view monitoring
+POST	monitoring/rules/{rule}/pause	monitoring-rules.pause	App\\Http\\Controllers\\MonitoringRuleController@pause	feature:continuous-monitoring + permission:view monitoring
+POST	monitoring/rules/{rule}/reject	monitoring-rules.reject	App\\Http\\Controllers\\MonitoringRuleController@reject	feature:continuous-monitoring + permission:view monitoring
+POST	monitoring/rules/{rule}/retire	monitoring-rules.retire	App\\Http\\Controllers\\MonitoringRuleController@retire	feature:continuous-monitoring + permission:view monitoring
+POST	monitoring/rules/{rule}/run	monitoring-rules.run	App\\Http\\Controllers\\MonitoringRuleController@run	feature:continuous-monitoring + permission:view monitoring + throttle:20,1
+POST	monitoring/rules/{rule}/submit	monitoring-rules.submit	App\\Http\\Controllers\\MonitoringRuleController@submit	feature:continuous-monitoring + permission:view monitoring
+GET|HEAD	monitoring/runs	monitoring-runs.index	App\\Http\\Controllers\\MonitoringRunController@index	feature:continuous-monitoring + permission:view monitoring
+GET|HEAD	monitoring/runs/{run}	monitoring-runs.show	App\\Http\\Controllers\\MonitoringRunController@show	feature:continuous-monitoring + permission:view monitoring
+GET|HEAD	my-tasks	tasks.mine	App\\Http\\Controllers\\MobileTaskController@index	
+GET|HEAD	notifications	notifications.index	App\\Http\\Controllers\\NotificationController@index	
+GET|HEAD	notifications/latest	notifications.latest	App\\Http\\Controllers\\NotificationController@latest	
+POST	notifications/read-all	notifications.read-all	App\\Http\\Controllers\\NotificationController@markAllRead	
+GET|HEAD	objectives	objectives.index	App\\Http\\Controllers\\ObjectiveController@index	feature:objectives + permission:view objectives
+POST	objectives	objectives.store	App\\Http\\Controllers\\ObjectiveController@store	feature:objectives + permission:view objectives
+GET|HEAD	objectives/{objective}	objectives.show	App\\Http\\Controllers\\ObjectiveController@show	feature:objectives + permission:view objectives
+PUT	objectives/{objective}	objectives.update	App\\Http\\Controllers\\ObjectiveController@update	feature:objectives + permission:view objectives
+POST	objectives/{objective}/approve	objectives.approve	App\\Http\\Controllers\\ObjectiveController@approve	feature:objectives + permission:view objectives
+POST	objectives/{objective}/measures	objectives.measures.store	App\\Http\\Controllers\\ObjectiveController@storeMeasure	feature:objectives + permission:view objectives
+DELETE	objectives/{objective}/measures/{measure}	objectives.measures.destroy	App\\Http\\Controllers\\ObjectiveController@destroyMeasure	feature:objectives + permission:view objectives
+POST	objectives/{objective}/progress	objectives.progress	App\\Http\\Controllers\\ObjectiveController@progress	feature:objectives + permission:view objectives
+POST	objectives/{objective}/recalculate	objectives.recalculate	App\\Http\\Controllers\\ObjectiveController@recalculate	feature:objectives + permission:view objectives
+POST	obligation-assignments	obligation-assignments.store	App\\Http\\Controllers\\ObligationAssignmentController@store	feature:obligations
+PUT	obligation-assignments/{assignment}	obligation-assignments.update	App\\Http\\Controllers\\ObligationAssignmentController@update	feature:obligations
+POST	obligation-assignments/{assignment}/approve-non-applicability	obligation-assignments.approve-non-applicability	App\\Http\\Controllers\\ObligationAssignmentController@approveNonApplicability	feature:obligations
+POST	obligation-assignments/{assignment}/non-applicable	obligation-assignments.non-applicable	App\\Http\\Controllers\\ObligationAssignmentController@declareNonApplicable	feature:obligations
+GET|HEAD	obligations	obligations.index	App\\Http\\Controllers\\ObligationController@index	feature:obligations
+POST	obligations	obligations.store	App\\Http\\Controllers\\ObligationController@store	feature:obligations
+GET|HEAD	obligations/calendar	obligations.calendar	App\\Http\\Controllers\\ObligationController@calendar	feature:obligations
+GET|HEAD	obligations/create	obligations.create	App\\Http\\Controllers\\ObligationController@create	feature:obligations
+GET|HEAD	obligations/instances	obligations.instances.index	App\\Http\\Controllers\\ObligationInstanceController@index	feature:obligations
+GET|HEAD	obligations/instances/{instance}	obligations.instances.show	App\\Http\\Controllers\\ObligationInstanceController@show	feature:obligations
+POST	obligations/instances/{instance}/review	obligations.instances.review	App\\Http\\Controllers\\ObligationInstanceController@review	feature:obligations
+POST	obligations/instances/{instance}/start	obligations.instances.start	App\\Http\\Controllers\\ObligationInstanceController@start	feature:obligations
+POST	obligations/instances/{instance}/submit	obligations.instances.submit	App\\Http\\Controllers\\ObligationInstanceController@submit	feature:obligations
+POST	obligations/instances/{instance}/waive	obligations.instances.waive	App\\Http\\Controllers\\ObligationInstanceController@waive	feature:obligations
+GET|HEAD	obligations/{obligation}	obligations.show	App\\Http\\Controllers\\ObligationController@show	feature:obligations
+PUT|PATCH	obligations/{obligation}	obligations.update	App\\Http\\Controllers\\ObligationController@update	feature:obligations
+GET|HEAD	obligations/{obligation}/edit	obligations.edit	App\\Http\\Controllers\\ObligationController@edit	feature:obligations
+GET|HEAD	offline	pwa.offline	App\\Http\\Controllers\\PwaController@offline	
+GET|HEAD	offline/bootstrap	offline.bootstrap	App\\Http\\Controllers\\OfflineSyncController@bootstrap	
+POST	offline/outbox	offline.outbox	App\\Http\\Controllers\\OfflineSyncController@outbox	
+GET|HEAD	policies	policies.index	App\\Http\\Controllers\\PolicyController@index	feature:policies + permission:view policies
+POST	policies	policies.store	App\\Http\\Controllers\\PolicyController@store	feature:policies + permission:view policies
+GET|HEAD	policies/create	policies.create	App\\Http\\Controllers\\PolicyController@create	feature:policies + permission:view policies
+GET|HEAD	policies/gaps	policies.gaps	App\\Http\\Controllers\\PolicyController@gaps	feature:policies + permission:view policies
+GET|HEAD	policies/{policy}	policies.show	App\\Http\\Controllers\\PolicyController@show	feature:policies + permission:view policies
+PUT|PATCH	policies/{policy}	policies.update	App\\Http\\Controllers\\PolicyController@update	feature:policies + permission:view policies
+POST	policies/{policy}/approve	policies.approve	App\\Http\\Controllers\\PolicyController@approve	feature:policies + permission:view policies
+POST	policies/{policy}/exceptions	policies.exceptions.store	App\\Http\\Controllers\\PolicyExceptionController@store	feature:policies + permission:view policies
+POST	policies/{policy}/publish	policies.publish	App\\Http\\Controllers\\PolicyController@publish	feature:policies + permission:view policies
+POST	policies/{policy}/reject	policies.reject	App\\Http\\Controllers\\PolicyController@reject	feature:policies + permission:view policies
+POST	policies/{policy}/revise	policies.revise	App\\Http\\Controllers\\PolicyController@revise	feature:policies + permission:view policies
+POST	policies/{policy}/submit	policies.submit	App\\Http\\Controllers\\PolicyController@submit	feature:policies + permission:view policies
+POST	policies/{policy}/withdraw	policies.withdraw	App\\Http\\Controllers\\PolicyController@withdraw	feature:policies + permission:view policies
+GET|HEAD	policy-exceptions	policy-exceptions.index	App\\Http\\Controllers\\PolicyExceptionController@index	feature:policies + permission:view policies
+POST	policy-exceptions/{exception}/decide	policy-exceptions.decide	App\\Http\\Controllers\\PolicyExceptionController@decide	feature:policies + permission:view policies
+POST	policy-exceptions/{exception}/revoke	policy-exceptions.revoke	App\\Http\\Controllers\\PolicyExceptionController@revoke	feature:policies + permission:view policies
+POST	push/subscriptions	push.subscribe	App\\Http\\Controllers\\PushSubscriptionController@store	
+DELETE	push/subscriptions	push.unsubscribe	App\\Http\\Controllers\\PushSubscriptionController@destroy	
+GET|HEAD	regulatory-changes	regulatory-changes.index	App\\Http\\Controllers\\RegulatoryChangeController@index	feature:regulatory-changes
+POST	regulatory-changes	regulatory-changes.store	App\\Http\\Controllers\\RegulatoryChangeController@store	feature:regulatory-changes
+POST	regulatory-changes/{change}/action	regulatory-changes.action	App\\Http\\Controllers\\RegulatoryChangeController@action	feature:regulatory-changes
+POST	regulatory-changes/{change}/assess	regulatory-changes.assess	App\\Http\\Controllers\\RegulatoryChangeController@assess	feature:regulatory-changes
+POST	regulatory-changes/{change}/not-applicable	regulatory-changes.not-applicable	App\\Http\\Controllers\\RegulatoryChangeController@notApplicable	feature:regulatory-changes
+POST	regulatory-changes/{change}/review	regulatory-changes.review	App\\Http\\Controllers\\RegulatoryChangeController@startReview	feature:regulatory-changes
+POST	report-designer	reports.definitions.store	App\\Http\\Controllers\\ReportDefinitionController@store	feature:report-designer + permission:design reports
+GET|HEAD	report-designer/new	reports.definitions.create	App\\Http\\Controllers\\ReportDefinitionController@create	feature:report-designer + permission:design reports
+DELETE	report-designer/{definition}	reports.definitions.destroy	App\\Http\\Controllers\\ReportDefinitionController@destroy	feature:report-designer + permission:design reports
+GET|HEAD	report-designer/{definition}	reports.definitions.edit	App\\Http\\Controllers\\ReportDefinitionController@edit	feature:report-designer + permission:design reports
+PUT	report-designer/{definition}	reports.definitions.update	App\\Http\\Controllers\\ReportDefinitionController@update	feature:report-designer + permission:design reports
+POST	report-designer/{definition}/approve	reports.definitions.approve	App\\Http\\Controllers\\ReportDefinitionController@approve	feature:report-designer + permission:approve report-definitions
+GET|HEAD	report-library	reports.library	App\\Http\\Controllers\\ReportDefinitionController@index	feature:report-designer + permission:export reports
+GET|HEAD	report-library/{definition}	reports.definitions.show	App\\Http\\Controllers\\ReportDefinitionController@show	feature:report-designer + permission:export reports
+POST	report-library/{definition}/run	reports.definitions.run	App\\Http\\Controllers\\ReportRunController@store	feature:report-designer + permission:export reports
+GET|HEAD	report-runs	reports.runs	App\\Http\\Controllers\\ReportRunController@index	feature:report-designer + permission:export reports
+GET|HEAD	report-runs/{run}/download	reports.runs.download	App\\Http\\Controllers\\ReportRunController@download	feature:report-designer + permission:export reports
+GET|HEAD	report-schedules	reports.schedules	App\\Http\\Controllers\\ReportScheduleController@index	feature:report-designer + permission:schedule reports
+POST	report-schedules	reports.schedules.store	App\\Http\\Controllers\\ReportScheduleController@store	feature:report-designer + permission:schedule reports
+DELETE	report-schedules/{schedule}	reports.schedules.destroy	App\\Http\\Controllers\\ReportScheduleController@destroy	feature:report-designer + permission:schedule reports
+PUT	report-schedules/{schedule}	reports.schedules.update	App\\Http\\Controllers\\ReportScheduleController@update	feature:report-designer + permission:schedule reports
+POST	report-schedules/{schedule}/run-now	reports.schedules.run-now	App\\Http\\Controllers\\ReportScheduleController@runNow	feature:report-designer + permission:schedule reports
+GET|HEAD	reports/board-pack	reports.board-pack	App\\Http\\Controllers\\ReportController@boardPack	permission:export reports
+GET|HEAD	reports/controls.xlsx	reports.controls.xlsx	App\\Http\\Controllers\\ReportController@controlsXlsx	permission:export reports
+GET|HEAD	reports/exceptions.pdf	reports.exceptions.pdf	App\\Http\\Controllers\\ReportController@exceptionRegisterPdf	permission:export reports
+GET|HEAD	reports/exceptions.xlsx	reports.exceptions.xlsx	App\\Http\\Controllers\\ReportController@exceptionsXlsx	permission:export reports
+GET|HEAD	reports/spot-checks/{spot_check}.pdf	reports.spot-check	App\\Http\\Controllers\\ReportController@spotCheck	permission:export reports
+GET|HEAD	reports/test-instances.xlsx	reports.test-instances.xlsx	App\\Http\\Controllers\\ReportController@testInstancesXlsx	permission:export reports
+GET|HEAD	reports/testing-summary.pdf	reports.testing-summary	App\\Http\\Controllers\\ReportController@testingSummaryPdf	permission:export reports
+POST	requirements/{requirement}/bulk-map	control-mappings.bulk	App\\Http\\Controllers\\ControlRequirementMapController@bulkStore	feature:frameworks
+GET|HEAD	residency	residency.index	App\\Http\\Controllers\\ResidencyController@index	feature:residency + permission:view residency
+POST	residency/attestations	residency.attestations.store	App\\Http\\Controllers\\ResidencyController@storeAttestation	feature:residency + permission:view residency + permission:manage residency + throttle:10,1
+GET|HEAD	residency/attestations/{attestation}/download	residency.attestations.download	App\\Http\\Controllers\\ResidencyController@downloadAttestation	feature:residency + permission:view residency
+POST	residency/transfers	residency.transfers.store	App\\Http\\Controllers\\ResidencyController@storeTransfer	feature:residency + permission:view residency + permission:record transfers
+POST	residency/transfers/{transfer}/authorise	residency.transfers.authorise	App\\Http\\Controllers\\ResidencyController@authoriseTransfer	feature:residency + permission:view residency + permission:authorise transfers
+POST	residency/transfers/{transfer}/complete	residency.transfers.complete	App\\Http\\Controllers\\ResidencyController@completeTransfer	feature:residency + permission:view residency + permission:record transfers
+GET|HEAD	risk-appetite	appetite.index	App\\Http\\Controllers\\RiskAppetiteController@index	feature:risk-appetite + permission:view appetite
+POST	risk-appetite	appetite.store	App\\Http\\Controllers\\RiskAppetiteController@store	feature:risk-appetite + permission:view appetite
+POST	risk-appetite/{appetite}/approve	appetite.approve	App\\Http\\Controllers\\RiskAppetiteController@approve	feature:risk-appetite + permission:view appetite
+POST	risk-appetite/{appetite}/submit	appetite.submit	App\\Http\\Controllers\\RiskAppetiteController@submit	feature:risk-appetite + permission:view appetite
+POST	risk-appetite/{appetite}/supersede	appetite.supersede	App\\Http\\Controllers\\RiskAppetiteController@supersede	feature:risk-appetite + permission:view appetite
+GET|HEAD	risks	risks.index	App\\Http\\Controllers\\RiskController@index	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager
+POST	risks	risks.store	App\\Http\\Controllers\\RiskController@store	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager
+GET|HEAD	risks/gaps	risks.gaps	App\\Http\\Controllers\\RiskController@gaps	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager
+GET|HEAD	risks/heatmap	risks.heatmap	App\\Http\\Controllers\\RiskController@heatmap	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager + feature:risk-heatmap
+GET|HEAD	risks/heatmap/cell	risks.heatmap.cell	App\\Http\\Controllers\\RiskController@heatmapCell	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager + feature:risk-heatmap
+GET|HEAD	risks/{risk}	risks.show	App\\Http\\Controllers\\RiskController@show	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager
+PUT|PATCH	risks/{risk}	risks.update	App\\Http\\Controllers\\RiskController@update	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager
+POST	risks/{risk}/assessments	risks.assessments.store	App\\Http\\Controllers\\RiskAssessmentController@store	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager + feature:risk-assessments
+POST	risks/{risk}/assessments/{assessment}/publish	risks.assessments.publish	App\\Http\\Controllers\\RiskAssessmentController@publish	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager + feature:risk-assessments
+POST	risks/{risk}/assessments/{assessment}/reject	risks.assessments.reject	App\\Http\\Controllers\\RiskAssessmentController@reject	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager + feature:risk-assessments
+POST	risks/{risk}/assessments/{assessment}/simulate	risks.assessments.simulate	App\\Http\\Controllers\\RiskAssessmentController@simulate	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager + feature:risk-assessments
+POST	risks/{risk}/controls	risks.controls.attach	App\\Http\\Controllers\\RiskController@attachControl	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager
+DELETE	risks/{risk}/controls/{control}	risks.controls.detach	App\\Http\\Controllers\\RiskController@detachControl	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager
+POST	risks/{risk}/treatments	risks.treatments.store	App\\Http\\Controllers\\RiskTreatmentController@store	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager + feature:risk-treatments
+GET|HEAD	saved-views	saved-views.index	App\\Http\\Controllers\\SavedViewController@index	feature:saved-views
+POST	saved-views	saved-views.store	App\\Http\\Controllers\\SavedViewController@store	feature:saved-views
+DELETE	saved-views/{saved_view}	saved-views.destroy	App\\Http\\Controllers\\SavedViewController@destroy	feature:saved-views
+POST	saved-views/{saved_view}/default	saved-views.default	App\\Http\\Controllers\\SavedViewController@setDefault	feature:saved-views
+GET|HEAD	search	search	App\\Http\\Controllers\\SearchController	feature:global-search + throttle:60,1
+POST	settings/low-bandwidth	settings.low-bandwidth	App\\Http\\Controllers\\PwaController@toggleLowBandwidth	feature:low-bandwidth-mode
+GET|HEAD	settings/notifications	settings.notifications	App\\Http\\Controllers\\NotificationPreferenceController@edit	feature:notification-preferences
+PUT	settings/notifications	settings.notifications.update	App\\Http\\Controllers\\NotificationPreferenceController@update	feature:notification-preferences
+GET|HEAD	settings/security	mfa.setup	App\\Http\\Controllers\\Auth\\MfaController@setup	feature:mfa
+GET|HEAD	sod/conflicts	sod.conflicts	App\\Http\\Controllers\\SodController@conflicts	feature:sod-analysis + permission:view sod
+POST	sod/conflicts	sod.conflicts.store	App\\Http\\Controllers\\SodController@storeConflict	feature:sod-analysis + permission:view sod
+DELETE	sod/conflicts/{rule}	sod.conflicts.destroy	App\\Http\\Controllers\\SodController@destroyConflict	feature:sod-analysis + permission:view sod
+PUT	sod/conflicts/{rule}	sod.conflicts.update	App\\Http\\Controllers\\SodController@updateConflict	feature:sod-analysis + permission:view sod
+GET|HEAD	sod/violations	sod.violations	App\\Http\\Controllers\\SodController@violations	feature:sod-analysis + permission:view sod
+POST	sod/violations/{violation}/accept	sod.violations.accept	App\\Http\\Controllers\\SodController@accept	feature:sod-analysis + permission:view sod
+POST	sod/violations/{violation}/escalate	sod.violations.escalate	App\\Http\\Controllers\\SodController@escalate	feature:sod-analysis + permission:view sod
+POST	sod/violations/{violation}/false-positive	sod.violations.false-positive	App\\Http\\Controllers\\SodController@falsePositive	feature:sod-analysis + permission:view sod
+POST	sod/violations/{violation}/mitigate	sod.violations.mitigate	App\\Http\\Controllers\\SodController@mitigate	feature:sod-analysis + permission:view sod
+POST	sod/violations/{violation}/remediate	sod.violations.remediate	App\\Http\\Controllers\\SodController@remediate	feature:sod-analysis + permission:view sod
+GET|HEAD	speak-up	whistleblowing.create	App\\Http\\Controllers\\WhistleblowingController@create	feature:whistleblowing + throttle:10,1
+POST	speak-up	whistleblowing.store	App\\Http\\Controllers\\WhistleblowingController@store	feature:whistleblowing + throttle:10,1
+POST	speak-up/reply	whistleblowing.reply	App\\Http\\Controllers\\WhistleblowingController@reply	feature:whistleblowing + throttle:10,1
+POST	speak-up/status	whistleblowing.check	App\\Http\\Controllers\\WhistleblowingController@checkStatus	feature:whistleblowing + throttle:10,1
+GET|HEAD	speak-up/status	whistleblowing.status	App\\Http\\Controllers\\WhistleblowingController@status	feature:whistleblowing + throttle:10,1
+GET|HEAD	speak-up/submitted	whistleblowing.submitted	App\\Http\\Controllers\\WhistleblowingController@submitted	feature:whistleblowing + throttle:10,1
+GET|HEAD	spot-checks	spot-checks.index	App\\Http\\Controllers\\SpotCheckController@index	role:System Administrator|Control Function Head|Control Officer
+POST	spot-checks	spot-checks.store	App\\Http\\Controllers\\SpotCheckController@store	role:System Administrator|Control Function Head|Control Officer
+GET|HEAD	spot-checks/create	spot-checks.create	App\\Http\\Controllers\\SpotCheckController@create	role:System Administrator|Control Function Head|Control Officer
+GET|HEAD	spot-checks/{spot_check}	spot-checks.show	App\\Http\\Controllers\\SpotCheckController@show	role:System Administrator|Control Function Head|Control Officer
+POST	spot-checks/{spot_check}/complete	spot-checks.complete	App\\Http\\Controllers\\SpotCheckController@complete	role:System Administrator|Control Function Head|Control Officer
+POST	spot-checks/{spot_check}/findings	spot-checks.findings.store	App\\Http\\Controllers\\SpotCheckController@storeFinding	role:System Administrator|Control Function Head|Control Officer
+PUT	spot-checks/{spot_check}/findings/{finding}	spot-checks.findings.update	App\\Http\\Controllers\\SpotCheckController@updateFinding	role:System Administrator|Control Function Head|Control Officer
+POST	spot-checks/{spot_check}/issue-report	spot-checks.issue-report	App\\Http\\Controllers\\SpotCheckController@issueReport	role:System Administrator|Control Function Head|Control Officer
+GET|HEAD	storage/{path}	storage.local	Closure	
+PUT	storage/{path}	storage.local.upload	Closure	
+GET|HEAD	strategy/map	strategy.map	App\\Http\\Controllers\\StrategyController@map	feature:objectives + permission:view objectives
+GET|HEAD	strategy/scorecard	strategy.scorecard	App\\Http\\Controllers\\StrategyController@scorecard	feature:objectives + permission:view objectives
+GET|HEAD	submissions	submissions.index	App\\Http\\Controllers\\SubmissionPackController@index	feature:submission-packs + permission:view submissions
+POST	submissions	submissions.store	App\\Http\\Controllers\\SubmissionPackController@store	feature:submission-packs + permission:generate submissions
+GET|HEAD	submissions/{pack}	submissions.show	App\\Http\\Controllers\\SubmissionPackController@show	feature:submission-packs + permission:view submissions
+PUT	submissions/{pack}	submissions.update	App\\Http\\Controllers\\SubmissionPackController@update	feature:submission-packs + permission:generate submissions
+POST	submissions/{pack}/acknowledge	submissions.acknowledge	App\\Http\\Controllers\\SubmissionPackController@acknowledge	feature:submission-packs + permission:file submissions
+POST	submissions/{pack}/approve	submissions.approve	App\\Http\\Controllers\\SubmissionPackController@approve	feature:submission-packs + permission:approve submissions
+GET|HEAD	submissions/{pack}/document	submissions.download	App\\Http\\Controllers\\SubmissionPackController@download	feature:submission-packs + permission:view submissions
+POST	submissions/{pack}/file	submissions.file	App\\Http\\Controllers\\SubmissionPackController@file	feature:submission-packs + permission:file submissions
+POST	submissions/{pack}/regenerate	submissions.regenerate	App\\Http\\Controllers\\SubmissionPackController@regenerate	feature:submission-packs + permission:generate submissions
+POST	submissions/{pack}/reject	submissions.reject	App\\Http\\Controllers\\SubmissionPackController@reject	feature:submission-packs + permission:file submissions
+POST	submissions/{pack}/review	submissions.review	App\\Http\\Controllers\\SubmissionPackController@review	feature:submission-packs + permission:review submissions
+POST	submissions/{pack}/send-for-review	submissions.send-for-review	App\\Http\\Controllers\\SubmissionPackController@sendForReview	feature:submission-packs + permission:generate submissions
+POST	surveys/{campaign}/respond-anonymously	surveys.respond-anonymously	App\\Http\\Controllers\\CsaResponseController@submitAnonymous	feature:surveys
+GET|HEAD	sustainability	sustainability.index	App\\Http\\Controllers\\SustainabilityController@index	feature:sustainability + permission:view sustainability
+GET|HEAD	sustainability/filings	sustainability.filings	App\\Http\\Controllers\\SustainabilityController@filings	feature:sustainability + permission:view sustainability
+POST	sustainability/filings	sustainability.filings.store	App\\Http\\Controllers\\SustainabilityController@storeFiling	feature:sustainability + permission:view sustainability
+POST	sustainability/filings/{filing}/stages/{stage}	sustainability.filings.stages.submit	App\\Http\\Controllers\\SustainabilityController@submitStage	feature:sustainability + permission:view sustainability
+POST	sustainability/filings/{filing}/verify	sustainability.filings.verify	App\\Http\\Controllers\\SustainabilityController@verifyFiling	feature:sustainability + permission:view sustainability
+GET|HEAD	sustainability/ghg	sustainability.ghg	App\\Http\\Controllers\\SustainabilityController@ghg	feature:sustainability + permission:view sustainability
+POST	sustainability/ghg	sustainability.ghg.store	App\\Http\\Controllers\\SustainabilityController@storeDataPoint	feature:sustainability + permission:view sustainability
+PUT	sustainability/ghg/{point}	sustainability.ghg.update	App\\Http\\Controllers\\SustainabilityController@updateDataPoint	feature:sustainability + permission:view sustainability
+POST	sustainability/ghg/{point}/defer	sustainability.ghg.defer	App\\Http\\Controllers\\SustainabilityController@deferDataPoint	feature:sustainability + permission:view sustainability
+POST	sustainability/ghg/{point}/verify	sustainability.ghg.verify	App\\Http\\Controllers\\SustainabilityController@verifyDataPoint	feature:sustainability + permission:view sustainability
+POST	sustainability/materiality	sustainability.materiality.store	App\\Http\\Controllers\\SustainabilityController@storeMateriality	feature:sustainability + permission:view sustainability
+POST	sustainability/materiality/{assessment}/approve	sustainability.materiality.approve	App\\Http\\Controllers\\SustainabilityController@approveMateriality	feature:sustainability + permission:view sustainability
+GET|HEAD	test-instances	test-instances.index	App\\Http\\Controllers\\TestInstanceController@index	
+GET|HEAD	test-instances/{test_instance}	test-instances.show	App\\Http\\Controllers\\TestInstanceController@show	
+POST	test-instances/{test_instance}/approve-rating	test-instances.approve-rating	App\\Http\\Controllers\\TestInstanceController@approveRating	
+POST	test-instances/{test_instance}/rate	test-instances.rate	App\\Http\\Controllers\\TestInstanceController@rate	
+POST	test-instances/{test_instance}/reopen	test-instances.reopen	App\\Http\\Controllers\\TestInstanceController@reopen	
+POST	test-instances/{test_instance}/results	test-instances.results	App\\Http\\Controllers\\TestInstanceController@recordResult	
+POST	test-instances/{test_instance}/review	test-instances.review	App\\Http\\Controllers\\TestInstanceController@review	
+POST	test-instances/{test_instance}/start	test-instances.start	App\\Http\\Controllers\\TestInstanceController@start	
+POST	test-instances/{test_instance}/submit	test-instances.submit	App\\Http\\Controllers\\TestInstanceController@submit	
+GET|HEAD	test-scripts	test-scripts.index	App\\Http\\Controllers\\TestScriptController@index	role:System Administrator|Control Function Head|Control Officer
+POST	test-scripts	test-scripts.store	App\\Http\\Controllers\\TestScriptController@store	role:System Administrator|Control Function Head|Control Officer
+GET|HEAD	test-scripts/create	test-scripts.create	App\\Http\\Controllers\\TestScriptController@create	role:System Administrator|Control Function Head|Control Officer
+GET|HEAD	test-scripts/{test_script}	test-scripts.show	App\\Http\\Controllers\\TestScriptController@show	role:System Administrator|Control Function Head|Control Officer
+POST	test-scripts/{test_script}/approve	test-scripts.approve	App\\Http\\Controllers\\TestScriptController@approve	role:System Administrator|Control Function Head|Control Officer
+GET|HEAD	treatments	treatments.index	App\\Http\\Controllers\\RiskTreatmentController@index	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager + feature:risk-treatments
+GET|HEAD	treatments/{treatment}	treatments.show	App\\Http\\Controllers\\RiskTreatmentController@show	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager + feature:risk-treatments
+POST	treatments/{treatment}/approve	treatments.approve	App\\Http\\Controllers\\RiskTreatmentController@approve	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager + feature:risk-treatments
+POST	treatments/{treatment}/cancel	treatments.cancel	App\\Http\\Controllers\\RiskTreatmentController@cancel	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager + feature:risk-treatments
+POST	treatments/{treatment}/milestones	treatments.milestones.store	App\\Http\\Controllers\\RiskTreatmentController@storeMilestone	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager + feature:risk-treatments
+POST	treatments/{treatment}/milestones/{milestone}/complete	treatments.milestones.complete	App\\Http\\Controllers\\RiskTreatmentController@completeMilestone	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager + feature:risk-treatments
+POST	treatments/{treatment}/progress	treatments.progress	App\\Http\\Controllers\\RiskTreatmentController@progress	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager + feature:risk-treatments
+POST	treatments/{treatment}/verify	treatments.verify	App\\Http\\Controllers\\RiskTreatmentController@verify	role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager + feature:risk-treatments
+GET|HEAD	up	-	Closure	
+POST	uploads/chunked	uploads.chunked.store	App\\Http\\Controllers\\ChunkedUploadController@store	
+DELETE	uploads/chunked/{uuid}	uploads.chunked.abort	App\\Http\\Controllers\\ChunkedUploadController@destroy	
+POST	uploads/chunked/{uuid}/chunks	uploads.chunked.append	App\\Http\\Controllers\\ChunkedUploadController@appendChunk	
+POST	uploads/chunked/{uuid}/complete	uploads.chunked.complete	App\\Http\\Controllers\\ChunkedUploadController@complete	
+GET|HEAD	vendors	vendors.index	App\\Http\\Controllers\\VendorController@index	feature:vendors + permission:view vendors
+POST	vendors	vendors.store	App\\Http\\Controllers\\VendorController@store	feature:vendors + permission:view vendors
+GET|HEAD	vendors/concentration	vendors.concentration	App\\Http\\Controllers\\VendorController@concentration	feature:vendors + permission:view vendors
+GET|HEAD	vendors/{vendor}	vendors.show	App\\Http\\Controllers\\VendorController@show	feature:vendors + permission:view vendors
+PUT	vendors/{vendor}	vendors.update	App\\Http\\Controllers\\VendorController@update	feature:vendors + permission:view vendors
+POST	vendors/{vendor}/assessments	vendors.assessments.store	App\\Http\\Controllers\\VendorController@storeAssessment	feature:vendors + permission:view vendors
+POST	vendors/{vendor}/assessments/{assessment}/approve	vendors.assessments.approve	App\\Http\\Controllers\\VendorController@approveAssessment	feature:vendors + permission:view vendors
+POST	vendors/{vendor}/assessments/{assessment}/reject	vendors.assessments.reject	App\\Http\\Controllers\\VendorController@rejectAssessment	feature:vendors + permission:view vendors
+POST	vendors/{vendor}/assessments/{assessment}/submit	vendors.assessments.submit	App\\Http\\Controllers\\VendorController@submitAssessment	feature:vendors + permission:view vendors
+POST	vendors/{vendor}/contracts	vendors.contracts.store	App\\Http\\Controllers\\VendorController@storeContract	feature:vendors + permission:view vendors
+PUT	vendors/{vendor}/contracts/{contract}	vendors.contracts.update	App\\Http\\Controllers\\VendorController@updateContract	feature:vendors + permission:view vendors
+POST	vendors/{vendor}/findings	vendors.findings.store	App\\Http\\Controllers\\VendorController@storeFinding	feature:vendors + permission:view vendors
+PUT	vendors/{vendor}/findings/{finding}	vendors.findings.update	App\\Http\\Controllers\\VendorController@updateFinding	feature:vendors + permission:view vendors
+POST	vendors/{vendor}/notification	vendors.notification.store	App\\Http\\Controllers\\VendorController@recordNotification	feature:vendors + permission:view vendors
+POST	vendors/{vendor}/screenings	vendors.screenings.store	App\\Http\\Controllers\\VendorController@storeScreening	feature:vendors + permission:view vendors
+POST	vendors/{vendor}/screenings/{screening}/disposition	vendors.screenings.disposition	App\\Http\\Controllers\\VendorController@dispositionScreening	feature:vendors + permission:view vendors
+GET|HEAD	versions/{alias}/{id}/diff	versions.diff	App\\Http\\Controllers\\VersionController@diff	
+POST	webhooks/sms/receipts	webhooks.sms.receipts	App\\Http\\Controllers\\Webhooks\\SmsReceiptController@receive	throttle:120,1
+POST	webhooks/ussd	webhooks.ussd	App\\Http\\Controllers\\Webhooks\\UssdController@handle	feature:ussd + throttle:120,1
+POST	webhooks/whatsapp	webhooks.whatsapp	App\\Http\\Controllers\\Webhooks\\WhatsappWebhookController@receive	throttle:120,1
+GET|HEAD	webhooks/whatsapp	webhooks.whatsapp.verify	App\\Http\\Controllers\\Webhooks\\WhatsappWebhookController@verify	

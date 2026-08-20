@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+>
+    <!--
+        End-to-end QA suite. Runs against the REAL MariaDB/MySQL e2e
+        database, not the in-memory SQLite used by phpunit.xml, so that
+        enum constraints, collation and JSON semantics are the production
+        ones. Tests wrap in transactions and roll back; the seed survives.
+
+        Prerequisite (see docs/testing/01-test-execution-log.md):
+          php artisan migrate:fresh with DB_DATABASE=atheris_control_e2e
+          then db:seed, then db:seed with class E2ETestSeeder
+    -->
+    <testsuites>
+        <testsuite name="E2E">
+            <directory>tests/e2e</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <ini name="memory_limit" value="512M"/>
+        <!--
+            APP_ENV must be "testing": Laravel skips CSRF verification only
+            when Application::runningUnitTests() is true, which is keyed on
+            this exact value. The database below is still the real MariaDB
+            e2e schema, which is the point of this suite. CSRF itself is
+            tested separately and deliberately in the form matrix.
+        -->
+        <env name="APP_ENV" value="testing"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="BROADCAST_CONNECTION" value="null"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="mysql"/>
+        <env name="DB_DATABASE" value="atheris_control_e2e"/>
+        <env name="DB_URL" value=""/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="PULSE_ENABLED" value="false"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="NIGHTWATCH_ENABLED" value="false"/>
+    </php>
+</phpunit>
