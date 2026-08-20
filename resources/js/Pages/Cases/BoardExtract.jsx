@@ -2,6 +2,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatCard from '@/Components/StatCard';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { AlertCircle, EyeOff, Gauge, Timer, TrendingUp } from 'lucide-react';
 
 function Breakdown({ title, data = {} }) {
     const total = Object.values(data).reduce((sum, n) => sum + n, 0);
@@ -74,15 +75,15 @@ export default function BoardExtract({ extract = {}, filters = {} }) {
             </div>
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-5">
-                <StatCard title="Cases" value={extract.total ?? 0} color="primary" />
-                <StatCard title="Open" value={extract.open ?? 0} color="warning" />
-                <StatCard title="Anonymous" value={extract.anonymous ?? 0} color="info" />
-                <StatCard
+                <StatCard icon={Gauge} title="Cases" value={extract.total ?? 0} color="primary" />
+                <StatCard icon={AlertCircle} title="Open" value={extract.open ?? 0} color="warning" />
+                <StatCard icon={EyeOff} title="Anonymous" value={extract.anonymous ?? 0} color="info" />
+                <StatCard icon={TrendingUp}
                     title="Substantiation rate"
                     value={extract.substantiation_rate === null || extract.substantiation_rate === undefined ? '—' : `${extract.substantiation_rate}%`}
                     color="accent"
                 />
-                <StatCard
+                <StatCard icon={Timer}
                     title="Median days to close"
                     value={extract.median_days_to_close ?? '—'}
                     color="success"

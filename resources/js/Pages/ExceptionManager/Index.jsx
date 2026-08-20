@@ -8,6 +8,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, router, usePage } from '@inertiajs/react';
+import { AlertTriangle, CheckCircle2, Clock, Send, Timer } from 'lucide-react';
 
 const VIEWS = [
     { key: 'register', label: 'Register' },
@@ -54,12 +55,12 @@ export default function Index({
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-                <StatCard title="Issued" value={stats.issued ?? 0} />
-                <StatCard title="Awaiting response" value={stats.awaitingResponse ?? 0} color="info" />
-                <StatCard title="Overdue" value={stats.overdue ?? 0} color="danger" prominent={stats.overdue > 0} />
-                <StatCard title="Awaiting review" value={stats.awaitingReview ?? 0} color="warning" />
-                <StatCard title="Closed this period" value={stats.closedThisPeriod ?? 0} color="success" />
-                <StatCard title="Avg response days" value={stats.averageResponseDays ?? '—'} />
+                <StatCard icon={Send} tone="blue" title="Issued" value={stats.issued ?? 0} />
+                <StatCard icon={Clock} title="Awaiting response" value={stats.awaitingResponse ?? 0} color="info" />
+                <StatCard icon={AlertTriangle} title="Overdue" value={stats.overdue ?? 0} color="danger" prominent={stats.overdue > 0} />
+                <StatCard icon={Clock} title="Awaiting review" value={stats.awaitingReview ?? 0} color="warning" />
+                <StatCard icon={CheckCircle2} title="Closed this period" value={stats.closedThisPeriod ?? 0} color="success" />
+                <StatCard icon={Timer} tone="blue" title="Avg response days" value={stats.averageResponseDays ?? '—'} />
             </div>
 
             <div className="mb-4 flex gap-1 rounded-lg bg-gray-100 p-1 w-fit">

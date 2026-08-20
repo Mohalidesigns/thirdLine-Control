@@ -7,6 +7,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime, formatNumber } from '@/utils';
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
+import { Gauge, Timer, TrendingUp, XCircle } from 'lucide-react';
 
 const SEVERITY_CLASSES = {
     Critical: 'badge-critical',
@@ -94,15 +95,15 @@ export default function Show({ run, findings, snapshots = [], can = {} }) {
             )}
 
             <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <StatCard title="Evaluated" value={formatNumber(run.records_evaluated)} color="primary" />
-                <StatCard
+                <StatCard icon={Gauge} title="Evaluated" value={formatNumber(run.records_evaluated)} color="primary" />
+                <StatCard icon={XCircle}
                     title="Failed"
                     value={formatNumber(run.records_failed)}
                     color="danger"
                     prominent={run.records_failed > 0}
                 />
-                <StatCard title="Exception rate" value={`${(run.exception_rate * 100).toFixed(2)}%`} color="warning" />
-                <StatCard
+                <StatCard icon={TrendingUp} title="Exception rate" value={`${(run.exception_rate * 100).toFixed(2)}%`} color="warning" />
+                <StatCard icon={Timer}
                     title="Duration"
                     value={run.duration_ms != null ? `${run.duration_ms}ms` : '—'}
                     subtitle={formatDateTime(run.started_at)}

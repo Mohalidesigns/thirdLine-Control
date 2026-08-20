@@ -14,6 +14,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime, formatNumber } from '@/utils';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import { AlertTriangle, CalendarClock, Info, Target } from 'lucide-react';
 
 const LEVEL_CLASSES = {
     Green: 'badge-low',
@@ -67,16 +68,16 @@ export default function Show({ metric, trend = [], period, values, breaches = []
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-                <StatCard
+                <StatCard icon={CalendarClock}
                     title="Latest reading"
                     value={latest ? `${formatNumber(latest.value)} ${metric.unit ?? ''}` : '—'}
                     subtitle={latest?.period ?? `Current period ${period}`}
                     color={latest?.breach ? 'danger' : 'primary'}
                     prominent={!!latest?.breach}
                 />
-                <StatCard title="Band" value={latest?.level ?? '—'} color={latest?.breach ? 'danger' : 'success'} />
-                <StatCard title="Target" value={metric.target_value !== null ? formatNumber(metric.target_value) : '—'} color="info" />
-                <StatCard title="Open breaches" value={open.length} color="warning" />
+                <StatCard icon={Info} title="Band" value={latest?.level ?? '—'} color={latest?.breach ? 'danger' : 'success'} />
+                <StatCard icon={Target} title="Target" value={metric.target_value !== null ? formatNumber(metric.target_value) : '—'} color="info" />
+                <StatCard icon={AlertTriangle} title="Open breaches" value={open.length} color="warning" />
             </div>
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

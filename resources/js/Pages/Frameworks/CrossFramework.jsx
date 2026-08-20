@@ -4,6 +4,7 @@ import StatCard from '@/Components/StatCard';
 import VerificationBadge from '@/Components/VerificationBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
+import { CheckCircle2, Gauge, TrendingUp } from 'lucide-react';
 
 const LINK_LABELS = {
     direct: 'Mapped directly',
@@ -82,9 +83,9 @@ export default function CrossFramework({ control, rows = [] }) {
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-3">
-                <StatCard title="Requirements satisfied" value={rows.length} color="primary" />
-                <StatCard title="Frameworks touched" value={frameworks.size} color="accent" />
-                <StatCard
+                <StatCard icon={CheckCircle2} title="Requirements satisfied" value={rows.length} color="primary" />
+                <StatCard icon={Gauge} title="Frameworks touched" value={frameworks.size} color="accent" />
+                <StatCard icon={TrendingUp}
                     title="Counting toward coverage"
                     value={approved.length}
                     color={approved.length === rows.length ? 'success' : 'warning'}

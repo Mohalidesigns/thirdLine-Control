@@ -11,6 +11,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime } from '@/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import { CheckCircle2, Clock } from 'lucide-react';
 
 export default function Mappings({ mappings, filters = {}, stats = {}, can = {} }) {
     const [rejecting, setRejecting] = useState(null);
@@ -101,13 +102,13 @@ export default function Mappings({ mappings, filters = {}, stats = {}, can = {} 
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4">
-                <StatCard
+                <StatCard icon={Clock}
                     title="Awaiting approval"
                     value={stats.pending ?? 0}
                     color="warning"
                     prominent={(stats.pending ?? 0) > 0}
                 />
-                <StatCard title="Approved" value={stats.approved ?? 0} color="success" />
+                <StatCard icon={CheckCircle2} title="Approved" value={stats.approved ?? 0} color="success" />
             </div>
 
             <FilterBar

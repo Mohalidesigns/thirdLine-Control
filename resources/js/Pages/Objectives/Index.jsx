@@ -15,7 +15,7 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Activity, AlertTriangle, CheckCircle2, Plus } from 'lucide-react';
 
 export default function Index({
     objectives,
@@ -113,10 +113,10 @@ export default function Index({
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-                <StatCard title="Live objectives" value={stats.active ?? 0} color="primary" />
-                <StatCard title="At risk" value={stats.at_risk ?? 0} color="danger" prominent={(stats.at_risk ?? 0) > 0} />
-                <StatCard title="Achieved" value={stats.achieved ?? 0} color="success" />
-                <StatCard title="Live initiatives" value={stats.initiatives ?? 0} color="info" />
+                <StatCard icon={Activity} title="Live objectives" value={stats.active ?? 0} color="primary" />
+                <StatCard icon={AlertTriangle} title="At risk" value={stats.at_risk ?? 0} color="danger" prominent={(stats.at_risk ?? 0) > 0} />
+                <StatCard icon={CheckCircle2} title="Achieved" value={stats.achieved ?? 0} color="success" />
+                <StatCard icon={Activity} title="Live initiatives" value={stats.initiatives ?? 0} color="info" />
             </div>
 
             <FilterBar

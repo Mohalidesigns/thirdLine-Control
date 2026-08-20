@@ -14,7 +14,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate, formatDateTime, formatNumber } from '@/utils';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Gauge, Info, Plus, Timer } from 'lucide-react';
 
 const HEALTH_CLASSES = {
     Healthy: 'badge-low',
@@ -98,20 +98,20 @@ export default function Show({
             )}
 
             <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <StatCard title="Health" value={source.health_status} color={source.health_status === 'Healthy' ? 'success' : 'danger'} />
-                <StatCard
+                <StatCard icon={Info} title="Health" value={source.health_status} color={source.health_status === 'Healthy' ? 'success' : 'danger'} />
+                <StatCard icon={Timer}
                     title="Last sync"
                     value={source.last_sync_status}
                     subtitle={source.last_sync_at ? formatDateTime(source.last_sync_at) : 'Never run'}
                     color="info"
                 />
-                <StatCard
+                <StatCard icon={Gauge}
                     title="Consecutive failures"
                     value={`${source.consecutive_failures} / ${source.failure_threshold}`}
                     subtitle="Breaker trips at the threshold"
                     color={source.consecutive_failures > 0 ? 'warning' : 'success'}
                 />
-                <StatCard
+                <StatCard icon={Info}
                     title="Data plane"
                     value={residency.country ?? '—'}
                     subtitle="Snapshots are written under this country's path"

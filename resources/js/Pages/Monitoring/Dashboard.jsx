@@ -7,6 +7,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime, formatNumber } from '@/utils';
 import { Head, Link } from '@inertiajs/react';
+import { AlertCircle, RefreshCw, TrendingUp, XCircle } from 'lucide-react';
 
 const HEALTH_CLASSES = {
     Healthy: 'badge-low',
@@ -46,13 +47,13 @@ export default function Dashboard({ dashboard = {}, sources = [], uncoveredKeyCo
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <StatCard
+                <StatCard icon={TrendingUp}
                     title="Key control coverage"
                     value={`${coverage.percentage ?? 0}%`}
                     subtitle={`${coverage.monitored ?? 0} of ${coverage.key_controls ?? 0} key controls have an active rule`}
                     color={(coverage.percentage ?? 0) >= 60 ? 'success' : 'warning'}
                 />
-                <StatCard
+                <StatCard icon={AlertCircle}
                     title="Open findings"
                     value={formatNumber(dashboard.findings?.open ?? 0)}
                     subtitle={`${dashboard.findings?.critical ?? 0} critical · ${dashboard.findings?.high ?? 0} high`}
@@ -60,13 +61,13 @@ export default function Dashboard({ dashboard = {}, sources = [], uncoveredKeyCo
                     prominent={(dashboard.findings?.critical ?? 0) > 0}
                     href={route('monitoring-findings.index')}
                 />
-                <StatCard
+                <StatCard icon={XCircle}
                     title="Sources failing"
                     value={dashboard.sources?.failed ?? 0}
                     subtitle={`${dashboard.sources?.healthy ?? 0} healthy of ${dashboard.sources?.total ?? 0}`}
                     color={(dashboard.sources?.failed ?? 0) > 0 ? 'danger' : 'success'}
                 />
-                <StatCard
+                <StatCard icon={RefreshCw}
                     title="Rows ingested (30d)"
                     value={formatNumber(dashboard.rows_ingested_30d ?? 0)}
                     subtitle={`${dashboard.rules?.active ?? 0} active rule(s)`}

@@ -4,6 +4,7 @@ import RiskHeatmap from '@/Components/RiskHeatmap';
 import StatCard from '@/Components/StatCard';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { AlertTriangle, Gauge, Info } from 'lucide-react';
 
 const VIEW_LABELS = {
     inherent: 'Inherent',
@@ -51,10 +52,10 @@ export default function Heatmap({
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-                <StatCard title="Risks in scope" value={heatmap.total ?? 0} color="primary" />
-                <StatCard title="Plotted" value={heatmap.plotted ?? 0} subtitle="With a position on this view" color="info" />
-                <StatCard title="Outside appetite" value={breaching} color="danger" prominent={breaching > 0} />
-                <StatCard title="Grid" value={`${heatmap.likelihood?.length ?? 0} × ${heatmap.impact?.length ?? 0}`} color="accent" />
+                <StatCard icon={Gauge} title="Risks in scope" value={heatmap.total ?? 0} color="primary" />
+                <StatCard icon={Gauge} title="Plotted" value={heatmap.plotted ?? 0} subtitle="With a position on this view" color="info" />
+                <StatCard icon={AlertTriangle} title="Outside appetite" value={breaching} color="danger" prominent={breaching > 0} />
+                <StatCard icon={Info} title="Grid" value={`${heatmap.likelihood?.length ?? 0} × ${heatmap.impact?.length ?? 0}`} color="accent" />
             </div>
 
             <div className="mb-4 flex flex-wrap gap-2">

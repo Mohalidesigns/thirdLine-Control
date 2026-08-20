@@ -14,7 +14,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Activity, AlertTriangle, CalendarClock, Plus } from 'lucide-react';
 
 const POSITION_CLASSES = {
     'Within appetite': 'badge-low',
@@ -94,10 +94,10 @@ export default function Appetite({
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-                <StatCard title="Active statements" value={positions.length} color="primary" />
-                <StatCard title="Categories breaching" value={breaching} color="danger" prominent={breaching > 0} />
-                <StatCard title="Categories with no statement" value={uncovered.length} color="warning" />
-                <StatCard
+                <StatCard icon={Activity} title="Active statements" value={positions.length} color="primary" />
+                <StatCard icon={AlertTriangle} title="Categories breaching" value={breaching} color="danger" prominent={breaching > 0} />
+                <StatCard icon={AlertTriangle} title="Categories with no statement" value={uncovered.length} color="warning" />
+                <StatCard icon={CalendarClock} tone="amber"
                     title="Due for review"
                     value={positions.filter((p) => p.review_due_at && new Date(p.review_due_at) <= new Date()).length}
                     color="info"

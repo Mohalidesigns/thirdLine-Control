@@ -13,6 +13,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime, formatNumber } from '@/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Info, Timer, TrendingUp } from 'lucide-react';
 
 const HEALTH_CLASSES = {
     Healthy: 'badge-low',
@@ -129,15 +130,15 @@ export default function Show({ rule, datasets = [], schema = null, runs, falsePo
             )}
 
             <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <StatCard title="Status" value={rule.status} color={rule.status === 'Active' ? 'success' : 'warning'} />
-                <StatCard title="Severity" value={rule.severity} color="danger" />
-                <StatCard
+                <StatCard icon={Info} title="Status" value={rule.status} color={rule.status === 'Active' ? 'success' : 'warning'} />
+                <StatCard icon={Info} title="Severity" value={rule.severity} color="danger" />
+                <StatCard icon={TrendingUp}
                     title="False-positive rate"
                     value={`${((falsePositives.rate ?? 0) * 100).toFixed(1)}%`}
                     subtitle={`${falsePositives.false_positives ?? 0} of ${falsePositives.total ?? 0} findings dismissed`}
                     color={(falsePositives.rate ?? 0) > 0.3 ? 'warning' : 'info'}
                 />
-                <StatCard
+                <StatCard icon={Timer}
                     title="Next run"
                     value={rule.next_run_at ? formatDateTime(rule.next_run_at) : '—'}
                     subtitle={rule.last_run_at ? `Last ran ${formatDateTime(rule.last_run_at)}` : 'Never run'}

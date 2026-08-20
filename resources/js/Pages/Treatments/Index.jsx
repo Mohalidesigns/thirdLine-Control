@@ -8,6 +8,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate, formatMoney } from '@/utils';
 import { Head, Link, router } from '@inertiajs/react';
+import { AlertCircle, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
 
 export default function Index({ treatments, filters = {}, statuses = [], strategies = [], owners = [], stats = {} }) {
     const columns = [
@@ -78,10 +79,10 @@ export default function Index({ treatments, filters = {}, statuses = [], strateg
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-                <StatCard title="Open plans" value={stats.open ?? 0} color="primary" />
-                <StatCard title="Overdue" value={stats.overdue ?? 0} color="danger" prominent={(stats.overdue ?? 0) > 0} />
-                <StatCard title="Awaiting verification" value={stats.awaiting_verification ?? 0} color="warning" />
-                <StatCard title="Accepted risks" value={stats.accepted ?? 0} color="info" />
+                <StatCard icon={AlertCircle} title="Open plans" value={stats.open ?? 0} color="primary" />
+                <StatCard icon={AlertTriangle} title="Overdue" value={stats.overdue ?? 0} color="danger" prominent={(stats.overdue ?? 0) > 0} />
+                <StatCard icon={Clock} title="Awaiting verification" value={stats.awaiting_verification ?? 0} color="warning" />
+                <StatCard icon={CheckCircle2} title="Accepted risks" value={stats.accepted ?? 0} color="info" />
             </div>
 
             <FilterBar

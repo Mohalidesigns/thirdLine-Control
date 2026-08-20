@@ -15,7 +15,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatNumber } from '@/utils';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Activity, AlertTriangle, Plus } from 'lucide-react';
 
 const LEVEL_CLASSES = {
     Green: 'badge-low',
@@ -107,14 +107,14 @@ export default function Index({
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-3">
-                <StatCard title="Active indicators" value={stats.active ?? 0} color="primary" />
-                <StatCard
+                <StatCard icon={Activity} title="Active indicators" value={stats.active ?? 0} color="primary" />
+                <StatCard icon={AlertTriangle}
                     title="In breach"
                     value={stats.breaching ?? 0}
                     color="danger"
                     prominent={(stats.breaching ?? 0) > 0}
                 />
-                <StatCard title="Unacknowledged breaches" value={stats.unacknowledged ?? 0} color="warning" />
+                <StatCard icon={AlertTriangle} title="Unacknowledged breaches" value={stats.unacknowledged ?? 0} color="warning" />
             </div>
 
             <FilterBar

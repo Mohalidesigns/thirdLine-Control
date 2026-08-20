@@ -14,6 +14,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { daysUntil, formatDate, formatDateTime, formatMoney } from '@/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Banknote, CalendarClock, FolderOpen, Info } from 'lucide-react';
 
 export default function InstanceShow({ instance, can = {} }) {
     const [submitting, setSubmitting] = useState(false);
@@ -95,8 +96,8 @@ export default function InstanceShow({ instance, can = {} }) {
             )}
 
             <div className="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
-                <StatCard title="Status" value={<StatusBadge status={instance.status} />} color="primary" />
-                <StatCard
+                <StatCard icon={Info} tone="blue" title="Status" value={<StatusBadge status={instance.status} />} color="primary" />
+                <StatCard icon={CalendarClock}
                     title="Due"
                     value={formatDate(instance.due_at)}
                     color={remaining !== null && remaining < 0 ? 'danger' : 'info'}
@@ -108,8 +109,8 @@ export default function InstanceShow({ instance, can = {} }) {
                               : `${remaining} day(s) remaining`
                     }
                 />
-                <StatCard title="Evidence" value={instance.evidence?.length ?? 0} color={hasEvidence ? 'success' : 'warning'} />
-                <StatCard
+                <StatCard icon={FolderOpen} title="Evidence" value={instance.evidence?.length ?? 0} color={hasEvidence ? 'success' : 'warning'} />
+                <StatCard icon={Banknote}
                     title="Penalty exposure"
                     value={instance.penalty_exposure ? formatMoney(instance.penalty_exposure) : '—'}
                     color="danger"

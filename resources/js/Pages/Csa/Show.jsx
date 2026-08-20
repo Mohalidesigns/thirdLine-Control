@@ -7,6 +7,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import QuestionnaireBuilder from './QuestionnaireBuilder';
+import { AlertTriangle, Info, Send, TrendingUp } from 'lucide-react';
 
 const TYPE_LABELS = { csa: 'Control Self-Assessment', attestation: 'Attestation', survey: 'Survey' };
 
@@ -73,14 +74,14 @@ export default function Show({
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-                <StatCard title="Status" value={campaign.status} color="primary" />
-                <StatCard
+                <StatCard icon={Info} title="Status" value={campaign.status} color="primary" />
+                <StatCard icon={Send}
                     title="Responses"
                     value={campaign.is_anonymous ? `${results?.response_count ?? 0} received` : `${submitted}/${responses.length}`}
                     color="primary"
                 />
-                <StatCard title="Response rate" value={`${responseRate}%`} subtitle={campaign.response_rate_target ? `Target ${campaign.response_rate_target}%` : null} color={responseRate >= (campaign.response_rate_target ?? 0) ? 'success' : 'warning'} />
-                <StatCard title="Variances" value={responses.filter((r) => r.variance_flag).length} color="danger" />
+                <StatCard icon={TrendingUp} title="Response rate" value={`${responseRate}%`} subtitle={campaign.response_rate_target ? `Target ${campaign.response_rate_target}%` : null} color={responseRate >= (campaign.response_rate_target ?? 0) ? 'success' : 'warning'} />
+                <StatCard icon={AlertTriangle} tone="amber" title="Variances" value={responses.filter((r) => r.variance_flag).length} color="danger" />
             </div>
 
             {myResponses.length > 0 && (

@@ -6,7 +6,7 @@ import StatCard from '@/Components/StatCard';
 import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { CheckCircle2, CircleSlash, Gauge, Plus, XCircle } from 'lucide-react';
 
 const TYPE_BADGES = {
     Preventive: 'bg-blue-50 text-blue-700',
@@ -130,12 +130,12 @@ export default function Index({
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-                <StatCard title="Total Controls" value={stats.total ?? 0} color="primary" />
-                <StatCard title="Design Adequate" value={stats.designAdequate ?? 0} color="success" />
-                <StatCard title="Design Inadequate" value={stats.designInadequate ?? 0} color="danger" />
-                <StatCard title="Operating Effective" value={stats.operatingEffective ?? 0} color="success" />
-                <StatCard title="Operating Ineffective" value={stats.operatingIneffective ?? 0} color="danger" />
-                <StatCard title="Not Tested" value={stats.notTested ?? 0} color="warning" />
+                <StatCard icon={Gauge} title="Total Controls" value={stats.total ?? 0} color="primary" />
+                <StatCard icon={CheckCircle2} title="Design Adequate" value={stats.designAdequate ?? 0} color="success" />
+                <StatCard icon={XCircle} title="Design Inadequate" value={stats.designInadequate ?? 0} color="danger" />
+                <StatCard icon={CheckCircle2} title="Operating Effective" value={stats.operatingEffective ?? 0} color="success" />
+                <StatCard icon={XCircle} title="Operating Ineffective" value={stats.operatingIneffective ?? 0} color="danger" />
+                <StatCard icon={CircleSlash} title="Not Tested" value={stats.notTested ?? 0} color="warning" />
             </div>
 
             <FilterBar

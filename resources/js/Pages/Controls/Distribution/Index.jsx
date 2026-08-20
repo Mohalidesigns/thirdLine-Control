@@ -12,7 +12,7 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Plus, Send, TrendingUp } from 'lucide-react';
 
 /**
  * Corporater-style distribution overview: stat tiles + an org-tree table of
@@ -69,11 +69,11 @@ export default function Index({ stats = {}, distributions = [], entities = [], g
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-5">
-                <StatCard title="Entities distributed to" value={stats.entities_distributed_to ?? 0} color="primary" />
-                <StatCard title="Tasks completed" value={stats.tasks_completed ?? 0} color="success" />
-                <StatCard title="Distributed tasks not completed" value={stats.tasks_outstanding ?? 0} color="warning" />
-                <StatCard title="Implementation progress" value={`${stats.implementation_progress ?? 0}%`} color="primary" />
-                <StatCard title="Declined (coverage gaps)" value={stats.declined_gaps ?? 0} color="danger" />
+                <StatCard icon={Send} title="Entities distributed to" value={stats.entities_distributed_to ?? 0} color="primary" />
+                <StatCard icon={CheckCircle2} title="Tasks completed" value={stats.tasks_completed ?? 0} color="success" />
+                <StatCard icon={CheckCircle2} title="Distributed tasks not completed" value={stats.tasks_outstanding ?? 0} color="warning" />
+                <StatCard icon={TrendingUp} title="Implementation progress" value={`${stats.implementation_progress ?? 0}%`} color="primary" />
+                <StatCard icon={AlertTriangle} title="Declined (coverage gaps)" value={stats.declined_gaps ?? 0} color="danger" />
             </div>
 
             <div className="filter-bar mb-4">
