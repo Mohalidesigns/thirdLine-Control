@@ -15,6 +15,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 export default function Index({
     documents,
@@ -65,10 +66,10 @@ export default function Index({
                 actions={
                     <>
                         {can.manageFolders && (
-                            <SecondaryButton onClick={() => setShowFolder(true)}>+ Folder</SecondaryButton>
+                            <SecondaryButton onClick={() => setShowFolder(true)}><Plus className="h-4 w-4" strokeWidth={2} /> Folder</SecondaryButton>
                         )}
                         {can.create && (
-                            <PrimaryButton onClick={() => setShowUpload(true)}>+ Add document</PrimaryButton>
+                            <PrimaryButton onClick={() => setShowUpload(true)}><Plus className="h-4 w-4" strokeWidth={2} /> Add document</PrimaryButton>
                         )}
                     </>
                 }

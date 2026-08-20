@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Control;
+use App\Rules\RichTextRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,7 +19,9 @@ class ControlRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'description_rich' => ['nullable', 'array', new RichTextRule],
             'objective' => ['nullable', 'string'],
+            'objective_rich' => ['nullable', 'array', new RichTextRule],
             'type' => ['required', Rule::in(Control::TYPES)],
             'nature' => ['required', Rule::in(Control::NATURES)],
             'category_id' => ['nullable', 'exists:control_categories,id'],
@@ -37,7 +40,9 @@ class ControlRequest extends FormRequest
             'framework_refs' => ['nullable', 'array'],
             'framework_refs.*' => ['string', 'max:255'],
             'control_documentation' => ['nullable', 'string'],
+            'control_documentation_rich' => ['nullable', 'array', new RichTextRule],
             'notes' => ['nullable', 'string'],
+            'notes_rich' => ['nullable', 'array', new RichTextRule],
             'change_reason' => [$this->isMethod('put') || $this->isMethod('patch') ? 'required' : 'nullable', 'string', 'max:1000'],
         ];
     }

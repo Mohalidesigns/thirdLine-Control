@@ -6,6 +6,7 @@ import StatCard from '@/Components/StatCard';
 import VerificationBadge from '@/Components/VerificationBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 
 const CATEGORY_LABELS = {
     internal_control: 'Internal control',
@@ -77,7 +78,7 @@ export default function Index({
                 actions={
                     can.manage && (
                         <Link href={route('frameworks.create')} className="btn-primary">
-                            + Add Framework
+                            <Plus className="h-4 w-4" strokeWidth={2} /> Add Framework
                         </Link>
                     )
                 }

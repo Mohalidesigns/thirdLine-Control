@@ -7,6 +7,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 
 export default function Index({ exceptions, filters = {}, statuses = [], severities = [], units = [] }) {
     const { auth } = usePage().props;
@@ -29,7 +30,7 @@ export default function Index({ exceptions, filters = {}, statuses = [], severit
                         )}
                         {canCreate && (
                             <Link href={route('exceptions.create')} className="btn-primary">
-                                + Raise exception
+                                <Plus className="h-4 w-4" strokeWidth={2} /> Raise exception
                             </Link>
                         )}
                     </>

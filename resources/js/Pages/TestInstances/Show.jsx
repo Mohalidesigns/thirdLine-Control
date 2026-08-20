@@ -8,6 +8,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import StatusBadge from '@/Components/StatusBadge';
+import RichTextEditor from '@/Components/RichTextEditor';
 import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -119,8 +120,10 @@ export default function Show({ instance, evidence = [], can = {} }) {
     const rateForm = useForm({
         design_effectiveness: 'Effective',
         design_rationale: '',
+        design_rationale_rich: null,
         operating_effectiveness: 'Effective',
         operating_rationale: '',
+        operating_rationale_rich: null,
     });
 
     const rating = instance.effectiveness_rating;
@@ -390,10 +393,15 @@ export default function Show({ instance, evidence = [], can = {} }) {
                             {rateForm.data[`${dimension}_effectiveness`] !== 'Effective' && (
                                 <div className="mt-2">
                                     <InputLabel value="Rationale" required />
-                                    <TextArea
-                                        rows={2}
-                                        value={rateForm.data[`${dimension}_rationale`]}
-                                        onChange={(e) => rateForm.setData(`${dimension}_rationale`, e.target.value)}
+                                    <RichTextEditor
+                                        value={rateForm.data[`${dimension}_rationale_rich`] ?? rateForm.data[`${dimension}_rationale`]}
+                                        onChange={(doc, plain) => rateForm.setData((d) => ({
+                                            ...d,
+                                            [`${dimension}_rationale`]: plain,
+                                            [`${dimension}_rationale_rich`]: doc,
+                                        }))}
+                                        tools="minimal"
+                                        minHeight={90}
                                     />
                                     <InputError message={rateForm.errors[`${dimension}_rationale`]} className="mt-1" />
                                 </div>

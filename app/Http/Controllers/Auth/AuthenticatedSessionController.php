@@ -32,6 +32,10 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // quietly(): a login is not an edit — the Auditable trait should
+        // never write an 'updated' event for the timestamp alone.
+        $request->user()->forceFill(['last_login_at' => now()])->saveQuietly();
+
         return redirect()->intended(route('dashboard'));
     }
 

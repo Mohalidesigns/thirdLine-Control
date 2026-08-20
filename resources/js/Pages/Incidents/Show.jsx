@@ -7,6 +7,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import VerificationBadge from '@/Components/VerificationBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime } from '@/utils';
+import RichTextViewer from '@/Components/RichTextViewer';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -291,7 +292,7 @@ export default function Show({ incident, links = [], users = [], controls = [], 
                                 {incident.root_cause && (
                                     <div>
                                         <p className="text-xs uppercase tracking-wide text-gray-400">Root cause</p>
-                                        <p className="mt-1">{incident.root_cause}</p>
+                                        <RichTextViewer className="mt-1" value={incident.root_cause_rich} fallback={incident.root_cause} />
                                     </div>
                                 )}
                                 {(incident.contributing_factors ?? []).length > 0 && (
@@ -309,7 +310,7 @@ export default function Show({ incident, links = [], users = [], controls = [], 
                                 {incident.lessons_learned && (
                                     <div>
                                         <p className="text-xs uppercase tracking-wide text-gray-400">Lessons learned</p>
-                                        <p className="mt-1">{incident.lessons_learned}</p>
+                                        <RichTextViewer className="mt-1" value={incident.lessons_learned_rich} fallback={incident.lessons_learned} />
                                     </div>
                                 )}
                             </div>

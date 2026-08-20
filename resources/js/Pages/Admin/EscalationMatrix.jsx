@@ -11,6 +11,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime } from '@/utils';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const TRIGGERS = {
     exception_unassigned: 'Exception unassigned after N days',
@@ -73,7 +74,7 @@ export default function EscalationMatrix({ rules = [], events = [], users = [], 
             <PageHeader
                 title="Escalation matrix"
                 subtitle="Tiered escalation rules per severity — Critical escalates faster and further than Low"
-                actions={<PrimaryButton onClick={openNew}>+ Add rule</PrimaryButton>}
+                actions={<PrimaryButton onClick={openNew}><Plus className="h-4 w-4" strokeWidth={2} /> Add rule</PrimaryButton>}
             />
 
             <div className="card mb-6">

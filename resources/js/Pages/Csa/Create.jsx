@@ -8,6 +8,7 @@ import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 
 export default function Create({ defaultType = 'csa', entities = [], controls = [], users = [] }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -149,7 +150,7 @@ export default function Create({ defaultType = 'csa', entities = [], controls = 
                         <div className="card-header flex items-center justify-between">
                             <h3 className="text-sm font-semibold">Assignments</h3>
                             <button type="button" className="text-xs font-semibold text-[var(--color-primary)]" onClick={addAssignment}>
-                                + Add respondent
+                                <Plus className="h-4 w-4" strokeWidth={2} /> Add respondent
                             </button>
                         </div>
                         <div className="card-body space-y-2">

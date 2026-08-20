@@ -13,6 +13,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const COVERAGE_MARK = {
     full: { label: '●', title: 'Full coverage' },
@@ -45,8 +46,8 @@ export default function Map({ map = {}, stats = {}, filters = {}, periods = [], 
                 actions={
                     can.manage && (
                         <>
-                            <SecondaryButton onClick={() => setAddingProvider(true)}>+ Provider</SecondaryButton>
-                            <PrimaryButton onClick={() => setAddingActivity(true)}>+ Record coverage</PrimaryButton>
+                            <SecondaryButton onClick={() => setAddingProvider(true)}><Plus className="h-4 w-4" strokeWidth={2} /> Provider</SecondaryButton>
+                            <PrimaryButton onClick={() => setAddingActivity(true)}><Plus className="h-4 w-4" strokeWidth={2} /> Record coverage</PrimaryButton>
                         </>
                     )
                 }

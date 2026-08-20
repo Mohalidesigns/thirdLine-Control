@@ -5,7 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
-import TextArea from '@/Components/TextArea';
+import RichTextEditor from '@/Components/RichTextEditor';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
@@ -14,6 +14,7 @@ export default function Create({ units = [], processes = [], controls = [] }) {
     const { data, setData, post, processing, errors } = useForm({
         title: '',
         scope_description: '',
+        scope_description_rich: null,
         unit_id: '',
         process_id: '',
         control_ids: [],
@@ -56,7 +57,12 @@ export default function Create({ units = [], processes = [], controls = [] }) {
                         </div>
                         <div>
                             <InputLabel value="Scope description" />
-                            <TextArea value={data.scope_description} onChange={(e) => setData('scope_description', e.target.value)} />
+                            <RichTextEditor
+                                value={data.scope_description_rich ?? data.scope_description}
+                                onChange={(doc, plain) => setData((d) => ({ ...d, scope_description: plain, scope_description_rich: doc }))}
+                                tools="default"
+                                minHeight={110}
+                            />
                         </div>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             <div>

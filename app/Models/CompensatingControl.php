@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CompensatingControl extends Model
 {
-    use Auditable, BelongsToTenant, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenant, HasFactory, HasRichText, SoftDeletes;
 
     public const STATUSES = ['Proposed', 'Approved', 'Active', 'Expired', 'Withdrawn'];
 
@@ -20,6 +21,9 @@ class CompensatingControl extends Model
         'is_temporary', 'effective_from', 'effective_to', 'residual_exposure_note',
         'status', 'approved_by', 'approved_at', 'linked_control_id',
     ];
+
+    /** Editor.js-backed fields — see HasRichText. */
+    protected array $richText = ['description', 'residual_exposure_note'];
 
     protected $casts = [
         'is_temporary' => 'boolean',

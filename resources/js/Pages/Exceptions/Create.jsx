@@ -4,7 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
-import TextArea from '@/Components/TextArea';
+import RichTextEditor from '@/Components/RichTextEditor';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
@@ -13,7 +13,9 @@ export default function Create({ controls = [], users = [], units = [], severiti
     const { data, setData, post, processing, errors } = useForm({
         title: '',
         description: '',
+        description_rich: null,
         root_cause: '',
+        root_cause_rich: null,
         severity: 'Medium',
         control_id: '',
         owner_id: '',
@@ -58,11 +60,21 @@ export default function Create({ controls = [], users = [], units = [], severiti
                         </div>
                         <div>
                             <InputLabel value="Description" />
-                            <TextArea value={data.description} onChange={(e) => setData('description', e.target.value)} />
+                            <RichTextEditor
+                                value={data.description_rich ?? data.description}
+                                onChange={(doc, plain) => setData((d) => ({ ...d, description: plain, description_rich: doc }))}
+                                tools="default"
+                                minHeight={140}
+                            />
                         </div>
                         <div>
                             <InputLabel value="Root cause" />
-                            <TextArea rows={2} value={data.root_cause} onChange={(e) => setData('root_cause', e.target.value)} />
+                            <RichTextEditor
+                                value={data.root_cause_rich ?? data.root_cause}
+                                onChange={(doc, plain) => setData((d) => ({ ...d, root_cause: plain, root_cause_rich: doc }))}
+                                tools="minimal"
+                                minHeight={90}
+                            />
                         </div>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>

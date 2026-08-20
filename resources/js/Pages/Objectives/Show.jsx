@@ -14,6 +14,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate, formatNumber } from '@/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const CONTRIBUTION_LABELS = {
     metric: 'Indicator',
@@ -146,7 +147,7 @@ export default function Show({
                                     className="text-xs font-semibold text-[var(--color-primary)]"
                                     onClick={() => setAddingInitiative(true)}
                                 >
-                                    + New initiative
+                                    <Plus className="h-4 w-4" strokeWidth={2} /> New initiative
                                 </button>
                             )}
                         </div>
@@ -178,7 +179,7 @@ export default function Show({
                                     className="text-xs font-semibold text-[var(--color-primary)]"
                                     onClick={() => setAddingMeasure(true)}
                                 >
-                                    + Add
+                                    <Plus className="h-4 w-4" strokeWidth={2} /> Add
                                 </button>
                             )}
                         </div>
@@ -566,7 +567,7 @@ function InitiativeModal({ show, onClose, objective, owners, statuses }) {
                     <div className="mb-2 flex items-center justify-between">
                         <InputLabel value="Milestones" />
                         <button type="button" className="text-xs font-semibold text-[var(--color-primary)]" onClick={addMilestone}>
-                            + Add milestone
+                            <Plus className="h-4 w-4" strokeWidth={2} /> Add milestone
                         </button>
                     </div>
                     <div className="space-y-2">

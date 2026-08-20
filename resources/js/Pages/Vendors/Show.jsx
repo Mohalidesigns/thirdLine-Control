@@ -13,6 +13,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate, formatDateTime } from '@/utils';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const RESULT_CLASSES = {
     clear: 'badge-low',
@@ -547,7 +548,7 @@ function ScreeningModal({ show, onClose, vendor, options }) {
                     <div className="mb-2 flex items-center justify-between">
                         <InputLabel value="Hits" />
                         <button type="button" className="text-xs font-semibold text-[var(--color-primary)]" onClick={addHit}>
-                            + Add hit
+                            <Plus className="h-4 w-4" strokeWidth={2} /> Add hit
                         </button>
                     </div>
                     <div className="space-y-2">
@@ -805,7 +806,7 @@ function ContractModal({ show, onClose, vendor, entities, owners, obligations, o
                     <div className="mb-2 flex items-center justify-between">
                         <InputLabel value="SLA commitments" />
                         <button type="button" className="text-xs font-semibold text-[var(--color-primary)]" onClick={addSla}>
-                            + Add
+                            <Plus className="h-4 w-4" strokeWidth={2} /> Add
                         </button>
                     </div>
                     <div className="space-y-2">

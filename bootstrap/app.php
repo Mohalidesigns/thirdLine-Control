@@ -5,6 +5,7 @@ use App\Http\Middleware\AuthenticateIntegration;
 use App\Http\Middleware\EnforceMfa;
 use App\Http\Middleware\EnsureFeatureEnabled;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RequirePasswordChange;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -31,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             HandleInertiaRequests::class,
             EnforceMfa::class,
+            RequirePasswordChange::class,
             SecurityHeaders::class,
         ]);
 

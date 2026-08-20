@@ -10,6 +10,7 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const EMPTY = {
     sequence: 1,
@@ -82,7 +83,7 @@ export default function ExceptionRouting({
                 actions={
                     <>
                         <Link href={route('admin.exception-sla')} className="btn-secondary">SLA policies</Link>
-                        <PrimaryButton onClick={() => open()}>+ New rule</PrimaryButton>
+                        <PrimaryButton onClick={() => open()}><Plus className="h-4 w-4" strokeWidth={2} /> New rule</PrimaryButton>
                     </>
                 }
             />

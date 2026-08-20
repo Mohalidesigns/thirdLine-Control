@@ -20,8 +20,8 @@ class PwaController extends Controller
             'description' => 'Internal control & GRC platform',
             'start_url' => '/dashboard',
             'display' => 'standalone',
-            'background_color' => $branding?->primary_colour ?? '#0B1F3A',
-            'theme_color' => $branding?->primary_colour ?? '#0B1F3A',
+            'background_color' => $branding?->primary_colour ?? '#1A365D',
+            'theme_color' => $branding?->primary_colour ?? '#1A365D',
             'icons' => [
                 ['src' => '/icons/icon-192.png', 'sizes' => '192x192', 'type' => 'image/png'],
                 ['src' => '/icons/icon-512.png', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any maskable'],

@@ -4,7 +4,7 @@ import InputLabel from '@/Components/InputLabel';
 import PageHeader from '@/Components/PageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
 function Checkbox({ checked, onChange, disabled = false }) {
@@ -132,22 +132,29 @@ function RoleCard({ role, permissionGroups }) {
 function UserRow({ user, roleNames }) {
     const [selected, setSelected] = useState(user.roles);
     const [saving, setSaving] = useState(false);
+    const [saved, setSaved] = useState(false);
 
     const dirty =
         selected.length !== user.roles.length ||
         selected.some((r) => !user.roles.includes(r));
 
-    const toggle = (role) =>
+    const toggle = (role) => {
+        setSaved(false);
         setSelected((current) =>
             current.includes(role) ? current.filter((r) => r !== role) : [...current, role],
         );
+    };
 
     const save = () => {
         setSaving(true);
         router.put(
             route('admin.users.roles.update', user.id),
             { roles: selected },
-            { preserveScroll: true, onFinish: () => setSaving(false) },
+            {
+                preserveScroll: true,
+                onSuccess: () => setSaved(true),
+                onFinish: () => setSaving(false),
+            },
         );
     };
 
@@ -172,9 +179,23 @@ function UserRow({ user, roleNames }) {
                 </div>
             </td>
             <td className="text-right">
-                <PrimaryButton disabled={!dirty || saving} onClick={save}>
-                    {saving ? 'Saving…' : 'Save'}
-                </PrimaryButton>
+                {/* Idle rows show a quiet ghost button; a dirty row lights it
+                    up as the primary action so "unsaved changes" is visible
+                    at a glance, and success flashes a Saved state. */}
+                {dirty || saving ? (
+                    <PrimaryButton disabled={saving} onClick={save} className="shadow-md ring-2 ring-[var(--color-accent)]/40">
+                        {saving ? 'Saving…' : 'Save'}
+                    </PrimaryButton>
+                ) : saved ? (
+                    <span className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-[var(--color-success)]">
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                        </svg>
+                        Saved
+                    </span>
+                ) : (
+                    <span className="px-4 py-2 text-sm text-gray-300">No changes</span>
+                )}
             </td>
         </tr>
     );
@@ -198,6 +219,11 @@ export default function Roles({ roles, permissionGroups, users }) {
             <PageHeader
                 title="Roles & permissions"
                 subtitle="Who may do what. Every change here is written to the audit trail with its before and after."
+                actions={
+                    <Link href={route('admin.users.index')} className="btn-secondary">
+                        Manage users
+                    </Link>
+                }
             />
 
             <div className="space-y-6">

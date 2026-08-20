@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title inertia>{{ config('app.name', 'SecondLine') }}</title>
         <link rel="manifest" href="{{ route('pwa.manifest') }}" />
-        <meta name="theme-color" content="#0B1F3A" />
+        <meta name="theme-color" content="#1A365D" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         @routes
         @viteReactRefresh

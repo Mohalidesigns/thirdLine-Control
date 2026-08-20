@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\GeneratesReference;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Risk extends Model
 {
-    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, HasRichText, SoftDeletes;
 
     public const TYPES = ['qualitative', 'quantitative', 'both'];
 
@@ -50,6 +51,9 @@ class Risk extends Model
         'financial_impact_minor', 'expected_loss_minor', 'var_95_minor', 'var_99_minor',
         'loss_currency', 'appetite_breached', 'appetite_breach_at',
     ];
+
+    /** Editor.js-backed fields — see HasRichText. */
+    protected array $richText = ['description'];
 
     protected $casts = [
         'inherent_likelihood' => 'integer',

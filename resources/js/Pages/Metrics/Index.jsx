@@ -15,6 +15,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatNumber } from '@/utils';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const LEVEL_CLASSES = {
     Green: 'badge-low',
@@ -102,7 +103,7 @@ export default function Index({
             <PageHeader
                 title="Key Risk & Performance Indicators"
                 subtitle="Definitions, threshold bands, readings and breaches — every band is configured, none is coded"
-                actions={can.manage && <PrimaryButton onClick={() => setCreating(true)}>+ New metric</PrimaryButton>}
+                actions={can.manage && <PrimaryButton onClick={() => setCreating(true)}><Plus className="h-4 w-4" strokeWidth={2} /> New metric</PrimaryButton>}
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-3">

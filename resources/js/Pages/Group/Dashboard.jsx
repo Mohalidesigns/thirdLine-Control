@@ -4,14 +4,21 @@ import PageHeader from '@/Components/PageHeader';
 import StatCard from '@/Components/StatCard';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
+import { AlertCircle, CalendarClock, PieChart, Percent, ShieldAlert, ShieldCheck, Siren } from 'lucide-react';
 
-const KPI_LABELS = {
-    active_controls: 'Active controls',
-    effective_pct: 'Effective %',
-    open_exceptions: 'Open exceptions',
-    overdue_obligations: 'Overdue obligations',
-    open_incidents: 'Open incidents',
-    active_risks: 'Active risks',
+// Icon per KPI; the tone follows the value's state — a zero backlog is
+// calm, a non-zero one demands attention.
+const KPI_CARDS = {
+    active_controls: { label: 'Active controls', icon: ShieldCheck, tone: () => 'blue' },
+    effective_pct: {
+        label: 'Effective %',
+        icon: Percent,
+        tone: (v) => (v === null || v === undefined ? 'slate' : v >= 75 ? 'emerald' : v >= 50 ? 'amber' : 'red'),
+    },
+    open_exceptions: { label: 'Open exceptions', icon: AlertCircle, tone: (v) => (v > 0 ? 'amber' : 'emerald') },
+    overdue_obligations: { label: 'Overdue obligations', icon: CalendarClock, tone: (v) => (v > 0 ? 'red' : 'emerald') },
+    open_incidents: { label: 'Open incidents', icon: Siren, tone: (v) => (v > 0 ? 'red' : 'emerald') },
+    active_risks: { label: 'Active risks', icon: ShieldAlert, tone: () => 'blue' },
 };
 
 function Delta({ value, invert = false }) {
@@ -77,6 +84,7 @@ export default function Dashboard({ rollup }) {
 
             <PageHeader
                 title="Consolidated group position"
+                icon={PieChart}
                 subtitle={`${group.entity_count} entities visible to you · ${group.consolidated_count} consolidated — numbers weighted by consolidation method`}
             />
 
@@ -88,10 +96,12 @@ export default function Dashboard({ rollup }) {
             ) : (
                 <>
                     <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-                        {Object.entries(KPI_LABELS).map(([kpi, label]) => (
+                        {Object.entries(KPI_CARDS).map(([kpi, { label, icon, tone }]) => (
                             <StatCard
                                 key={kpi}
                                 title={label}
+                                icon={icon}
+                                tone={tone(group.kpis[kpi])}
                                 value={
                                     group.kpis[kpi] === null || group.kpis[kpi] === undefined
                                         ? '—'

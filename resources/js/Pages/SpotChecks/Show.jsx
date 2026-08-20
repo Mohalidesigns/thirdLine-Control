@@ -14,6 +14,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const EMPTY_FINDING = {
     control_id: '',
@@ -79,7 +80,7 @@ export default function Show({ spotCheck, scopedControls = [], allControls = [],
                     <>
                         {inProgress && (
                             <>
-                                <PrimaryButton onClick={openNew}>+ Capture finding</PrimaryButton>
+                                <PrimaryButton onClick={openNew}><Plus className="h-4 w-4" strokeWidth={2} /> Capture finding</PrimaryButton>
                                 <SecondaryButton onClick={() => setShowComplete(true)}>Complete check</SecondaryButton>
                             </>
                         )}

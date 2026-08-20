@@ -12,6 +12,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 export default function EvidenceDisposal({ queued, policies = [] }) {
     const { auth } = usePage().props;
@@ -34,7 +35,7 @@ export default function EvidenceDisposal({ queued, policies = [] }) {
             <PageHeader
                 title="Evidence retention & disposal"
                 subtitle="Items past retention expiry require two different approvers before permanent deletion"
-                actions={<SecondaryButton onClick={() => setShowPolicy(true)}>+ Retention policy</SecondaryButton>}
+                actions={<SecondaryButton onClick={() => setShowPolicy(true)}><Plus className="h-4 w-4" strokeWidth={2} /> Retention policy</SecondaryButton>}
             />
 
             <div className="card mb-6">

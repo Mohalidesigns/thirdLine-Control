@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\GeneratesReference;
+use App\Models\Concerns\HasRichText;
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,7 +18,7 @@ use Illuminate\Support\Carbon;
 
 class Incident extends Model
 {
-    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, HasRichText, SoftDeletes;
 
     public const TYPES = [
         'operational', 'security', 'cyber', 'fraud', 'compliance', 'data_breach',
@@ -63,6 +64,9 @@ class Incident extends Model
         'contributing_factors', 'lessons_learned', 'owner_id', 'investigator_id',
         'closed_by', 'closed_at', 'control_failure_ids', 'risk_ids',
     ];
+
+    /** Editor.js-backed fields — see HasRichText. */
+    protected array $richText = ['description', 'root_cause', 'lessons_learned'];
 
     protected $casts = [
         'occurred_at' => 'datetime',

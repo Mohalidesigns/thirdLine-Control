@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Incident;
+use App\Rules\RichTextRule;
 use App\Support\Money;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -23,6 +24,7 @@ class IncidentRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:8000'],
+            'description_rich' => ['nullable', 'array', new RichTextRule],
             'incident_type' => ['required', Rule::in(Incident::TYPES)],
             'basel_event_type' => ['nullable', Rule::in(Incident::BASEL_EVENT_TYPES)],
             'severity' => ['required', Rule::in(Incident::SEVERITIES)],

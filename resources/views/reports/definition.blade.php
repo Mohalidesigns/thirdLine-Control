@@ -1,5 +1,5 @@
 @php
-    $brandPrimary = $branding->primary_colour ?? '#0B1F3A';
+    $brandPrimary = $branding->primary_colour ?? '#1A365D';
     $brandAccent = $branding->accent_colour ?? '#C9A227';
     $categorical = array_values($palette['categorical']);
     $statusTones = $palette['status'];

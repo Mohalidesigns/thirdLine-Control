@@ -4,6 +4,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 
 const SEVERITY_COLORS = {
     Critical: '#C53030',
@@ -135,7 +136,7 @@ export default function Dashboard({ metrics, filters = {}, units = [] }) {
                         </select>
                         {auth.permissions.includes('create controls') && (
                             <Link href={route('controls.create')} className="btn-primary">
-                                + Add Control
+                                <Plus className="h-4 w-4" strokeWidth={2} /> Add Control
                             </Link>
                         )}
                     </>

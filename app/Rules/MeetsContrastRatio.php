@@ -17,7 +17,7 @@ class MeetsContrastRatio implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (! is_string($value) || ! preg_match('/^#[0-9A-Fa-f]{6}$/', $value)) {
-            $fail('The :attribute must be a hex colour like #0B1F3A.');
+            $fail('The :attribute must be a hex colour like #1A365D.');
 
             return;
         }

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\GeneratesReference;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ImprovementAction extends Model
 {
-    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, HasRichText, SoftDeletes;
 
     public const SOURCES = ['test', 'csa', 'spot_check', 'incident', 'audit', 'exception', 'survey', 'manual'];
 
@@ -27,6 +28,9 @@ class ImprovementAction extends Model
         'verified_by', 'verified_at', 'benefit_description', 'effort_estimate',
         'control_id', 'risk_id',
     ];
+
+    /** Editor.js-backed fields — see HasRichText. */
+    protected array $richText = ['description'];
 
     protected $casts = [
         'due_at' => 'date',

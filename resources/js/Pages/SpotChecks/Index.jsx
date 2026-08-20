@@ -6,6 +6,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, Link, router } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 
 export default function Index({ spotChecks, filters = {}, statuses = [] }) {
     return (
@@ -17,7 +18,7 @@ export default function Index({ spotChecks, filters = {}, statuses = [] }) {
                 subtitle="Ad-hoc control reviews outside the testing calendar"
                 actions={
                     <Link href={route('spot-checks.create')} className="btn-primary">
-                        + New spot check
+                        <Plus className="h-4 w-4" strokeWidth={2} /> New spot check
                     </Link>
                 }
             />

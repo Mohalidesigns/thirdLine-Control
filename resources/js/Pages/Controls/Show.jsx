@@ -8,11 +8,26 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import SeverityBadge from '@/Components/SeverityBadge';
+import RichTextViewer from '@/Components/RichTextViewer';
+import StatCard from '@/Components/StatCard';
 import StatusBadge from '@/Components/StatusBadge';
+import TabBar from '@/Components/TabBar';
 import TextArea from '@/Components/TextArea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate, formatDateTime } from '@/utils';
+import { toneFor } from '@/utils/tones';
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import {
+    Activity,
+    BadgeCheck,
+    BarChart3,
+    ClipboardCheck,
+    FlaskConical,
+    History,
+    LayoutDashboard,
+    Play,
+    ShieldAlert,
+} from 'lucide-react';
 import { useState } from 'react';
 
 function Field({ label, children }) {
@@ -24,17 +39,8 @@ function Field({ label, children }) {
     );
 }
 
-function SummaryCard({ title, value, valueClass = '', footer = null }) {
-    return (
-        <div className="card">
-            <div className="card-body">
-                <p className="text-sm text-[var(--color-text-secondary)]">{title}</p>
-                <p className={`mt-1 text-2xl font-bold ${valueClass}`}>{value ?? '—'}</p>
-                {footer && <p className="mt-1 text-xs text-gray-400">{footer}</p>}
-            </div>
-        </div>
-    );
-}
+// Detail cards use the shared StatCard so the icon tile's tint always
+// follows the value's semantic state, never a hardcoded colour.
 
 const TABS = ['Overview', 'Linked Risks', 'Assessment History', 'Assess', 'Activity'];
 
@@ -73,11 +79,13 @@ export default function Show({
         });
     };
 
-    const tabLabel = (name) => {
-        if (name === 'Linked Risks') return `Linked Risks (${control.risks?.length ?? 0})`;
-        if (name === 'Assessment History') return `Assessment History (${assessments.length})`;
-        return name;
-    };
+    const tabMeta = (name) => ({
+        Overview: { icon: LayoutDashboard },
+        'Linked Risks': { icon: ShieldAlert, count: control.risks?.length ?? 0 },
+        'Assessment History': { icon: History, count: assessments.length },
+        Assess: { icon: ClipboardCheck },
+        Activity: { icon: Activity },
+    })[name] ?? {};
 
     const visibleTabs = TABS.filter((name) => name !== 'Assess' || can.assess);
 
@@ -118,49 +126,45 @@ export default function Show({
 
             <div className="mb-4 flex flex-wrap items-center gap-2">
                 <StatusBadge status={control.status} />
-                <StatusBadge status={control.type} className="bg-blue-50 text-blue-700" />
+                <StatusBadge status={control.type} />
                 <StatusBadge status={control.design_effectiveness} />
                 <StatusBadge status={control.operating_effectiveness} />
                 {control.is_key_control && <span className="badge bg-[var(--color-accent)]/15 text-[#8a6d1a]">Key control</span>}
             </div>
 
             <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <SummaryCard
+                <StatCard
                     title="Design Effectiveness"
-                    value={control.design_effectiveness}
-                    valueClass={control.design_effectiveness === 'Inadequate' ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]'}
+                    value={control.design_effectiveness ?? '—'}
+                    icon={BadgeCheck}
+                    tone={toneFor(control.design_effectiveness)}
                 />
-                <SummaryCard
+                <StatCard
                     title="Operating Effectiveness"
-                    value={control.operating_effectiveness}
-                    valueClass={control.operating_effectiveness === 'Ineffective' ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]'}
+                    value={control.operating_effectiveness ?? '—'}
+                    icon={Play}
+                    tone={toneFor(control.operating_effectiveness)}
                 />
-                <SummaryCard title="Overall Score" value={control.overall_rating ?? 'Not Rated'} />
-                <SummaryCard
+                <StatCard
+                    title="Overall Score"
+                    value={control.overall_rating ?? 'Not Rated'}
+                    icon={BarChart3}
+                    tone={toneFor(control.overall_rating)}
+                />
+                <StatCard
                     title="Test Status"
                     value={`${recentTests.length} Test${recentTests.length === 1 ? '' : 's'}`}
-                    footer={control.last_assessed_at ? `Last: ${formatDate(control.last_assessed_at)}` : 'Not yet assessed'}
+                    icon={FlaskConical}
+                    tone={recentTests.length > 0 ? 'emerald' : 'slate'}
+                    subtitle={control.last_assessed_at ? `Last: ${formatDate(control.last_assessed_at)}` : 'Not yet assessed'}
                 />
             </div>
 
-            <div className="mb-6 border-b border-gray-200">
-                <nav className="-mb-px flex gap-6">
-                    {visibleTabs.map((name) => (
-                        <button
-                            key={name}
-                            type="button"
-                            onClick={() => setTab(name)}
-                            className={`whitespace-nowrap border-b-2 pb-3 text-sm font-medium transition-colors ${
-                                tab === name
-                                    ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
-                                    : 'border-transparent text-gray-500 hover:text-[var(--color-text-primary)]'
-                            }`}
-                        >
-                            {tabLabel(name)}
-                        </button>
-                    ))}
-                </nav>
-            </div>
+            <TabBar
+                tabs={visibleTabs.map((name) => ({ name, ...tabMeta(name) }))}
+                active={tab}
+                onChange={setTab}
+            />
 
             {tab === 'Overview' && (
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -169,9 +173,13 @@ export default function Show({
                             <div className="card-header"><h3 className="text-sm font-semibold">Control Information</h3></div>
                             <div className="card-body space-y-4">
                                 {control.description && (
-                                    <p className="text-sm text-[var(--color-text-primary)]">{control.description}</p>
+                                    <RichTextViewer value={control.description_rich} fallback={control.description} />
                                 )}
-                                {control.objective && <Field label="Objective">{control.objective}</Field>}
+                                {control.objective && (
+                                    <Field label="Objective">
+                                        <RichTextViewer value={control.objective_rich} fallback={control.objective} />
+                                    </Field>
+                                )}
                                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                     <Field label="Control Reference">
                                         <span className="font-mono">{control.control_ref}</span>
@@ -209,18 +217,18 @@ export default function Show({
                         <div className="card">
                             <div className="card-header"><h3 className="text-sm font-semibold">Control Documentation</h3></div>
                             <div className="card-body">
-                                <p className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap">
-                                    {control.control_documentation || <span className="text-gray-400">No documentation referenced.</span>}
-                                </p>
+                                {control.control_documentation
+                                    ? <RichTextViewer value={control.control_documentation_rich} fallback={control.control_documentation} />
+                                    : <span className="text-sm text-gray-400">No documentation referenced.</span>}
                             </div>
                         </div>
 
                         <div className="card">
                             <div className="card-header"><h3 className="text-sm font-semibold">Notes</h3></div>
                             <div className="card-body">
-                                <p className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap">
-                                    {control.notes || <span className="text-gray-400">No additional notes.</span>}
-                                </p>
+                                {control.notes
+                                    ? <RichTextViewer value={control.notes_rich} fallback={control.notes} />
+                                    : <span className="text-sm text-gray-400">No additional notes.</span>}
                             </div>
                         </div>
 

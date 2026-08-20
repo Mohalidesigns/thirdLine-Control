@@ -2,6 +2,7 @@ import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 
 const VISIBILITY_LABELS = {
     private: 'Private to you',
@@ -21,7 +22,7 @@ export default function Index({ dashboards = [], can = {} }) {
                 actions={
                     can.create && (
                         <Link href={route('dashboards.create')} className="btn-primary">
-                            + New dashboard
+                            <Plus className="h-4 w-4" strokeWidth={2} /> New dashboard
                         </Link>
                     )
                 }

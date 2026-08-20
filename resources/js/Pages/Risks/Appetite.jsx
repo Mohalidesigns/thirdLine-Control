@@ -14,6 +14,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const POSITION_CLASSES = {
     'Within appetite': 'badge-low',
@@ -87,7 +88,7 @@ export default function Appetite({
                         <Link href={route('risks.heatmap', { breach_only: 1 })} className="btn-secondary">
                             Breaching risks
                         </Link>
-                        {can.manage && <PrimaryButton onClick={() => setCreating(true)}>+ New statement</PrimaryButton>}
+                        {can.manage && <PrimaryButton onClick={() => setCreating(true)}><Plus className="h-4 w-4" strokeWidth={2} /> New statement</PrimaryButton>}
                     </>
                 }
             />

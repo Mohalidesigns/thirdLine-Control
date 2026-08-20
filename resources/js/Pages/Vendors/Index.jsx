@@ -16,6 +16,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const CLASSIFICATION_LABELS = {
     none: 'No data access',
@@ -127,7 +128,7 @@ export default function Index({
                         <Link href={route('vendors.concentration')} className="btn-secondary">
                             Concentration risk
                         </Link>
-                        {can.manage && <PrimaryButton onClick={() => setCreating(true)}>+ New third party</PrimaryButton>}
+                        {can.manage && <PrimaryButton onClick={() => setCreating(true)}><Plus className="h-4 w-4" strokeWidth={2} /> New third party</PrimaryButton>}
                     </>
                 }
             />
@@ -420,7 +421,7 @@ function CreateModal({ show, onClose, criticalities, statuses, classifications, 
                     <div className="mb-2 flex items-center justify-between">
                         <InputLabel value="Sub-processors" />
                         <button type="button" className="text-xs font-semibold text-[var(--color-primary)]" onClick={addSubProcessor}>
-                            + Add
+                            <Plus className="h-4 w-4" strokeWidth={2} /> Add
                         </button>
                     </div>
                     <div className="space-y-2">

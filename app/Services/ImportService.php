@@ -140,7 +140,7 @@ class ImportService
 
         $headerRange = 'A1:'.$sheet->getCell([count($headings), 1])->getCoordinate();
         $sheet->getStyle($headerRange)->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
-        $sheet->getStyle($headerRange)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('0B1F3A');
+        $sheet->getStyle($headerRange)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('1A365D');
 
         $columnIndex = 1;
         foreach (array_keys($columns) as $key) {

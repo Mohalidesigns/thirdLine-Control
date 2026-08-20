@@ -46,7 +46,9 @@ class TestScriptController extends Controller
                 'version_no' => $version,
                 'title' => $data['title'],
                 'objective' => $data['objective'] ?? null,
+                'objective_rich' => $data['objective_rich'] ?? null,
                 'sampling_guidance' => $data['sampling_guidance'] ?? null,
+                'sampling_guidance_rich' => $data['sampling_guidance_rich'] ?? null,
                 'status' => 'Pending Approval',
                 'created_by' => $request->user()->id,
             ]);

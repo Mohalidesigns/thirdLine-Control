@@ -8,6 +8,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import SeverityBadge from '@/Components/SeverityBadge';
 import StatusBadge from '@/Components/StatusBadge';
+import RichTextViewer from '@/Components/RichTextViewer';
 import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -40,14 +41,14 @@ function Round({ escalation, response }) {
             <div className="space-y-3 px-4 py-3 text-sm">
                 <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">Management comment</p>
-                    <p className="mt-0.5 whitespace-pre-line">{response.management_comment}</p>
+                    <RichTextViewer className="mt-0.5" value={response.management_comment_rich} fallback={response.management_comment} />
                 </div>
                 {response.root_cause && (
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
                             Root cause {response.root_cause_category && <span className="normal-case">({response.root_cause_category})</span>}
                         </p>
-                        <p className="mt-0.5 whitespace-pre-line">{response.root_cause}</p>
+                        <RichTextViewer className="mt-0.5" value={response.root_cause_rich} fallback={response.root_cause} />
                     </div>
                 )}
                 {response.agreed_action_plan && (
@@ -55,7 +56,7 @@ function Round({ escalation, response }) {
                         <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
                             Agreed action plan {response.proposed_target_date && <span className="normal-case">— target {formatDate(response.proposed_target_date)}</span>}
                         </p>
-                        <p className="mt-0.5 whitespace-pre-line">{response.agreed_action_plan}</p>
+                        <RichTextViewer className="mt-0.5" value={response.agreed_action_plan_rich} fallback={response.agreed_action_plan} />
                     </div>
                 )}
                 {response.review_status !== 'Pending Review' && (

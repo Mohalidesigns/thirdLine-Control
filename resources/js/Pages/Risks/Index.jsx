@@ -9,11 +9,12 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import StatCard from '@/Components/StatCard';
-import TextArea from '@/Components/TextArea';
+import RichTextEditor from '@/Components/RichTextEditor';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const BAND_CLASSES = {
     Low: 'badge-low',
@@ -141,7 +142,7 @@ export default function Index({
                         <Link href={route('risks.gaps')} className="btn-secondary">
                             Gap analysis
                         </Link>
-                        {canCreate && <PrimaryButton onClick={() => setShowCreate(true)}>+ New risk</PrimaryButton>}
+                        {canCreate && <PrimaryButton onClick={() => setShowCreate(true)}><Plus className="h-4 w-4" strokeWidth={2} /> New risk</PrimaryButton>}
                     </>
                 }
             />
@@ -215,6 +216,7 @@ function CreateModal({ show, onClose, riskCategories, entities, owners }) {
     const form = useForm({
         title: '',
         description: '',
+        description_rich: null,
         category: '',
         risk_category_id: '',
         entity_id: '',
@@ -242,7 +244,12 @@ function CreateModal({ show, onClose, riskCategories, entities, owners }) {
                 </div>
                 <div>
                     <InputLabel value="Description" />
-                    <TextArea rows={3} value={form.data.description} onChange={(e) => form.setData('description', e.target.value)} />
+                    <RichTextEditor
+                        value={form.data.description_rich ?? form.data.description}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, description: plain, description_rich: doc }))}
+                        tools="default"
+                        minHeight={120}
+                    />
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

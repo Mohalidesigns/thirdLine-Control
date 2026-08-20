@@ -8,7 +8,9 @@ export default function Create({ nextRef, categories, processes, units, users, t
     const form = useForm({
         title: '',
         objective: '',
+        objective_rich: null,
         description: '',
+        description_rich: null,
         type: types[0],
         nature: natures[0],
         frequency: 'Monthly',
@@ -25,7 +27,9 @@ export default function Create({ nextRef, categories, processes, units, users, t
         department: '',
         owner_id: null,
         control_documentation: '',
+        control_documentation_rich: null,
         notes: '',
+        notes_rich: null,
     });
 
     const submit = (e) => {

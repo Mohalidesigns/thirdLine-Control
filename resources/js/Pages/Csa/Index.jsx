@@ -5,6 +5,7 @@ import Pagination from '@/Components/Pagination';
 import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 
 const TYPE_LABELS = { csa: 'Control Self-Assessment', attestation: 'Attestation', survey: 'Survey' };
 
@@ -73,7 +74,7 @@ export default function Index({ campaigns, filters = {}, statuses = [] }) {
                         <Link href={route('csa-responses.mine')} className="btn-secondary">My responses</Link>
                         {canManage && (
                             <Link href={route('csa-campaigns.create', activeType ? { type: activeType } : {})} className="btn-primary">
-                                + New campaign
+                                <Plus className="h-4 w-4" strokeWidth={2} /> New campaign
                             </Link>
                         )}
                     </>

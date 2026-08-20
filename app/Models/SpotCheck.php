@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\GeneratesReference;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SpotCheck extends Model
 {
-    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, HasRichText, SoftDeletes;
 
     public const STATUSES = ['Draft', 'In Progress', 'Completed', 'Report Issued'];
 
@@ -22,6 +23,9 @@ class SpotCheck extends Model
         'control_ids', 'is_surprise', 'conducted_by', 'date_conducted',
         'report_template_id', 'status', 'report_issued_at',
     ];
+
+    /** Editor.js-backed fields — see HasRichText. */
+    protected array $richText = ['scope_description'];
 
     protected $casts = [
         'control_ids' => 'array',

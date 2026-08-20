@@ -15,13 +15,13 @@ function ColourField({ label, value, onChange, error, hint }) {
                 <input
                     type="color"
                     className="h-9 w-12 cursor-pointer rounded border border-gray-300"
-                    value={value || '#0B1F3A'}
+                    value={value || '#1A365D'}
                     onChange={(e) => onChange(e.target.value)}
                 />
                 <TextInput
                     className="w-32 font-mono text-xs"
                     value={value ?? ''}
-                    placeholder="#0B1F3A"
+                    placeholder="#1A365D"
                     onChange={(e) => onChange(e.target.value || null)}
                 />
             </div>

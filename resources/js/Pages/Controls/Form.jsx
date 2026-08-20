@@ -3,6 +3,7 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SelectInput from '@/Components/SelectInput';
 import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
@@ -58,19 +59,27 @@ export default function ControlForm({
 
                     <div>
                         <InputLabel htmlFor="description" value="Description" />
-                        <TextArea
+                        <RichTextEditor
                             id="description"
-                            rows={4}
-                            value={data.description ?? ''}
-                            onChange={(e) => setData('description', e.target.value)}
+                            value={data.description_rich ?? data.description}
+                            onChange={(doc, plain) => setData((d) => ({ ...d, description: plain, description_rich: doc }))}
                             placeholder="Describe the control objective, what it does, and how it mitigates risk…"
+                            tools="default"
+                            minHeight={140}
                         />
                         <InputError message={errors.description} className="mt-1" />
                     </div>
 
                     <div>
                         <InputLabel htmlFor="objective" value="Control objective" />
-                        <TextArea id="objective" value={data.objective ?? ''} onChange={(e) => setData('objective', e.target.value)} />
+                        <RichTextEditor
+                            id="objective"
+                            value={data.objective_rich ?? data.objective}
+                            onChange={(doc, plain) => setData((d) => ({ ...d, objective: plain, objective_rich: doc }))}
+                            placeholder="What outcome must this control guarantee?"
+                            tools="default"
+                            minHeight={110}
+                        />
                         <InputError message={errors.objective} className="mt-1" />
                     </div>
 
@@ -239,24 +248,26 @@ export default function ControlForm({
 
                     <div>
                         <InputLabel htmlFor="control_documentation" value="Control Documentation" />
-                        <TextArea
+                        <RichTextEditor
                             id="control_documentation"
-                            rows={3}
-                            value={data.control_documentation ?? ''}
-                            onChange={(e) => setData('control_documentation', e.target.value)}
+                            value={data.control_documentation_rich ?? data.control_documentation}
+                            onChange={(doc, plain) => setData((d) => ({ ...d, control_documentation: plain, control_documentation_rich: doc }))}
                             placeholder="Reference to policy documents, procedures, or standards that support this control…"
+                            tools="default"
+                            minHeight={110}
                         />
                         <InputError message={errors.control_documentation} className="mt-1" />
                     </div>
 
                     <div>
                         <InputLabel htmlFor="notes" value="Notes" />
-                        <TextArea
+                        <RichTextEditor
                             id="notes"
-                            rows={3}
-                            value={data.notes ?? ''}
-                            onChange={(e) => setData('notes', e.target.value)}
+                            value={data.notes_rich ?? data.notes}
+                            onChange={(doc, plain) => setData((d) => ({ ...d, notes: plain, notes_rich: doc }))}
                             placeholder="Any additional notes or context…"
+                            tools="minimal"
+                            minHeight={90}
                         />
                         <InputError message={errors.notes} className="mt-1" />
                     </div>

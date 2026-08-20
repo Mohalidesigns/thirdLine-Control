@@ -130,7 +130,7 @@ class ExcelEngine implements ReportEngine
         $lastColumn = $sheet->getCell([count($columns), 3])->getCoordinate();
         $sheet->getStyle("A3:{$lastColumn}")->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
         $sheet->getStyle("A3:{$lastColumn}")->getFill()
-            ->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('0B1F3A');
+            ->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('1A365D');
 
         $rowIndex = 4;
 

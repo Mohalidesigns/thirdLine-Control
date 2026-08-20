@@ -4,10 +4,12 @@ import PageHeader from '@/Components/PageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
+import RichTextEditor from '@/Components/RichTextEditor';
 import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 
 const EMPTY_ITEM = { question: '', guidance: '', expected_result: '', is_mandatory: true, default_severity_on_fail: 'Medium' };
 
@@ -16,7 +18,9 @@ export default function Create({ controls = [], preselectedControlId = null }) {
         control_id: preselectedControlId ?? '',
         title: '',
         objective: '',
+        objective_rich: null,
         sampling_guidance: '',
+        sampling_guidance_rich: null,
         check_items: [{ ...EMPTY_ITEM }],
     });
 
@@ -63,13 +67,20 @@ export default function Create({ controls = [], preselectedControlId = null }) {
                         </div>
                         <div>
                             <InputLabel value="Objective" />
-                            <TextArea value={data.objective} onChange={(e) => setData('objective', e.target.value)} />
+                            <RichTextEditor
+                                value={data.objective_rich ?? data.objective}
+                                onChange={(doc, plain) => setData((d) => ({ ...d, objective: plain, objective_rich: doc }))}
+                                tools="default"
+                                minHeight={100}
+                            />
                         </div>
                         <div>
                             <InputLabel value="Sampling guidance" />
-                            <TextArea
-                                value={data.sampling_guidance}
-                                onChange={(e) => setData('sampling_guidance', e.target.value)}
+                            <RichTextEditor
+                                value={data.sampling_guidance_rich ?? data.sampling_guidance}
+                                onChange={(doc, plain) => setData((d) => ({ ...d, sampling_guidance: plain, sampling_guidance_rich: doc }))}
+                                tools="default"
+                                minHeight={100}
                                 placeholder="e.g. Select 25 transactions at random across the period, covering all branches…"
                             />
                         </div>
@@ -80,7 +91,7 @@ export default function Create({ controls = [], preselectedControlId = null }) {
                     <div className="card-header">
                         <h3 className="text-sm font-semibold">Check items ({data.check_items.length})</h3>
                         <SecondaryButton onClick={() => setData('check_items', [...data.check_items, { ...EMPTY_ITEM }])}>
-                            + Add item
+                            <Plus className="h-4 w-4" strokeWidth={2} /> Add item
                         </SecondaryButton>
                     </div>
                     <div className="card-body space-y-5">

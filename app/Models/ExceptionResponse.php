@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class ExceptionResponse extends Model
 {
-    use Auditable, BelongsToTenant, HasFactory;
+    use Auditable, BelongsToTenant, HasFactory, HasRichText;
 
     public const POSITIONS = [
         'Accepted', 'Partially Accepted', 'Disputed', 'Already Remediated',
@@ -34,6 +35,9 @@ class ExceptionResponse extends Model
         'review_status', 'reviewed_by', 'reviewed_at', 'review_note',
         'rejection_reason', 'ip_address', 'user_agent',
     ];
+
+    /** Editor.js-backed fields — see HasRichText. */
+    protected array $richText = ['management_comment', 'root_cause', 'agreed_action_plan'];
 
     protected $casts = [
         'round_no' => 'integer',

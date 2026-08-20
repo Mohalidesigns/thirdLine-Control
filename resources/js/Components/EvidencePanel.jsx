@@ -7,6 +7,7 @@ import SelectInput from '@/Components/SelectInput';
 import { formatDateTime } from '@/utils';
 import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 const PII_CATEGORIES = [
     'Account numbers', 'BVN', 'Identity documents', 'Names & addresses',
@@ -57,7 +58,7 @@ export default function EvidencePanel({ linkedType, linkedId, evidence = [], can
                 <h3 className="text-sm font-semibold">Evidence ({evidence.length})</h3>
                 {canUpload && (
                     <button type="button" className="text-sm text-[var(--color-primary)] hover:underline" onClick={() => setShowUpload(true)}>
-                        + Upload
+                        <Plus className="h-4 w-4" strokeWidth={2} /> Upload
                     </button>
                 )}
             </div>

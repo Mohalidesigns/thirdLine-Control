@@ -3,13 +3,16 @@
 use App\Http\Controllers\Admin\AiGovernanceController;
 use App\Http\Controllers\Admin\MessagingController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AiAssistController;
 use App\Http\Controllers\AssuranceController;
 use App\Http\Controllers\AtlasController;
 use App\Http\Controllers\AttestationController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\ForcePasswordController;
 use App\Http\Controllers\Auth\MfaController;
+use App\Http\Controllers\Auth\SetPasswordController;
 use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\CaseController;
 use App\Http\Controllers\ChunkedUploadController;
@@ -155,8 +158,20 @@ Route::middleware('feature:sso')->group(function () {
     Route::get('auth/sso/{sso_configuration}/metadata', [SsoController::class, 'metadata'])->name('sso.metadata');
 });
 
+// ── Signed set-password flow — user invitations and admin resets ─────
+// Public but unusable without a valid, unexpired signature; the controller
+// also checks the password-hash fragment so a used link dies immediately.
+Route::middleware(['signed', 'throttle:10,1'])->group(function () {
+    Route::get('set-password/{user}', [SetPasswordController::class, 'show'])->name('invite.accept');
+    Route::post('set-password/{user}', [SetPasswordController::class, 'store'])->name('invite.store');
+});
+
 Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
+    // Forced first-login password change (temporary-password accounts).
+    Route::get('password/change', [ForcePasswordController::class, 'edit'])->name('password.force');
+    Route::post('password/change', [ForcePasswordController::class, 'update'])->name('password.force.update');
 
     // ── Dashboard (all roles) ────────────────────────────────────────
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -942,6 +957,19 @@ Route::middleware('auth')->group(function () {
             Route::put('roles/{role}', [RoleController::class, 'update'])->name('admin.roles.update');
             Route::delete('roles/{role}', [RoleController::class, 'destroy'])->name('admin.roles.destroy');
             Route::put('users/{user}/roles', [RoleController::class, 'updateUserRoles'])->name('admin.users.roles.update');
+
+            // User management — create, invite, edit, suspend, soft-delete.
+            // Static segments before the {user} wildcard.
+            Route::get('users', [UserController::class, 'index'])->name('admin.users.index');
+            Route::get('users/export', [UserController::class, 'export'])->name('admin.users.export');
+            Route::post('users', [UserController::class, 'store'])->name('admin.users.store');
+            Route::post('users/bulk', [UserController::class, 'bulk'])->name('admin.users.bulk');
+            Route::put('users/{user}', [UserController::class, 'update'])->name('admin.users.update');
+            Route::delete('users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
+            Route::post('users/{user}/resend-invite', [UserController::class, 'resendInvite'])->name('admin.users.resend-invite');
+            Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('admin.users.reset-password');
+            Route::post('users/{user}/suspend', [UserController::class, 'suspend'])->name('admin.users.suspend');
+            Route::post('users/{user}/reactivate', [UserController::class, 'reactivate'])->name('admin.users.reactivate');
         });
 
         // CR-01: exception routing + SLA config. Its own permission, held by

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasRichText;
 use App\Models\Concerns\HasVersions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,12 +14,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TestScript extends Model
 {
-    use Auditable, BelongsToTenant, HasFactory, HasVersions, SoftDeletes;
+    use Auditable, BelongsToTenant, HasFactory, HasRichText, HasVersions, SoftDeletes;
 
     protected $fillable = [
         'tenant_id', 'control_id', 'version_no', 'title', 'objective',
         'sampling_guidance', 'status', 'created_by', 'approved_by', 'approved_at',
     ];
+
+    /** Editor.js-backed fields — see HasRichText. */
+    protected array $richText = ['objective', 'sampling_guidance'];
 
     protected $casts = [
         'version_no' => 'integer',
