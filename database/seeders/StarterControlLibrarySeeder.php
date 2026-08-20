@@ -4,18 +4,19 @@ namespace Database\Seeders;
 
 use App\Models\Control;
 use App\Models\ControlCategory;
-use App\Models\Tenant;
 use Illuminate\Database\Seeder;
 
 class StarterControlLibrarySeeder extends Seeder
 {
+    use Concerns\ResolvesDemoTenant;
+
     /**
      * Pre-seeded starter library of standard banking controls (FR-1.3),
      * marked as adoptable templates a tenant copies into their own library.
      */
     public function run(): void
     {
-        $tenant = Tenant::firstOrFail();
+        $tenant = $this->demoTenantOrFail();
 
         $categories = [];
         foreach ([

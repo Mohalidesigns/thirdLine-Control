@@ -8,7 +8,6 @@ use App\Models\DataSource;
 use App\Models\DataSourceDataset;
 use App\Models\MonitoringRule;
 use App\Models\SodConflictRule;
-use App\Models\Tenant;
 use App\Models\User;
 use App\Services\MonitoringService;
 use App\Services\SnapshotService;
@@ -31,9 +30,11 @@ use Illuminate\Support\Facades\Storage;
  */
 class Phase12DemoSeeder extends Seeder
 {
+    use Concerns\ResolvesDemoTenant;
+
     public function run(): void
     {
-        $tenant = Tenant::firstOrFail();
+        $tenant = $this->demoTenantOrFail();
         $tid = $tenant->id;
 
         $user = fn (string $email) => User::withoutGlobalScopes()->where('email', $email)->first();
