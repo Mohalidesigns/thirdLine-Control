@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\ReportDefinition;
-use App\Models\Tenant;
 use Illuminate\Database\Seeder;
 
 /**
@@ -16,6 +15,8 @@ use Illuminate\Database\Seeder;
  */
 class ReportDefinitionSeeder extends Seeder
 {
+    use Concerns\ResolvesDemoTenant;
+
     private const DEFINITIONS = [
         [
             'code' => 'BOARD-PACK',
@@ -198,7 +199,7 @@ class ReportDefinitionSeeder extends Seeder
 
     public function run(): void
     {
-        $tenant = Tenant::first();
+        $tenant = $this->demoTenant();
 
         if (! $tenant) {
             return;

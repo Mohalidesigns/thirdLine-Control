@@ -8,7 +8,6 @@ use App\Models\Document;
 use App\Models\DocumentFolder;
 use App\Models\ImprovementAction;
 use App\Models\OrganisationUnit;
-use App\Models\Tenant;
 use App\Models\User;
 use App\Services\AttestationService;
 use App\Services\CsaService;
@@ -27,9 +26,11 @@ use Spatie\Permission\Models\Role;
  */
 class Phase9DemoSeeder extends Seeder
 {
+    use Concerns\ResolvesDemoTenant;
+
     public function run(): void
     {
-        $tenant = Tenant::first();
+        $tenant = $this->demoTenant();
 
         if (! $tenant) {
             return;

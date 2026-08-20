@@ -11,10 +11,17 @@ use Illuminate\Database\Seeder;
 
 class TenantSeeder extends Seeder
 {
+    /**
+     * The demo tenant's name. Every other seeder resolves its tenant by
+     * this name (see Concerns\ResolvesDemoTenant) rather than by
+     * `Tenant::first()`, so a pre-existing real tenant is never targeted.
+     */
+    public const DEMO_TENANT_NAME = 'Demo Bank Plc';
+
     public function run(): void
     {
         $tenant = Tenant::firstOrCreate(
-            ['name' => 'Demo Bank Plc'],
+            ['name' => self::DEMO_TENANT_NAME],
             ['data_residency' => 'NG', 'status' => 'active'],
         );
 

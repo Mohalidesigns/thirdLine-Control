@@ -9,7 +9,6 @@ use App\Models\Incident;
 use App\Models\OrganisationUnit;
 use App\Models\Policy;
 use App\Models\PolicyCategory;
-use App\Models\Tenant;
 use App\Models\User;
 use App\Services\CaseService;
 use App\Services\ComplaintService;
@@ -28,9 +27,11 @@ use Illuminate\Support\Facades\Auth;
  */
 class Phase11DemoSeeder extends Seeder
 {
+    use Concerns\ResolvesDemoTenant;
+
     public function run(): void
     {
-        $tenant = Tenant::firstOrFail();
+        $tenant = $this->demoTenantOrFail();
         $tid = $tenant->id;
 
         $user = fn (string $email) => User::withoutGlobalScopes()->where('email', $email)->first();
