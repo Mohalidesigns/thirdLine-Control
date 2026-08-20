@@ -69,7 +69,7 @@ class ExceptionController extends Controller
 
         return Inertia::render('Exceptions/Create', [
             'controls' => Control::where('is_template', false)->orderBy('control_ref')->get(['id', 'control_ref', 'title', 'owner_id', 'unit_id']),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'units' => OrganisationUnit::orderBy('name')->get(['id', 'name']),
             'severities' => ControlException::SEVERITIES,
         ]);
@@ -116,7 +116,7 @@ class ExceptionController extends Controller
                 ->with('uploader:id,name')
                 ->latest('uploaded_at')
                 ->get(),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'units' => OrganisationUnit::orderBy('name')->get(['id', 'name']),
             'processes' => BusinessProcess::orderBy('name')->get(['id', 'name']),
             'can' => [

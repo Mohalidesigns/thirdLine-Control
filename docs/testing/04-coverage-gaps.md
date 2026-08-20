@@ -4,6 +4,16 @@
 
 This document exists so that nothing untested is mistaken for something tested. Every Part B case not appearing in [`01-test-execution-log.md`](01-test-execution-log.md) is listed here with the reason it was not run.
 
+> **Phase 2 update (2026-08-20).** The browser-dependent portion of these gaps
+> has since been executed against the live application in a real browser —
+> TC-01 session flows (logout, back-button, live session termination), the
+> §12.D browser-driven form checks, TC-16 notification content on a live
+> queue, responsive/mobile layout, an accessibility first pass, and the CR-01
+> loop end-to-end through the UI. Results and the four defects it surfaced
+> (DEF-022 … DEF-025, all fixed same-day) are in
+> [`06-phase2-browser-log.md`](06-phase2-browser-log.md); what remains open is
+> listed in its §10. The tables below are preserved as written after Phase 1.
+
 ---
 
 ## 1. The headline

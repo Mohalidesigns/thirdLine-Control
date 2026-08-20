@@ -70,7 +70,7 @@ class SpotCheckController extends Controller
             'spotCheck' => $spotCheck,
             'scopedControls' => $controls,
             'allControls' => Control::active()->where('is_template', false)->orderBy('control_ref')->get(['id', 'control_ref', 'title']),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
         ]);
     }
 

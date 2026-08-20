@@ -241,7 +241,7 @@ class ControlController extends Controller
             'categories' => ControlCategory::available()->orderBy('name')->get(['id', 'name']),
             'processes' => BusinessProcess::orderBy('name')->get(['id', 'name']),
             'units' => OrganisationUnit::orderBy('name')->get(['id', 'name']),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'types' => Control::TYPES,
             'natures' => Control::NATURES,
             'frequencies' => Control::FREQUENCIES,

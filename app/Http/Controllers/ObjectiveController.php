@@ -57,7 +57,7 @@ class ObjectiveController extends Controller
             'statuses' => Objective::STATUSES,
             'periods' => $this->objectives->periods(),
             'entities' => Entity::query()->orderBy('legal_name')->get(['id', 'legal_name']),
-            'owners' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'owners' => User::tenantPicker()->get(['id', 'name']),
             'parents' => Objective::query()->orderBy('code')->get(['id', 'code', 'title']),
             'metrics' => Metric::query()->active()->orderBy('code')->get(['id', 'code', 'name', 'unit']),
             'stats' => [
@@ -115,7 +115,7 @@ class ObjectiveController extends Controller
             'breakdown' => $this->objectives->breakdown($objective),
             'links' => $this->linkage->neighbours('objective', $objective->id),
             'metrics' => Metric::query()->active()->orderBy('code')->get(['id', 'code', 'name', 'unit']),
-            'owners' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'owners' => User::tenantPicker()->get(['id', 'name']),
             'statuses' => Objective::STATUSES,
             'initiativeStatuses' => Initiative::STATUSES,
             'can' => [

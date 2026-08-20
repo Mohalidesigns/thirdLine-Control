@@ -41,7 +41,7 @@ class AuditLogController extends Controller
             'filters' => $request->only(['from', 'to', 'user_id', 'entity_type', 'entity_id', 'action', 'ip']),
             'entityTypes' => AuditTrail::where('tenant_id', $request->user()->tenant_id)
                 ->select('entity_type')->distinct()->orderBy('entity_type')->pluck('entity_type'),
-            'users' => User::orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'canExport' => $request->user()->can('export audit log'),
         ]);
     }

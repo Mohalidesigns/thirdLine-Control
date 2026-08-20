@@ -19,6 +19,14 @@
 > The remaining exit-criteria gap is coverage (criterion 1 and 3 — the untested
 > half of the requirement set), not open defects.
 >
+> **Phase 2 browser run (2026-08-20, same day):** the browser-dependent gaps
+> were then executed against the live application —
+> [06-phase2-browser-log.md](06-phase2-browser-log.md). It surfaced four
+> further defects (DEF-022 cross-tenant user pickers, DEF-023 CSP-blocked
+> font import, DEF-024 blank notification rows, DEF-025 missing
+> unsaved-changes warning), all fixed and re-verified in the same run.
+> Defect count now stands at **25 logged, 25 fixed, 0 open**.
+>
 > The assessment below is preserved as written at the time of the run.
 
 > ## DO NOT RELEASE *(as of the 2026-08-14 run — superseded above)*

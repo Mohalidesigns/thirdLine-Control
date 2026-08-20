@@ -78,7 +78,7 @@ class VendorController extends Controller
             'classifications' => Vendor::DATA_CLASSIFICATIONS,
             'categories' => Vendor::query()->whereNotNull('category')->distinct()->orderBy('category')->pluck('category'),
             'entities' => Entity::query()->orderBy('legal_name')->get(['id', 'legal_name']),
-            'owners' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'owners' => User::tenantPicker()->get(['id', 'name']),
             'obligations' => RegulatoryObligation::query()
                 ->orderBy('obligation_ref')
                 ->limit(200)
@@ -140,7 +140,7 @@ class VendorController extends Controller
                 ->orderBy('obligation_ref')
                 ->limit(200)
                 ->get(['id', 'obligation_ref', 'title', 'verification_status']),
-            'owners' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'owners' => User::tenantPicker()->get(['id', 'name']),
             'entities' => Entity::query()->orderBy('legal_name')->get(['id', 'legal_name']),
             'options' => [
                 'assessment_types' => VendorAssessment::TYPES,

@@ -42,7 +42,7 @@ class ImprovementActionController extends Controller
             ],
             'controls' => Control::where('is_template', false)->orderBy('control_ref')->get(['id', 'control_ref', 'title']),
             'risks' => Risk::orderBy('code')->get(['id', 'code', 'title']),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
         ]);
     }
 

@@ -45,6 +45,19 @@ class User extends Authenticatable
      *
      * @return array<int, string>
      */
+    /**
+     * The list a form's user/owner picker is built from. User deliberately
+     * lacks BelongsToTenant (auth must resolve any user), so every picker
+     * must scope itself — DEF-022: an unscoped picker leaks another
+     * tenant's staff names into our dropdowns and theirs into ours.
+     */
+    public function scopeTenantPicker($query)
+    {
+        return $query->where('tenant_id', auth()->user()?->tenant_id)
+            ->where('is_active', true)
+            ->orderBy('name');
+    }
+
     public function auditRedacts(): array
     {
         return ['password', 'remember_token', 'mfa_secret', 'mfa_recovery_codes'];

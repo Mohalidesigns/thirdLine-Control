@@ -183,7 +183,7 @@ class SustainabilityController extends Controller
                 ]),
             'entities' => Entity::query()->orderBy('legal_name')->get(['id', 'legal_name', 'fiscal_year_end']),
             'regulators' => Regulator::query()->orderBy('code')->get(['id', 'code', 'name']),
-            'owners' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'owners' => User::tenantPicker()->get(['id', 'name']),
             // The shipped schedule and adoption years are surfaced so an
             // officer can see exactly what a computed deadline came from —
             // and that it is unverified until they say otherwise (R10).

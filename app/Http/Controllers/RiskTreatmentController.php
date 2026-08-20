@@ -44,7 +44,7 @@ class RiskTreatmentController extends Controller
             'filters' => $request->only(['status', 'strategy', 'owner_id', 'overdue_only', 'search']),
             'statuses' => RiskTreatment::STATUSES,
             'strategies' => RiskTreatment::STRATEGIES,
-            'owners' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'owners' => User::tenantPicker()->get(['id', 'name']),
             'stats' => [
                 'open' => RiskTreatment::open()->count(),
                 'overdue' => RiskTreatment::overdue()->count(),
@@ -67,7 +67,7 @@ class RiskTreatmentController extends Controller
         return Inertia::render('Treatments/Show', [
             'treatment' => $treatment,
             'links' => $this->linkage->neighbours('treatment', $treatment->id),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'can' => [
                 'update' => $request->user()->can('update', $treatment),
                 'approve' => $request->user()->can('approve', $treatment),

@@ -50,7 +50,7 @@ class CaseController extends Controller
             'severities' => InvestigationCase::SEVERITIES,
             'confidentialityLevels' => InvestigationCase::CONFIDENTIALITY_LEVELS,
             'entities' => OrganisationUnit::orderBy('name')->get(['id', 'name']),
-            'investigators' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'investigators' => User::tenantPicker()->get(['id', 'name']),
             // Counts are of cases the viewer may see — never of the register.
             'stats' => [
                 'open' => InvestigationCase::open()->count(),
@@ -97,7 +97,7 @@ class CaseController extends Controller
             'notes' => $notes,
             'links' => $this->linkage->neighbours('case', $case->id),
             'allowlist' => User::whereIn('id', $case->access_user_ids ?? [])->get(['id', 'name', 'email']),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'canSeePrivileged' => $canSeePrivileged,
             'can' => [
                 'update' => $request->user()->can('update', $case),

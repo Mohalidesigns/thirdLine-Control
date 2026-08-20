@@ -195,11 +195,13 @@ class Tier2SmokeTest extends E2ETestCase
         );
 
         if ($stricter !== []) {
-            file_put_contents(
-                base_path('docs/testing/evidence/tier2-policy-stricter-than-route.txt'),
-                str_pad($account, 24).implode(', ', $stricter)."\n",
-                FILE_APPEND
-            );
+            // Replace this account's line rather than appending — a plain
+            // FILE_APPEND grew the evidence file by one block per suite run.
+            $path = base_path('docs/testing/evidence/tier2-policy-stricter-than-route.txt');
+            $lines = is_file($path) ? file($path, FILE_IGNORE_NEW_LINES) : [];
+            $lines = array_values(array_filter($lines, fn ($l) => ! str_starts_with($l, str_pad($account, 24))));
+            $lines[] = str_pad($account, 24).implode(', ', $stricter);
+            file_put_contents($path, implode("\n", $lines)."\n");
         }
 
         $this->addToAssertionCount(1);

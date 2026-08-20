@@ -24,7 +24,7 @@ class EscalationMatrixController extends Controller
                 ->latest('triggered_at')
                 ->limit(50)
                 ->get(),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'tierRoles' => EscalationMatrix::TIER_ROLES,
         ]);
     }

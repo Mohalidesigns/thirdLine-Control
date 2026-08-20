@@ -29,6 +29,9 @@ class SubmissionActionNotification extends PreferenceRoutedNotification
     {
         return [
             'type' => 'submission_action',
+            // The notification centre renders data.summary; without it the
+            // row shows a bare "Notification" (Phase 2 browser DEF-025).
+            'summary' => "Submission pack {$this->pack->pack_ref} ({$this->pack->pack_type}, {$this->pack->period_label}) {$this->action}.",
             'pack_id' => $this->pack->id,
             'pack_ref' => $this->pack->pack_ref,
             'pack_type' => $this->pack->pack_type,

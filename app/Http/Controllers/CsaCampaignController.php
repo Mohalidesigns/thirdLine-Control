@@ -173,7 +173,7 @@ class CsaCampaignController extends Controller
             'entities' => OrganisationUnit::orderBy('name')->get(['id', 'name', 'type']),
             'controls' => Control::where('is_template', false)->orderBy('control_ref')->get(['id', 'control_ref', 'title', 'owner_id']),
             'requirements' => FrameworkRequirement::query()->orderBy('ref_code')->limit(500)->get(['id', 'ref_code', 'title']),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
         ];
     }
 }

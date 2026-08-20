@@ -37,6 +37,10 @@
 | DEF-019 | **High** | API / Security | No rate limiting on any `/api/v1` route — valid or invalid keys can be replayed without limit | Fixed |
 | DEF-020 | Medium | Deployment | `.env.example` ships `APP_DEBUG=true` and no deployment document mentions turning it off | Fixed |
 | DEF-021 | Low | Security headers | `X-Powered-By: PHP/8.4.18` discloses the runtime version on every response | Fixed |
+| DEF-022 | Medium | Tenancy / UI | Every user picker lists the other tenant's users — 39 unscoped `User::` call sites | Fixed |
+| DEF-023 | Low | CSP / residency | app.css imports Google Fonts that the CSP always blocks — intended fonts never render, third-party origin requested | Fixed |
+| DEF-024 | Low | Notifications | Submission-pack notifications render as a bare "Notification" — payload carries no summary | Fixed |
+| DEF-025 | Low | Forms (§12.D.23) | No unsaved-changes warning — navigating away from a dirty form silently discards input | Fixed |
 
 ---
 
@@ -1196,6 +1200,96 @@ Rated **Low**: no data exposure and no direct exploitability.
 `evidence/S10-security-live-verification.txt`
 
 **Resolution (2026-08-20)** — `SecurityHeaders` strips `X-Powered-By` on every response (both the response object and PHP's own header list), so the posture no longer depends on `expose_php` being set per host.
+
+---
+
+## DEF-022
+
+```
+ID:            DEF-022
+Title:         [Tenancy/UI] Every user/owner picker lists the other tenant's users
+Severity:      Medium
+Test Case:     Phase 2 browser — CR-01 escalate dialog (06-phase2-browser-log.md §5)
+Environment:   live e2e browser run, 2026-08-20
+Role Used:     Control Function Head
+```
+
+Opening the "Escalate to departments" dialog, the Respondent dropdown listed
+"Rival CFH (TEST)" and "Rival Owner (TEST)" — users of the second tenant
+seeded precisely as the isolation fixture. `User` deliberately lacks
+`BelongsToTenant` (authentication must resolve any user), so the ~39 picker
+queries of the shape `User::where('is_active', true)->orderBy('name')->get()`
+across 25 controllers returned every tenant's staff. Invisible to the
+HTTP-level suite because no test reads a form's option list — found only by
+reading the rendered DOM. Metadata disclosure (staff names/ids); the write
+path was already closed by DEF-008's `tenant_user` rule.
+
+**Resolution (2026-08-20)** — new `User::tenantPicker()` scope (tenant +
+active + ordered) replaces all 39 call sites. Verified live: Rival users gone
+from the dialog, own-tenant users intact.
+
+---
+
+## DEF-023
+
+```
+ID:            DEF-023
+Title:         [CSP/residency] app.css imports Google Fonts that the CSP always blocks
+Severity:      Low
+Test Case:     Phase 2 browser — console hygiene (06-phase2-browser-log.md §7)
+```
+
+Every page load logged a CSP violation for
+`fonts.googleapis.com` — `style-src 'self'` blocks the import, so the
+intended Inter/Roboto Mono faces have never rendered anywhere (the app has
+always displayed its fallback stack), and requesting a third-party origin at
+all contradicts the residency posture the SecurityHeaders middleware
+documents (R5).
+
+**Resolution (2026-08-20)** — the dead `@import` is removed from
+`resources/css/app.css`; zero third-party requests confirmed live. The font
+stacks still name Inter/Roboto Mono first, so a self-hosted copy is picked up
+automatically if the brand fonts are ever shipped.
+
+---
+
+## DEF-024
+
+```
+ID:            DEF-024
+Title:         [Notifications] Submission-pack notifications render as a bare "Notification"
+Severity:      Low
+Test Case:     Phase 2 browser — TC-16 (06-phase2-browser-log.md §4)
+```
+
+The notification centre renders `data.summary`; `SubmissionActionNotification`'s
+`toArray()` carried `pack_ref`/`action` but no `summary`, so its rows showed
+the fallback label "Notification" with no content.
+
+**Resolution (2026-08-20)** — payload now carries a summary
+("Submission pack SUB-… (type, period) action."). Applies to notifications
+created from now on; existing rows retain their stored payloads.
+
+---
+
+## DEF-025
+
+```
+ID:            DEF-025
+Title:         [Forms] No unsaved-changes warning — a dirty form discards silently (§12.D.23)
+Severity:      Low
+Test Case:     §12.D.23 — Phase 2 browser (06-phase2-browser-log.md §3)
+```
+
+Typing into the exception create form and clicking any navigation link
+discarded the typed content with no warning. No form in the product guarded
+against navigation with unsaved changes.
+
+**Resolution (2026-08-20)** — new `useUnsavedChanges(isDirty, enabled)` hook
+(Inertia `before` event + native `beforeunload`), wired to the exception
+create form and the CR-01 departmental response form. Verified live: with a
+dirty form, navigation prompts and stays when declined; submissions are
+exempt. Remaining forms adopt the same one-line hook as they are touched.
 
 ---
 

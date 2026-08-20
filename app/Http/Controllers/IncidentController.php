@@ -77,7 +77,7 @@ class IncidentController extends Controller
             'severities' => Incident::SEVERITIES,
             'entities' => OrganisationUnit::orderBy('name')->get(['id', 'name']),
             'processes' => BusinessProcess::orderBy('name')->get(['id', 'name']),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'controls' => Control::where('status', 'Active')->orderBy('control_ref')->get(['id', 'control_ref', 'title']),
             'risks' => Risk::orderBy('code')->get(['id', 'code', 'title']),
         ]);
@@ -110,7 +110,7 @@ class IncidentController extends Controller
         return Inertia::render('Incidents/Show', [
             'incident' => $incident,
             'links' => $this->linkage->neighbours('incident', $incident->id),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'controls' => Control::where('status', 'Active')->orderBy('control_ref')->get(['id', 'control_ref', 'title']),
             'actionTypes' => IncidentAction::TYPES,
             'can' => [

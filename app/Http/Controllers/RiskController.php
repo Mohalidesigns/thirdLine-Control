@@ -65,7 +65,7 @@ class RiskController extends Controller
             'categories' => Risk::query()->select('category')->whereNotNull('category')->distinct()->pluck('category'),
             'riskCategories' => RiskCategory::query()->orderBy('sort_order')->get(['id', 'code', 'name', 'parent_id']),
             'entities' => OrganisationUnit::query()->orderBy('name')->get(['id', 'name']),
-            'owners' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'owners' => User::tenantPicker()->get(['id', 'name']),
             'bands' => Risk::RATING_BANDS,
             'stats' => [
                 'total' => Risk::active()->count(),
@@ -128,7 +128,7 @@ class RiskController extends Controller
                 ->whereDoesntHave('risks', fn ($q) => $q->where('risks.id', $risk->id))
                 ->orderBy('control_ref')
                 ->get(['id', 'control_ref', 'title']),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'riskCategories' => RiskCategory::query()->orderBy('sort_order')->get(['id', 'code', 'name']),
             'entities' => OrganisationUnit::query()->orderBy('name')->get(['id', 'name']),
             'processes' => BusinessProcess::query()->orderBy('name')->get(['id', 'name']),
@@ -223,7 +223,7 @@ class RiskController extends Controller
             'riskCategories' => RiskCategory::query()->orderBy('sort_order')->get(['id', 'code', 'name']),
             'entities' => OrganisationUnit::query()->orderBy('name')->get(['id', 'name']),
             'processes' => BusinessProcess::query()->orderBy('name')->get(['id', 'name']),
-            'owners' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'owners' => User::tenantPicker()->get(['id', 'name']),
             'frameworks' => Framework::query()->orderBy('name')->get(['id', 'name']),
         ]);
     }

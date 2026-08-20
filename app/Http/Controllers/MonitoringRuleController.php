@@ -71,7 +71,7 @@ class MonitoringRuleController extends Controller
                 ->where('status', 'Active')
                 ->orderBy('control_ref')
                 ->get(['id', 'control_ref', 'title', 'is_key_control']),
-            'owners' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'owners' => User::tenantPicker()->get(['id', 'name']),
             'stats' => [
                 'active' => MonitoringRule::where('status', 'Active')->count(),
                 'pending' => MonitoringRule::where('status', 'Pending Approval')->count(),

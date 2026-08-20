@@ -33,7 +33,7 @@ class ExceptionRoutingController extends Controller
             'units' => OrganisationUnit::orderBy('name')->get(['id', 'name']),
             'processes' => BusinessProcess::orderBy('name')->get(['id', 'name']),
             'categories' => ControlCategory::orderBy('name')->get(['id', 'name']),
-            'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'users' => User::tenantPicker()->get(['id', 'name']),
             'roles' => Role::orderBy('name')->pluck('name'),
             'slaPolicies' => ExceptionSlaPolicy::orderBy('severity')->get(['id', 'name', 'severity']),
             'severities' => ControlException::SEVERITIES,
