@@ -26,3 +26,50 @@ Schedule::command('atheris:evaluate-metrics')->dailyAt('03:30');
 // acknowledgement window and a 72-hour breach notification cannot be
 // managed by a job that runs once a night.
 Schedule::command('atheris:refresh-governance-clocks')->hourly();
+
+// Phase 12 — continuous controls monitoring. Extract first, evaluate
+// second, so a rule always reads the night's data rather than yesterday's;
+// both run before the 07:00 escalation sweep, so an exception raised by a
+// rule at 04:30 escalates on the same morning. Purge last, after the runs
+// that might have needed the snapshot.
+Schedule::command('atheris:sync-data-sources')->dailyAt('04:00')->withoutOverlapping();
+Schedule::command('atheris:run-monitoring-rules --no-capture')->dailyAt('04:30')->withoutOverlapping();
+Schedule::command('atheris:purge-snapshots')->dailyAt('05:30');
+
+// Phase 13 — scheduled reporting. Every fifteen minutes rather than nightly,
+// because a schedule carries its own cron and its own timezone: a board pack
+// due at 06:45 Lagos and a group return due at 06:45 London are different
+// moments, and a once-a-night sweep would file both late.
+Schedule::command('reports:run-scheduled')->everyFifteenMinutes()->withoutOverlapping();
+
+// Phase 14 — AI knowledge index. The queued listener handles the normal
+// path; this sweep is the backstop for a queue outage and runs before the
+// working day so the first Atlas question of the morning is answered from
+// current records. Raw model output ages out weekly under its retention
+// window, leaving the interaction record itself intact (R3).
+Schedule::command('ai:reindex')->dailyAt('05:45')->withoutOverlapping();
+Schedule::command('ai:prune')->weeklyOn(7, '03:45');
+
+// Phase 16 — enterprise readiness. The nightly backup runs before the
+// morning batch windows so a restore never loses more than a day (RPO in
+// docs/runbooks/disaster-recovery.md); the residency guard vets the
+// backup disk on every run (16.2).
+Schedule::command('atheris:backup')->dailyAt('01:30')->withoutOverlapping();
+
+// Phase 17 — extended GRC. All three run before the 07:00 escalation
+// sweep, so a review that lapsed overnight, a filing stage that fell due
+// and an assurance gap that opened all escalate on the same morning
+// rather than a day late.
+Schedule::command('atheris:refresh-vendor-risk')->dailyAt('02:45');
+Schedule::command('atheris:refresh-sustainability')->dailyAt('03:15');
+Schedule::command('atheris:refresh-assurance')->dailyAt('05:15');
+
+// The strategy roll-up runs after the KRI engine, so the scorecard a
+// board opens in the morning reflects last night's readings rather than
+// the previous day's.
+Schedule::command('atheris:roll-up-objectives')->dailyAt('04:00');
+
+// CR-01 — the Exception Manager chase engine runs before the escalation
+// matrix sweep at 07:00, so an escalation stamped for the ladder today is
+// walked by the ladder the same morning, not tomorrow.
+Schedule::command('exceptions:chase')->dailyAt('06:30');

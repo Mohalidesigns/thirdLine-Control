@@ -144,6 +144,11 @@ export default function Show({ framework, tree = [], coverage = {}, can = {} }) 
                         <Link href={route('frameworks.coverage', framework.id)} className="btn-secondary">
                             Coverage heatmap
                         </Link>
+                        {framework.is_certifiable && (
+                            <Link href={route('frameworks.soa', framework.id)} className="btn-secondary">
+                                Statement of Applicability
+                            </Link>
+                        )}
                         <a href={route('frameworks.export', framework.id)} className="btn-secondary">
                             Export pack
                         </a>

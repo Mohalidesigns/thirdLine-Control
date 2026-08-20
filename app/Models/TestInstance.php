@@ -25,6 +25,9 @@ class TestInstance extends Model
         'status', 'is_ad_hoc', 'population_size', 'sample_size', 'sampling_method',
         'sample_items', 'review_notes', 'reopen_reason',
         'started_at', 'submitted_at', 'reviewed_at',
+        // Phase 12 — a continuous rule materialises a real test instance
+        // rather than a shadow record, so the source is recorded on it.
+        'source', 'monitoring_rule_id',
     ];
 
     protected $casts = [
@@ -64,6 +67,17 @@ class TestInstance extends Model
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewer_id');
+    }
+
+    /** The continuous rule that produced this instance, where one did (12.4). */
+    public function monitoringRule(): BelongsTo
+    {
+        return $this->belongsTo(MonitoringRule::class, 'monitoring_rule_id');
+    }
+
+    public function isAutomated(): bool
+    {
+        return $this->source === 'automated';
     }
 
     public function checkResults(): HasMany

@@ -1652,14 +1652,25 @@ DELIVERABLES
 
 ---
 
-## PHASE 14 — AI Layer (Anthropic) ⭐
+## PHASE 14 — AI Layer (Ollama · IBM Granite) ⭐
 **Duration: ~5 weeks · Read Part C in full before starting**
+
+> **Provider revision.** This phase was originally specified against the
+> Anthropic API. It shipped against a **locally hosted Ollama server running
+> IBM Granite** instead: inference happens on the institution's own machine, so
+> no tenant data crosses the boundary at all — the strongest available reading
+> of R5, and an easier conversation with a regulator than any DPA. Nothing else
+> in the design changed. The gateway, the draft-only enforcement, the
+> permission-filtered retrieval, the mandatory redaction and the audit model are
+> provider-agnostic by construction, which is why the swap touched one class.
+> This document and Part C below have been updated to what shipped.
 
 ```
 PHASE 14 — ARTIFICIAL INTELLIGENCE LAYER
 
 OBJECTIVE
-Add a native, governed, auditable AI layer built on the Anthropic API that makes
+Add a native, governed, auditable AI layer built on a locally hosted Ollama
+server running IBM Granite that makes
 scarce second-line expertise scale — matching and exceeding Corporater's AI
 capability set (AI-Powered Risk Intelligence, Automated Compliance & Audit,
 Data-Driven Decision Intelligence, AI-Assisted Configuration, Intelligent
@@ -1679,10 +1690,14 @@ ABSOLUTE RULES (architectural, not advisory)
      reviewing human and their decision.
   3. PII IS REDACTED BEFORE EGRESS. No customer name, account number, BVN, NIN,
      phone, email or address leaves the tenant boundary. Redaction is a
-     pipeline stage that cannot be skipped, and it is tested.
-  4. THE API KEY LIVES IN .env ONLY, read via config/services.php. Never in
-     code, seeders, tests, prompts, commits or the client bundle. Add
-     ANTHROPIC_API_KEY= to .env.example with no value.
+     pipeline stage that cannot be skipped, and it is tested. Local inference
+     is not a reason to relax this: the pipeline must stay correct if the
+     endpoint is ever moved off the machine.
+  4. THE PROVIDER ENDPOINT LIVES IN .env ONLY, read via config/services.php.
+     Never in code, seeders, tests, prompts, commits or the client bundle. Add
+     OLLAMA_BASE_URL= and OLLAMA_API_KEY= to .env.example — the key is optional
+     and exists only for an Ollama behind an authenticating reverse proxy.
+     Exactly one class may read it.
   5. COST IS BOUNDED. Per-tenant monthly token budget, per-user rate limits,
      per-capability caps, and a hard stop with a clear message at the limit.
 
@@ -1693,7 +1708,7 @@ BUILD (summary — Part C has the detail)
   log), ai_feedback, ai_knowledge_chunks (RAG index), ai_budgets.
   App\Services\Ai\AiGateway with the pipeline:
     capability check → budget check → rate limit → context assembly →
-    PII redaction → prompt render → Anthropic call (retry, backoff, timeout) →
+    PII redaction → prompt render → Ollama call (retry, backoff, timeout) →
     response parse and schema validation → confidence scoring →
     citation resolution → audit write → return as DRAFT
 
@@ -2080,30 +2095,64 @@ DELIVERABLES
 
 ## C.2 Configuration
 
+The provider is a **locally hosted Ollama server running IBM Granite**. Nothing
+leaves the machine, which is the strongest available reading of principle 3 —
+but it does not excuse the redaction stage, which stays mandatory so the
+pipeline remains correct if the endpoint is ever moved.
+
 ```php
 // config/services.php
-'anthropic' => [
-    'api_key'          => env('ANTHROPIC_API_KEY'),
-    'base_url'         => env('ANTHROPIC_BASE_URL', 'https://api.anthropic.com'),
-    'default_model'    => env('ANTHROPIC_MODEL', 'claude-sonnet-4-6'),
-    'reasoning_model'  => env('ANTHROPIC_REASONING_MODEL', 'claude-opus-4-6'),
-    'fast_model'       => env('ANTHROPIC_FAST_MODEL', 'claude-haiku-4-6'),
-    'max_tokens'       => (int) env('ANTHROPIC_MAX_TOKENS', 4096),
-    'timeout'          => (int) env('ANTHROPIC_TIMEOUT', 120),
-    'max_retries'      => (int) env('ANTHROPIC_MAX_RETRIES', 3),
+'ollama' => [
+    // Optional — only for an Ollama behind an authenticating reverse proxy.
+    'api_key'          => env('OLLAMA_API_KEY'),
+    'base_url'         => env('OLLAMA_BASE_URL', 'http://localhost:11434'),
+
+    // One Granite serves all three tiers on a single-model installation.
+    'default_model'    => env('OLLAMA_MODEL', 'granite4:micro'),
+    'reasoning_model'  => env('OLLAMA_REASONING_MODEL', 'granite4:micro'),
+    'fast_model'       => env('OLLAMA_FAST_MODEL', 'granite4:micro'),
+
+    'max_tokens'       => (int) env('OLLAMA_MAX_TOKENS', 8192),
+    // Ollama's own default context window silently truncates an assembled
+    // retrieval context, which surfaces as the model ignoring instructions.
+    'num_ctx'          => (int) env('OLLAMA_NUM_CTX', 16384),
+    // Local inference on modest hardware is slow; a timeout tuned for a
+    // hosted API abandons perfectly healthy generations.
+    'timeout'          => (int) env('OLLAMA_TIMEOUT', 300),
+    'connect_timeout'  => (int) env('OLLAMA_CONNECT_TIMEOUT', 10),
+    'max_retries'      => (int) env('OLLAMA_MAX_RETRIES', 3),
+    'retry_base_ms'    => (int) env('OLLAMA_RETRY_BASE_MS', 500),
+
+    // Per-model capability matrix. Sending an unsupported parameter is an
+    // error or a silent no-op depending on the model, so the gateway asks
+    // this table before building a payload. Unknown models fall back to
+    // `default`, which sends nothing optional — the safe direction.
+    'features' => [
+        'default'        => ['thinking' => false, 'structured_output' => false, 'temperature' => false],
+        'granite4:micro' => ['thinking' => false, 'structured_output' => true,  'temperature' => true],
+    ],
+
+    // Local inference has no per-token invoice, so this is empty and every
+    // call costs zero — but the plumbing stays intact so a metered provider
+    // is a config change, not a code one.
+    'pricing'          => [],
+    'pricing_currency' => env('OLLAMA_PRICING_CURRENCY', 'USD'),
 ],
 ```
 
-`.env.example` gains `ANTHROPIC_API_KEY=` with no value. Verify the exact model
-identifiers against Anthropic's current model documentation at build time
-(`https://docs.claude.com/en/docs/about-claude/models`) — model names change and
-must not be guessed. Store the resolved identifier in `ai_configurations` so it
-is a tenant setting, not a constant.
+`.env.example` gains the `OLLAMA_*` block, with `OLLAMA_API_KEY=` empty.
+Verify the model identifier against what the installation has actually pulled
+(`GET /api/tags`) at build time — a model name that is not present fails the
+call and is not retryable. Store the resolved identifier in `ai_configurations`
+so it is a tenant setting, not a constant.
 
 **Model selection by capability:** fast model for classification, extraction and
 short summarisation; default model for drafting and review; reasoning model for
 framework mapping, ICFR deficiency aggregation and multi-document regulatory
-analysis. Make it configurable per capability, with a sane default.
+analysis. Make it configurable per capability, with a sane default. On a
+single-model installation all three resolve to the same Granite; pulling a
+larger Granite and repointing `OLLAMA_REASONING_MODEL` upgrades the reasoning
+tier without a deploy.
 
 ## C.3 Data model
 
@@ -2159,7 +2208,7 @@ ai_budgets
                                    query time using the requesting user's scope
 6.  Redact                       → RedactionService (MANDATORY, unskippable)
 7.  Render prompt                → PromptRegistry::render(key, version, vars)
-8.  Call Anthropic               → retry with exponential backoff on 429/5xx,
+8.  Call Ollama                  → retry with exponential backoff on 429/5xx,
                                    respect timeout, stream where the UI benefits
 9.  Parse and validate           → against the prompt's output_schema; on
                                    failure, one repair attempt, then fail

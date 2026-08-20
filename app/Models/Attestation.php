@@ -13,7 +13,7 @@ class Attestation extends Model
 {
     use Auditable, BelongsToTenant, HasFactory;
 
-    public const METHODS = ['web', 'mobile', 'whatsapp', 'email'];
+    public const METHODS = ['web', 'mobile', 'whatsapp', 'email', 'ussd', 'offline'];
 
     protected $fillable = [
         'tenant_id', 'attestable_type', 'attestable_id', 'user_id', 'campaign_id',

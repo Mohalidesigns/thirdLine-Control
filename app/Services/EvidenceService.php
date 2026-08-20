@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ControlException;
 use App\Models\Evidence;
+use App\Models\ExceptionEscalation;
 use App\Models\Finding;
 use App\Models\ObligationInstance;
 use App\Models\RetentionPolicy;
@@ -25,6 +26,9 @@ class EvidenceService
         'finding' => Finding::class,
         // Phase 8: the proof that a regulatory filing was actually made.
         'obligation_instance' => ObligationInstance::class,
+        // CR-01: departmental response attachments are evidence rows with
+        // linked_type/linked_id — never a file column on the response.
+        'exception-escalation' => ExceptionEscalation::class,
     ];
 
     /**
@@ -40,6 +44,10 @@ class EvidenceService
         }
 
         $policy = $this->resolvePolicy($meta['contains_personal_data'] ?? false);
+
+        // The write is blocked, not warned about, if the evidence disk sits
+        // outside the tenant's declared residency country (16.2, R5).
+        app(ResidencyGuard::class)->assertStorageAllowed(self::DISK, $uploader->tenant);
 
         $path = $file->store('evidence/'.now()->format('Y/m'), self::DISK);
 

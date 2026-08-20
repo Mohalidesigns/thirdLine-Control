@@ -13,14 +13,21 @@ class EscalationEvent extends Model
 
     protected $fillable = [
         'tenant_id', 'exception_id', 'test_instance_id', 'campaign_id', 'subject_user_id',
-        'risk_id', 'metric_id', 'treatment_id', 'matrix_id', 'tier_no',
+        'risk_id', 'metric_id', 'treatment_id', 'exception_escalation_id', 'escalation_round_no',
+        'matrix_id', 'tier_no',
         'recipient_user_id', 'channel', 'triggered_at', 'delivery_status', 'payload_summary',
     ];
 
     protected $casts = [
         'tier_no' => 'integer',
+        'escalation_round_no' => 'integer',
         'triggered_at' => 'datetime',
     ];
+
+    public function departmentalEscalation(): BelongsTo
+    {
+        return $this->belongsTo(ExceptionEscalation::class, 'exception_escalation_id');
+    }
 
     public function exception(): BelongsTo
     {

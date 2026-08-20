@@ -1,11 +1,18 @@
 <?php
 
+use App\Http\Controllers\Admin\AiGovernanceController;
+use App\Http\Controllers\Admin\MessagingController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\AiAssistController;
+use App\Http\Controllers\AssuranceController;
+use App\Http\Controllers\AtlasController;
 use App\Http\Controllers\AttestationController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\MfaController;
 use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\CaseController;
+use App\Http\Controllers\ChunkedUploadController;
 use App\Http\Controllers\CompensatingControlController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\ContentPackController;
@@ -14,47 +21,83 @@ use App\Http\Controllers\ControlDistributionController;
 use App\Http\Controllers\ControlRequirementMapController;
 use App\Http\Controllers\CsaCampaignController;
 use App\Http\Controllers\CsaResponseController;
+use App\Http\Controllers\DashboardBuilderController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DataSourceController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\EntityController;
 use App\Http\Controllers\EscalationMatrixController;
 use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\ExceptionController;
+use App\Http\Controllers\ExceptionManagerController;
+use App\Http\Controllers\ExceptionResponseController;
+use App\Http\Controllers\ExceptionRoutingController;
+use App\Http\Controllers\PublicExceptionResponseController;
 use App\Http\Controllers\FeatureFlagController;
 use App\Http\Controllers\FrameworkController;
 use App\Http\Controllers\FrameworkRequirementController;
+use App\Http\Controllers\GroupDashboardController;
+use App\Http\Controllers\HealthController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\ImprovementActionController;
 use App\Http\Controllers\IncidentController;
+use App\Http\Controllers\InitiativeController;
 use App\Http\Controllers\IntegrationController;
 use App\Http\Controllers\LinkageController;
 use App\Http\Controllers\MetricController;
+use App\Http\Controllers\MobileTaskController;
+use App\Http\Controllers\MonitoringDashboardController;
+use App\Http\Controllers\MonitoringFindingController;
+use App\Http\Controllers\MonitoringRuleController;
+use App\Http\Controllers\MonitoringRunController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
+use App\Http\Controllers\ObjectiveController;
 use App\Http\Controllers\ObligationAssignmentController;
 use App\Http\Controllers\ObligationController;
 use App\Http\Controllers\ObligationInstanceController;
+use App\Http\Controllers\OfflineSyncController;
 use App\Http\Controllers\PolicyController;
 use App\Http\Controllers\PolicyExceptionController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\PwaController;
 use App\Http\Controllers\RegulatoryChangeController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportDefinitionController;
+use App\Http\Controllers\ReportRunController;
+use App\Http\Controllers\ReportScheduleController;
+use App\Http\Controllers\ResidencyController;
 use App\Http\Controllers\RiskAppetiteController;
 use App\Http\Controllers\RiskAssessmentController;
 use App\Http\Controllers\RiskController;
 use App\Http\Controllers\RiskTreatmentController;
 use App\Http\Controllers\SavedViewController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SoaController;
+use App\Http\Controllers\SodController;
 use App\Http\Controllers\SpotCheckController;
 use App\Http\Controllers\SsoConfigurationController;
+use App\Http\Controllers\StrategyController;
+use App\Http\Controllers\SubmissionPackController;
+use App\Http\Controllers\SustainabilityController;
 use App\Http\Controllers\TenantBrandingController;
 use App\Http\Controllers\TenantSecurityController;
 use App\Http\Controllers\TestInstanceController;
 use App\Http\Controllers\TestScriptController;
+use App\Http\Controllers\VendorController;
 use App\Http\Controllers\VersionController;
+use App\Http\Controllers\Webhooks\SmsReceiptController;
+use App\Http\Controllers\Webhooks\UssdController;
+use App\Http\Controllers\Webhooks\WhatsappWebhookController;
 use App\Http\Controllers\WhistleblowingController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
+
+// ── Operational health (Phase 16.3) — /up answers "alive", this answers
+// "serving". No tenant data; production ingress restricts it to the
+// monitoring network (docs/deployment).
+Route::get('/health', HealthController::class)->name('health');
 
 // ── PWA shell (Phase 7.10) — public by design
 Route::get('manifest.webmanifest', [PwaController::class, 'manifest'])->name('pwa.manifest');
@@ -71,6 +114,31 @@ Route::middleware(['feature:whistleblowing', 'throttle:10,1'])->group(function (
     Route::get('speak-up/status', [WhistleblowingController::class, 'status'])->name('whistleblowing.status');
     Route::post('speak-up/status', [WhistleblowingController::class, 'checkStatus'])->name('whistleblowing.check');
     Route::post('speak-up/reply', [WhistleblowingController::class, 'reply'])->name('whistleblowing.reply');
+});
+
+// ── Exception Manager secure answer link (CR-01, R-H) — public by design.
+// An external processor has no account; the hashed one-time token IS the
+// credential. Scoped to a single escalation, expiring, revocable, and
+// throttled hard because a token endpoint invites brute force.
+Route::middleware(['feature:exception-manager', 'throttle:20,1'])->group(function () {
+    Route::get('exception-response/{token}', [PublicExceptionResponseController::class, 'show'])
+        ->name('public.exception-response.show');
+    Route::post('exception-response/{token}', [PublicExceptionResponseController::class, 'submit'])
+        ->name('public.exception-response.submit');
+});
+
+// ── Omnichannel webhooks (Phase 15.3/15.4) — public by design, each
+// authenticated by its own mechanism: Meta signature, aggregator token,
+// USSD gateway token. CSRF-exempt in bootstrap/app.php.
+Route::prefix('webhooks')->group(function () {
+    Route::get('whatsapp', [WhatsappWebhookController::class, 'verify'])->name('webhooks.whatsapp.verify');
+    Route::post('whatsapp', [WhatsappWebhookController::class, 'receive'])
+        ->middleware('throttle:120,1')->name('webhooks.whatsapp');
+    Route::post('sms/receipts', [SmsReceiptController::class, 'receive'])
+        ->middleware('throttle:120,1')->name('webhooks.sms.receipts');
+    // USSD attestation (15.4) — optional, behind its feature flag.
+    Route::post('ussd', [UssdController::class, 'handle'])
+        ->middleware(['feature:ussd', 'throttle:120,1'])->name('webhooks.ussd');
 });
 
 // ── Guest ────────────────────────────────────────────────────────────
@@ -96,6 +164,20 @@ Route::middleware('auth')->group(function () {
     // ── Notifications ────────────────────────────────────────────────
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+
+    // ── Mobile, offline & omnichannel (Phase 15) ─────────────────────
+    // The task view and offline endpoints carry no feature flag: a stale
+    // cached device must always be able to sync its outbox back in.
+    Route::get('my-tasks', [MobileTaskController::class, 'index'])->name('tasks.mine');
+    Route::get('offline/bootstrap', [OfflineSyncController::class, 'bootstrap'])->name('offline.bootstrap');
+    Route::post('offline/outbox', [OfflineSyncController::class, 'outbox'])->name('offline.outbox');
+    Route::get('notifications/latest', [NotificationController::class, 'latest'])->name('notifications.latest');
+    Route::post('push/subscriptions', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
+    Route::delete('push/subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
+    Route::post('uploads/chunked', [ChunkedUploadController::class, 'store'])->name('uploads.chunked.store');
+    Route::post('uploads/chunked/{uuid}/chunks', [ChunkedUploadController::class, 'appendChunk'])->name('uploads.chunked.append');
+    Route::post('uploads/chunked/{uuid}/complete', [ChunkedUploadController::class, 'complete'])->name('uploads.chunked.complete');
+    Route::delete('uploads/chunked/{uuid}', [ChunkedUploadController::class, 'destroy'])->name('uploads.chunked.abort');
 
     // ── MFA (Phase 7.2) ──────────────────────────────────────────────
     Route::middleware('feature:mfa')->group(function () {
@@ -205,6 +287,119 @@ Route::middleware('auth')->group(function () {
             ->name('metrics.breaches.resolve');
     });
 
+    // ── Strategy & performance alignment (Phase 17.1) ────────────────
+    // The map and the scorecard are the board's two views of the same
+    // register; both read the roll-up rather than storing a second copy
+    // of it.
+    Route::middleware(['feature:objectives', 'permission:view objectives'])->group(function () {
+        Route::get('strategy/map', [StrategyController::class, 'map'])->name('strategy.map');
+        Route::get('strategy/scorecard', [StrategyController::class, 'scorecard'])->name('strategy.scorecard');
+
+        Route::get('objectives', [ObjectiveController::class, 'index'])->name('objectives.index');
+        Route::post('objectives', [ObjectiveController::class, 'store'])->name('objectives.store');
+        Route::get('objectives/{objective}', [ObjectiveController::class, 'show'])->name('objectives.show');
+        Route::put('objectives/{objective}', [ObjectiveController::class, 'update'])->name('objectives.update');
+        Route::post('objectives/{objective}/approve', [ObjectiveController::class, 'approve'])->name('objectives.approve');
+        Route::post('objectives/{objective}/progress', [ObjectiveController::class, 'progress'])->name('objectives.progress');
+        Route::post('objectives/{objective}/recalculate', [ObjectiveController::class, 'recalculate'])
+            ->name('objectives.recalculate');
+        Route::post('objectives/{objective}/measures', [ObjectiveController::class, 'storeMeasure'])
+            ->name('objectives.measures.store');
+        Route::delete('objectives/{objective}/measures/{measure}', [ObjectiveController::class, 'destroyMeasure'])
+            ->name('objectives.measures.destroy');
+
+        Route::post('initiatives', [InitiativeController::class, 'store'])->name('initiatives.store');
+        Route::put('initiatives/{initiative}', [InitiativeController::class, 'update'])->name('initiatives.update');
+        Route::post('initiatives/{initiative}/milestones/{milestone}', [InitiativeController::class, 'completeMilestone'])
+            ->name('initiatives.milestones.update');
+    });
+
+    // ── Third-party / vendor risk (Phase 17.2) ───────────────────────
+    // Approving a due-diligence conclusion, filing a material-outsourcing
+    // notification and registering a contract each carry their own
+    // permission inside the group: they are different authorities held by
+    // different people in most institutions.
+    Route::middleware(['feature:vendors', 'permission:view vendors'])->group(function () {
+        Route::get('vendors', [VendorController::class, 'index'])->name('vendors.index');
+        Route::get('vendors/concentration', [VendorController::class, 'concentration'])->name('vendors.concentration');
+        Route::post('vendors', [VendorController::class, 'store'])->name('vendors.store');
+        Route::get('vendors/{vendor}', [VendorController::class, 'show'])->name('vendors.show');
+        Route::put('vendors/{vendor}', [VendorController::class, 'update'])->name('vendors.update');
+
+        Route::post('vendors/{vendor}/assessments', [VendorController::class, 'storeAssessment'])
+            ->name('vendors.assessments.store');
+        Route::post('vendors/{vendor}/assessments/{assessment}/submit', [VendorController::class, 'submitAssessment'])
+            ->name('vendors.assessments.submit');
+        Route::post('vendors/{vendor}/assessments/{assessment}/approve', [VendorController::class, 'approveAssessment'])
+            ->name('vendors.assessments.approve');
+        Route::post('vendors/{vendor}/assessments/{assessment}/reject', [VendorController::class, 'rejectAssessment'])
+            ->name('vendors.assessments.reject');
+
+        Route::post('vendors/{vendor}/findings', [VendorController::class, 'storeFinding'])
+            ->name('vendors.findings.store');
+        Route::put('vendors/{vendor}/findings/{finding}', [VendorController::class, 'updateFinding'])
+            ->name('vendors.findings.update');
+
+        Route::post('vendors/{vendor}/screenings', [VendorController::class, 'storeScreening'])
+            ->name('vendors.screenings.store');
+        Route::post('vendors/{vendor}/screenings/{screening}/disposition', [VendorController::class, 'dispositionScreening'])
+            ->name('vendors.screenings.disposition');
+
+        Route::post('vendors/{vendor}/notification', [VendorController::class, 'recordNotification'])
+            ->name('vendors.notification.store');
+
+        Route::post('vendors/{vendor}/contracts', [VendorController::class, 'storeContract'])
+            ->name('vendors.contracts.store');
+        Route::put('vendors/{vendor}/contracts/{contract}', [VendorController::class, 'updateContract'])
+            ->name('vendors.contracts.update');
+    });
+
+    // ── IFRS S1/S2 sustainability controls (Phase 17.3) ──────────────
+    // Preparing a figure and verifying it are separate permissions on
+    // purpose: a control over sustainability reporting that one person
+    // both operates and signs off is not a control (COSO ICSR).
+    Route::middleware(['feature:sustainability', 'permission:view sustainability'])->group(function () {
+        Route::get('sustainability', [SustainabilityController::class, 'index'])->name('sustainability.index');
+        Route::post('sustainability/materiality', [SustainabilityController::class, 'storeMateriality'])
+            ->name('sustainability.materiality.store');
+        Route::post('sustainability/materiality/{assessment}/approve', [SustainabilityController::class, 'approveMateriality'])
+            ->name('sustainability.materiality.approve');
+
+        Route::get('sustainability/ghg', [SustainabilityController::class, 'ghg'])->name('sustainability.ghg');
+        Route::post('sustainability/ghg', [SustainabilityController::class, 'storeDataPoint'])
+            ->name('sustainability.ghg.store');
+        Route::put('sustainability/ghg/{point}', [SustainabilityController::class, 'updateDataPoint'])
+            ->name('sustainability.ghg.update');
+        Route::post('sustainability/ghg/{point}/verify', [SustainabilityController::class, 'verifyDataPoint'])
+            ->name('sustainability.ghg.verify');
+        Route::post('sustainability/ghg/{point}/defer', [SustainabilityController::class, 'deferDataPoint'])
+            ->name('sustainability.ghg.defer');
+
+        Route::get('sustainability/filings', [SustainabilityController::class, 'filings'])
+            ->name('sustainability.filings');
+        Route::post('sustainability/filings', [SustainabilityController::class, 'storeFiling'])
+            ->name('sustainability.filings.store');
+        Route::post('sustainability/filings/{filing}/verify', [SustainabilityController::class, 'verifyFiling'])
+            ->name('sustainability.filings.verify');
+        Route::post('sustainability/filings/{filing}/stages/{stage}', [SustainabilityController::class, 'submitStage'])
+            ->name('sustainability.filings.stages.submit');
+    });
+
+    // ── Combined assurance map (Phase 17.4) ──────────────────────────
+    // Recording a reliance decision carries its own permission: a combined
+    // assurance report is signed on the strength of exactly those
+    // decisions, so they are a named authority rather than general
+    // maintenance of the map.
+    Route::middleware(['feature:assurance', 'permission:view assurance'])->group(function () {
+        Route::get('assurance', [AssuranceController::class, 'map'])->name('assurance.map');
+        Route::post('assurance/providers', [AssuranceController::class, 'storeProvider'])
+            ->name('assurance.providers.store');
+        Route::post('assurance/activities', [AssuranceController::class, 'storeActivity'])
+            ->name('assurance.activities.store');
+        Route::post('assurance/activities/{activity}/reliance', [AssuranceController::class, 'recordReliance'])
+            ->name('assurance.activities.reliance');
+    });
+
     // ── Linkage graph (Phase 10.6) ───────────────────────────────────
     Route::middleware('feature:linkage')->group(function () {
         Route::post('links', [LinkageController::class, 'store'])->name('links.store');
@@ -243,6 +438,52 @@ Route::middleware('auth')->group(function () {
     Route::post('exceptions/{exception}/accept-risk', [ExceptionController::class, 'acceptRisk'])->name('exceptions.accept-risk');
     Route::post('exceptions/{exception}/comments', [ExceptionController::class, 'comment'])->name('exceptions.comments');
 
+    // ── Exception Manager (CR-01): departmental escalation, response &
+    // closure. Rows are escalations, not exceptions — the addressed loop.
+    Route::middleware('feature:exception-manager')->group(function () {
+        Route::get('exception-manager', [ExceptionManagerController::class, 'index'])
+            ->name('exception-manager.index');
+
+        Route::middleware('permission:escalate exceptions')->group(function () {
+            Route::post('exceptions/{exception}/escalations', [ExceptionManagerController::class, 'issue'])
+                ->name('exception-manager.issue');
+            Route::post('exception-manager/{escalation}/links', [ExceptionManagerController::class, 'createLink'])
+                ->name('exception-manager.links.store');
+            Route::post('exception-manager/{escalation}/links/{link}/revoke', [ExceptionManagerController::class, 'revokeLink'])
+                ->name('exception-manager.links.revoke');
+        });
+
+        Route::middleware('permission:respond exceptions')->group(function () {
+            Route::get('exception-manager/{escalation}/respond', [ExceptionResponseController::class, 'respond'])
+                ->name('exception-manager.respond');
+            Route::post('exception-manager/{escalation}/respond/draft', [ExceptionResponseController::class, 'saveDraft'])
+                ->name('exception-manager.respond.draft');
+            Route::post('exception-manager/{escalation}/respond', [ExceptionResponseController::class, 'submit'])
+                ->name('exception-manager.respond.submit');
+        });
+
+        Route::middleware('permission:review exception-responses')
+            ->post('exception-manager/{escalation}/responses/{response}/review', [ExceptionManagerController::class, 'review'])
+            ->name('exception-manager.review');
+
+        Route::post('exception-manager/{escalation}/close', [ExceptionManagerController::class, 'close'])
+            ->name('exception-manager.close');
+
+        Route::middleware('permission:withdraw exceptions')
+            ->post('exception-manager/{escalation}/withdraw', [ExceptionManagerController::class, 'withdraw'])
+            ->name('exception-manager.withdraw');
+
+        // The department's committed actions (CR1.5).
+        Route::post('exception-actions/{action}/progress', [ExceptionResponseController::class, 'progressAction'])
+            ->name('exception-actions.progress');
+        Route::post('exception-actions/{action}/complete', [ExceptionResponseController::class, 'completeAction'])
+            ->name('exception-actions.complete');
+
+        // Dynamic segment last, so it never captures the literals above.
+        Route::get('exception-manager/{escalation}', [ExceptionManagerController::class, 'show'])
+            ->name('exception-manager.show');
+    });
+
     // ── Compensating controls ────────────────────────────────────────
     Route::get('compensating-controls', [CompensatingControlController::class, 'index'])->name('compensating-controls.index');
     Route::post('exceptions/{exception}/compensating-controls', [CompensatingControlController::class, 'store'])->name('compensating-controls.store');
@@ -263,10 +504,97 @@ Route::middleware('auth')->group(function () {
         Route::get('spot-checks/{spot_check}.pdf', [ReportController::class, 'spotCheck'])->name('reports.spot-check');
         Route::get('exceptions.pdf', [ReportController::class, 'exceptionRegisterPdf'])->name('reports.exceptions.pdf');
         Route::get('exceptions.xlsx', [ReportController::class, 'exceptionsXlsx'])->name('reports.exceptions.xlsx');
+        Route::get('exception-manager.pdf', [ReportController::class, 'exceptionManagerPdf'])->name('reports.exception-manager.pdf');
+        Route::get('exception-manager.xlsx', [ReportController::class, 'exceptionManagerXlsx'])->name('reports.exception-manager.xlsx');
         Route::get('controls.xlsx', [ReportController::class, 'controlsXlsx'])->name('reports.controls.xlsx');
         Route::get('testing-summary.pdf', [ReportController::class, 'testingSummaryPdf'])->name('reports.testing-summary');
         Route::get('test-instances.xlsx', [ReportController::class, 'testInstancesXlsx'])->name('reports.test-instances.xlsx');
         Route::get('board-pack', [ReportController::class, 'boardPack'])->name('reports.board-pack');
+    });
+
+    // ── Configurable dashboards (Phase 13.2) ─────────────────────────
+    Route::middleware('feature:dashboard-builder')->group(function () {
+        Route::middleware('permission:view dashboards')
+            ->get('dashboards', [DashboardController::class, 'library'])->name('dashboards.index');
+
+        // Static segments first so they are not captured as {dashboard}.
+        Route::middleware('permission:manage dashboards')->group(function () {
+            Route::get('dashboards/new', [DashboardBuilderController::class, 'create'])->name('dashboards.create');
+            Route::post('dashboards', [DashboardBuilderController::class, 'store'])->name('dashboards.store');
+        });
+
+        Route::middleware('permission:view dashboards')
+            ->get('dashboards/{dashboard}', [DashboardController::class, 'show'])->name('dashboards.show');
+
+        Route::middleware('permission:manage dashboards')->group(function () {
+            Route::get('dashboards/{dashboard}/edit', [DashboardBuilderController::class, 'edit'])->name('dashboards.edit');
+            Route::put('dashboards/{dashboard}', [DashboardBuilderController::class, 'update'])->name('dashboards.update');
+            Route::delete('dashboards/{dashboard}', [DashboardBuilderController::class, 'destroy'])->name('dashboards.destroy');
+            Route::post('dashboards/{dashboard}/duplicate', [DashboardBuilderController::class, 'duplicate'])->name('dashboards.duplicate');
+            Route::put('dashboards/{dashboard}/layout', [DashboardBuilderController::class, 'layout'])->name('dashboards.layout');
+            Route::post('dashboards/{dashboard}/widgets', [DashboardBuilderController::class, 'storeWidget'])->name('dashboards.widgets.store');
+            Route::put('dashboards/{dashboard}/widgets/{widget}', [DashboardBuilderController::class, 'updateWidget'])->name('dashboards.widgets.update');
+            Route::delete('dashboards/{dashboard}/widgets/{widget}', [DashboardBuilderController::class, 'destroyWidget'])->name('dashboards.widgets.destroy');
+        });
+    });
+
+    // ── Report designer, schedules & runs (Phase 13.3) ───────────────
+    Route::middleware('feature:report-designer')->group(function () {
+        Route::middleware('permission:export reports')->group(function () {
+            Route::get('report-library', [ReportDefinitionController::class, 'index'])->name('reports.library');
+            Route::get('report-library/{definition}', [ReportDefinitionController::class, 'show'])->name('reports.definitions.show');
+            Route::post('report-library/{definition}/run', [ReportRunController::class, 'store'])->name('reports.definitions.run');
+            Route::get('report-runs', [ReportRunController::class, 'index'])->name('reports.runs');
+            Route::get('report-runs/{run}/download', [ReportRunController::class, 'download'])->name('reports.runs.download');
+        });
+
+        Route::middleware('permission:design reports')->group(function () {
+            Route::get('report-designer/new', [ReportDefinitionController::class, 'create'])->name('reports.definitions.create');
+            Route::post('report-designer', [ReportDefinitionController::class, 'store'])->name('reports.definitions.store');
+            Route::get('report-designer/{definition}', [ReportDefinitionController::class, 'edit'])->name('reports.definitions.edit');
+            Route::put('report-designer/{definition}', [ReportDefinitionController::class, 'update'])->name('reports.definitions.update');
+            Route::delete('report-designer/{definition}', [ReportDefinitionController::class, 'destroy'])->name('reports.definitions.destroy');
+        });
+
+        Route::middleware('permission:approve report-definitions')
+            ->post('report-designer/{definition}/approve', [ReportDefinitionController::class, 'approve'])
+            ->name('reports.definitions.approve');
+
+        Route::middleware('permission:schedule reports')->group(function () {
+            Route::get('report-schedules', [ReportScheduleController::class, 'index'])->name('reports.schedules');
+            Route::post('report-schedules', [ReportScheduleController::class, 'store'])->name('reports.schedules.store');
+            Route::put('report-schedules/{schedule}', [ReportScheduleController::class, 'update'])->name('reports.schedules.update');
+            Route::delete('report-schedules/{schedule}', [ReportScheduleController::class, 'destroy'])->name('reports.schedules.destroy');
+            Route::post('report-schedules/{schedule}/run-now', [ReportScheduleController::class, 'runNow'])->name('reports.schedules.run-now');
+        });
+    });
+
+    // ── Regulatory submission packs (Phase 13.4) ─────────────────────
+    Route::middleware('feature:submission-packs')->group(function () {
+        Route::middleware('permission:view submissions')->group(function () {
+            Route::get('submissions', [SubmissionPackController::class, 'index'])->name('submissions.index');
+            Route::get('submissions/{pack}', [SubmissionPackController::class, 'show'])->name('submissions.show');
+            Route::get('submissions/{pack}/document', [SubmissionPackController::class, 'download'])->name('submissions.download');
+        });
+
+        Route::middleware('permission:generate submissions')->group(function () {
+            Route::post('submissions', [SubmissionPackController::class, 'store'])->name('submissions.store');
+            Route::put('submissions/{pack}', [SubmissionPackController::class, 'update'])->name('submissions.update');
+            Route::post('submissions/{pack}/regenerate', [SubmissionPackController::class, 'regenerate'])->name('submissions.regenerate');
+            Route::post('submissions/{pack}/send-for-review', [SubmissionPackController::class, 'sendForReview'])->name('submissions.send-for-review');
+        });
+
+        Route::middleware('permission:review submissions')
+            ->post('submissions/{pack}/review', [SubmissionPackController::class, 'review'])->name('submissions.review');
+
+        Route::middleware('permission:approve submissions')
+            ->post('submissions/{pack}/approve', [SubmissionPackController::class, 'approve'])->name('submissions.approve');
+
+        Route::middleware('permission:file submissions')->group(function () {
+            Route::post('submissions/{pack}/file', [SubmissionPackController::class, 'file'])->name('submissions.file');
+            Route::post('submissions/{pack}/acknowledge', [SubmissionPackController::class, 'acknowledge'])->name('submissions.acknowledge');
+            Route::post('submissions/{pack}/reject', [SubmissionPackController::class, 'reject'])->name('submissions.reject');
+        });
     });
 
     // ── Frameworks & requirement mapping (Phase 8) ───────────────────
@@ -300,6 +628,46 @@ Route::middleware('auth')->group(function () {
             ->name('framework-mappings.verify');
         Route::get('controls/{control}/frameworks', [ControlRequirementMapController::class, 'crossFramework'])
             ->name('controls.frameworks');
+
+        // ── Statement of Applicability (Phase 16.4) ──────────────────
+        Route::get('frameworks/{framework}/soa', [SoaController::class, 'show'])->name('frameworks.soa');
+        Route::put('frameworks/{framework}/soa', [SoaController::class, 'decide'])
+            ->middleware('permission:manage soa')->name('frameworks.soa.decide');
+        Route::get('frameworks/{framework}/soa/export', [SoaController::class, 'export'])->name('frameworks.soa.export');
+    });
+
+    // ── Group, entities & consolidation (Phase 16.1) ─────────────────
+    Route::middleware('feature:entities')->group(function () {
+        Route::get('entities', [EntityController::class, 'index'])
+            ->middleware('permission:view entities')->name('entities.index');
+        Route::post('entities', [EntityController::class, 'store'])
+            ->middleware('permission:manage entities')->name('entities.store');
+        Route::put('entities/{entity}', [EntityController::class, 'update'])
+            ->middleware('permission:manage entities')->name('entities.update');
+        Route::post('entities/{entity}/grants', [EntityController::class, 'grantAccess'])
+            ->middleware('permission:grant entity-access')->name('entities.grants.store');
+        Route::delete('entities/{entity}/grants/{user}', [EntityController::class, 'revokeAccess'])
+            ->middleware('permission:grant entity-access')->name('entities.grants.destroy');
+
+        Route::get('group', [GroupDashboardController::class, 'index'])
+            ->middleware('permission:view group-dashboard')->name('group.dashboard');
+    });
+
+    // ── Data residency (Phase 16.2) — outside the admin area because the
+    // second line records transfers day to day; the declaration itself is
+    // read-only everywhere (changing it is a re-provisioning event).
+    Route::middleware(['feature:residency', 'permission:view residency'])->group(function () {
+        Route::get('residency', [ResidencyController::class, 'index'])->name('residency.index');
+        Route::post('residency/transfers', [ResidencyController::class, 'storeTransfer'])
+            ->middleware('permission:record transfers')->name('residency.transfers.store');
+        Route::post('residency/transfers/{transfer}/authorise', [ResidencyController::class, 'authoriseTransfer'])
+            ->middleware('permission:authorise transfers')->name('residency.transfers.authorise');
+        Route::post('residency/transfers/{transfer}/complete', [ResidencyController::class, 'completeTransfer'])
+            ->middleware('permission:record transfers')->name('residency.transfers.complete');
+        Route::post('residency/attestations', [ResidencyController::class, 'storeAttestation'])
+            ->middleware(['permission:manage residency', 'throttle:10,1'])->name('residency.attestations.store');
+        Route::get('residency/attestations/{attestation}/download', [ResidencyController::class, 'downloadAttestation'])
+            ->name('residency.attestations.download');
     });
 
     // ── Regulatory obligations & compliance calendar (Phase 8) ───────
@@ -464,6 +832,52 @@ Route::middleware('auth')->group(function () {
         Route::delete('cases/{case}/access', [CaseController::class, 'revokeAccess'])->name('cases.access.revoke');
     });
 
+    // ── Continuous controls monitoring (Phase 12.3–12.6) ─────────────
+    // Route middleware is the coarse gate; MonitoringRulePolicy and
+    // MonitoringService both re-check the approval separation, so an
+    // administrator cannot approve their own rule from any surface.
+    Route::middleware(['feature:continuous-monitoring', 'permission:view monitoring'])->group(function () {
+        Route::get('monitoring', MonitoringDashboardController::class)->name('monitoring.dashboard');
+
+        Route::get('monitoring/rules', [MonitoringRuleController::class, 'index'])->name('monitoring-rules.index');
+        Route::post('monitoring/rules', [MonitoringRuleController::class, 'store'])->name('monitoring-rules.store');
+        Route::get('monitoring/rules/{rule}', [MonitoringRuleController::class, 'show'])->name('monitoring-rules.show');
+        Route::put('monitoring/rules/{rule}', [MonitoringRuleController::class, 'update'])->name('monitoring-rules.update');
+        Route::post('monitoring/rules/{rule}/submit', [MonitoringRuleController::class, 'submit'])->name('monitoring-rules.submit');
+        Route::post('monitoring/rules/{rule}/approve', [MonitoringRuleController::class, 'approve'])->name('monitoring-rules.approve');
+        Route::post('monitoring/rules/{rule}/reject', [MonitoringRuleController::class, 'reject'])->name('monitoring-rules.reject');
+        Route::post('monitoring/rules/{rule}/pause', [MonitoringRuleController::class, 'pause'])->name('monitoring-rules.pause');
+        Route::post('monitoring/rules/{rule}/retire', [MonitoringRuleController::class, 'retire'])->name('monitoring-rules.retire');
+        // Running by hand reaches a live source, so it is throttled.
+        Route::post('monitoring/rules/{rule}/run', [MonitoringRuleController::class, 'run'])
+            ->middleware('throttle:20,1')->name('monitoring-rules.run');
+
+        Route::get('monitoring/runs', [MonitoringRunController::class, 'index'])->name('monitoring-runs.index');
+        Route::get('monitoring/runs/{run}', [MonitoringRunController::class, 'show'])->name('monitoring-runs.show');
+
+        Route::get('monitoring/findings', [MonitoringFindingController::class, 'index'])->name('monitoring-findings.index');
+        Route::post('monitoring/findings/bulk-review', [MonitoringFindingController::class, 'bulkReview'])
+            ->name('monitoring-findings.bulk-review');
+        Route::post('monitoring/findings/{finding}/review', [MonitoringFindingController::class, 'review'])
+            ->name('monitoring-findings.review');
+    });
+
+    // ── Segregation-of-duties analysis (Phase 12.3) ──────────────────
+    Route::middleware(['feature:sod-analysis', 'permission:view sod'])->group(function () {
+        Route::get('sod/conflicts', [SodController::class, 'conflicts'])->name('sod.conflicts');
+        Route::post('sod/conflicts', [SodController::class, 'storeConflict'])->name('sod.conflicts.store');
+        Route::put('sod/conflicts/{rule}', [SodController::class, 'updateConflict'])->name('sod.conflicts.update');
+        Route::delete('sod/conflicts/{rule}', [SodController::class, 'destroyConflict'])->name('sod.conflicts.destroy');
+
+        Route::get('sod/violations', [SodController::class, 'violations'])->name('sod.violations');
+        Route::post('sod/violations/{violation}/mitigate', [SodController::class, 'mitigate'])->name('sod.violations.mitigate');
+        Route::post('sod/violations/{violation}/accept', [SodController::class, 'accept'])->name('sod.violations.accept');
+        Route::post('sod/violations/{violation}/remediate', [SodController::class, 'remediate'])->name('sod.violations.remediate');
+        Route::post('sod/violations/{violation}/false-positive', [SodController::class, 'falsePositive'])
+            ->name('sod.violations.false-positive');
+        Route::post('sod/violations/{violation}/escalate', [SodController::class, 'escalate'])->name('sod.violations.escalate');
+    });
+
     // ── Evidence (FR-9) ──────────────────────────────────────────────
     Route::post('evidence', [EvidenceController::class, 'store'])->name('evidence.store');
     Route::get('evidence/{evidence}/download', [EvidenceController::class, 'download'])->name('evidence.download');
@@ -495,8 +909,54 @@ Route::middleware('auth')->group(function () {
         ->get('audit-trail/{alias}/{id}', [AuditLogController::class, 'entity'])
         ->name('audit-trail.entity');
 
+    // ── AI layer (Phase 14) ──────────────────────────────────────────
+    // Assist sits next to the record it helps with rather than in an area
+    // users must remember to visit (§C.9), so these are XHR endpoints
+    // called from whatever page the user is already on.
+    //
+    // Throttled at the route as well as in BudgetService: the service
+    // limits are per capability and configurable, this one is a flat
+    // ceiling that holds even if a tenant sets its own limits high.
+    Route::middleware(['feature:ai-assist', 'permission:use ai'])->group(function () {
+        Route::post('ai/assist', [AiAssistController::class, 'store'])
+            ->middleware('throttle:30,1')->name('ai.assist');
+        Route::get('ai/interactions/{interaction}', [AiAssistController::class, 'show'])
+            ->name('ai.interactions.show');
+        Route::post('ai/interactions/{interaction}/decide', [AiAssistController::class, 'decide'])
+            ->name('ai.interactions.decide');
+        Route::post('ai/interactions/{interaction}/feedback', [AiAssistController::class, 'feedback'])
+            ->name('ai.interactions.feedback');
+    });
+
+    Route::middleware(['feature:ai-atlas', 'permission:use ai', 'throttle:30,1'])
+        ->post('ai/atlas', [AtlasController::class, 'ask'])
+        ->name('ai.atlas');
+
     // ── Administration ───────────────────────────────────────────────
     Route::middleware('role:System Administrator|Control Function Head')->prefix('admin')->group(function () {
+        // Roles & permissions (BRD §4) — who may do what, in one screen.
+        // 'manage users' is held by the System Administrator alone.
+        Route::middleware('permission:manage users')->group(function () {
+            Route::get('roles', [RoleController::class, 'index'])->name('admin.roles');
+            Route::post('roles', [RoleController::class, 'store'])->name('admin.roles.store');
+            Route::put('roles/{role}', [RoleController::class, 'update'])->name('admin.roles.update');
+            Route::delete('roles/{role}', [RoleController::class, 'destroy'])->name('admin.roles.destroy');
+            Route::put('users/{user}/roles', [RoleController::class, 'updateUserRoles'])->name('admin.users.roles.update');
+        });
+
+        // CR-01: exception routing + SLA config. Its own permission, held by
+        // the System Administrator — who deliberately gains no review or
+        // closure rights with it.
+        Route::middleware(['feature:exception-manager', 'permission:configure exception-routing'])->group(function () {
+            Route::get('exception-routing', [ExceptionRoutingController::class, 'routing'])->name('admin.exception-routing');
+            Route::post('exception-routing', [ExceptionRoutingController::class, 'storeRule'])->name('admin.exception-routing.store');
+            Route::put('exception-routing/{rule}', [ExceptionRoutingController::class, 'updateRule'])->name('admin.exception-routing.update');
+            Route::delete('exception-routing/{rule}', [ExceptionRoutingController::class, 'destroyRule'])->name('admin.exception-routing.destroy');
+            Route::get('exception-sla', [ExceptionRoutingController::class, 'sla'])->name('admin.exception-sla');
+            Route::post('exception-sla', [ExceptionRoutingController::class, 'storePolicy'])->name('admin.exception-sla.store');
+            Route::put('exception-sla/{policy}', [ExceptionRoutingController::class, 'updatePolicy'])->name('admin.exception-sla.update');
+        });
+
         Route::get('escalation-matrix', [EscalationMatrixController::class, 'index'])->name('admin.escalation-matrix');
         Route::post('escalation-matrix', [EscalationMatrixController::class, 'store'])->name('admin.escalation-matrix.store');
         Route::put('escalation-matrix/{escalation_matrix}', [EscalationMatrixController::class, 'update'])->name('admin.escalation-matrix.update');
@@ -551,6 +1011,66 @@ Route::middleware('auth')->group(function () {
             Route::get('import/{resource}/template', [ImportController::class, 'template'])->name('admin.import.template');
             Route::post('import/{resource}/dry-run', [ImportController::class, 'dryRun'])->name('admin.import.dry-run');
             Route::post('import/{resource}', [ImportController::class, 'store'])->name('admin.import.store');
+        });
+
+        // Data sources (Phase 12.1) — a live credential into a client's
+        // core, so registration is administrative and approval is a
+        // second person's act, gated on its own permission.
+        Route::middleware(['feature:data-sources', 'permission:view data-sources'])->group(function () {
+            Route::get('data-sources', [DataSourceController::class, 'index'])->name('admin.data-sources.index');
+            Route::post('data-sources', [DataSourceController::class, 'store'])->name('admin.data-sources.store');
+            Route::get('data-sources/{data_source}', [DataSourceController::class, 'show'])->name('admin.data-sources.show');
+            Route::put('data-sources/{data_source}', [DataSourceController::class, 'update'])->name('admin.data-sources.update');
+            Route::post('data-sources/{data_source}/approve', [DataSourceController::class, 'approve'])
+                ->name('admin.data-sources.approve');
+            Route::post('data-sources/{data_source}/test', [DataSourceController::class, 'test'])
+                ->middleware('throttle:20,1')->name('admin.data-sources.test');
+            Route::post('data-sources/{data_source}/resume', [DataSourceController::class, 'resume'])
+                ->name('admin.data-sources.resume');
+
+            Route::post('data-sources/{data_source}/datasets', [DataSourceController::class, 'storeDataset'])
+                ->name('admin.data-sources.datasets.store');
+            Route::put('data-sources/{data_source}/datasets/{dataset}', [DataSourceController::class, 'updateDataset'])
+                ->name('admin.data-sources.datasets.update');
+            Route::post('data-sources/{data_source}/datasets/{dataset}/capture', [DataSourceController::class, 'capture'])
+                ->middleware('throttle:20,1')->name('admin.data-sources.datasets.capture');
+            Route::post('data-sources/{data_source}/datasets/{dataset}/authorise-retention', [DataSourceController::class, 'authoriseRetention'])
+                ->name('admin.data-sources.datasets.authorise-retention');
+            Route::delete('data-sources/{data_source}/datasets/{dataset}/authorise-retention', [DataSourceController::class, 'revokeRetention'])
+                ->name('admin.data-sources.datasets.revoke-retention');
+        });
+
+        // AI governance (Phase 14.4, §C.8). Its own permission rather than
+        // 'manage settings': an organisation demonstrating AI governance to
+        // a regulator needs turning the models on to be a named authority
+        // held by named people, not a line item inside general admin.
+        Route::middleware('feature:ai-governance')->group(function () {
+            Route::get('ai', [AiGovernanceController::class, 'index'])->name('admin.ai.index');
+            Route::get('ai/log', [AiGovernanceController::class, 'log'])
+                ->middleware('permission:view ai-log')->name('admin.ai.log');
+            Route::get('ai/log/export', [AiGovernanceController::class, 'exportLog'])
+                ->middleware('permission:export ai-log')->name('admin.ai.log.export');
+
+            Route::middleware('permission:manage ai')->group(function () {
+                Route::put('ai/capabilities', [AiGovernanceController::class, 'updateCapability'])
+                    ->name('admin.ai.capabilities.update');
+                Route::put('ai/budget', [AiGovernanceController::class, 'updateBudget'])
+                    ->name('admin.ai.budget.update');
+                Route::get('ai/prompts', [AiGovernanceController::class, 'prompts'])
+                    ->name('admin.ai.prompts');
+                Route::post('ai/prompts', [AiGovernanceController::class, 'storePrompt'])
+                    ->name('admin.ai.prompts.store');
+                Route::post('ai/prompts/{prompt}/activate', [AiGovernanceController::class, 'activatePrompt'])
+                    ->name('admin.ai.prompts.activate');
+            });
+        });
+
+        // Omnichannel messaging (Phase 15.3/15.4): templates, delivery
+        // log, per-channel cost tracking, Meta template sync.
+        Route::middleware('permission:manage messaging')->group(function () {
+            Route::get('messaging', [MessagingController::class, 'index'])->name('admin.messaging');
+            Route::post('messaging/sync-templates', [MessagingController::class, 'syncTemplates'])
+                ->name('admin.messaging.sync-templates');
         });
 
         Route::get('integrations', [IntegrationController::class, 'index'])->name('admin.integrations');

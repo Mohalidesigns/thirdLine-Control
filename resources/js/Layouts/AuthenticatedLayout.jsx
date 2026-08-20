@@ -1,9 +1,10 @@
+import AtlasChat from '@/Components/AtlasChat';
 import CommandPalette from '@/Components/CommandPalette';
 import ConnectionBanner from '@/Components/ConnectionBanner';
 import FlashNotification from '@/Components/FlashNotification';
 import Dropdown from '@/Components/Dropdown';
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 const NAV_ITEMS = [
     {
@@ -11,6 +12,76 @@ const NAV_ITEMS = [
         route: 'dashboard',
         match: 'dashboard',
         icon: 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z',
+    },
+    {
+        // Phase 15.2: the mobile-first "what do I owe" view — every role
+        // has tasks, so no role gate.
+        label: 'My Tasks',
+        route: 'tasks.mine',
+        match: '/my-tasks',
+        icon: 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+    },
+    {
+        // Phase 16.1: the consolidated group position. Sight of each
+        // entity still requires an explicit grant — the page filters
+        // server-side to exactly the granted set.
+        label: 'Group Dashboard',
+        route: 'group.dashboard',
+        match: '/group',
+        feature: 'entities',
+        allowedRoles: ['System Administrator', 'Control Function Head', 'Control Officer', 'Executive Viewer', 'Line Manager'],
+        icon: 'M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z',
+    },
+    {
+        label: 'Entities',
+        route: 'entities.index',
+        match: '/entities',
+        feature: 'entities',
+        allowedRoles: ['System Administrator', 'Control Function Head', 'Control Officer', 'Executive Viewer', 'Line Manager'],
+        icon: 'M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21',
+    },
+    {
+        // Phase 17.1: the board's view of what the institution is trying to
+        // achieve. The map leads, because "which risks threaten this
+        // objective" is the question that brings a board to this product.
+        label: 'Strategy Map',
+        route: 'strategy.map',
+        match: '/strategy/map',
+        feature: 'objectives',
+        allowedRoles: ['System Administrator', 'Control Function Head', 'Control Officer', 'Executive Viewer', 'Line Manager'],
+        icon: 'M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z',
+    },
+    {
+        label: 'Objectives',
+        route: 'objectives.index',
+        match: '/objectives',
+        feature: 'objectives',
+        allowedRoles: ['System Administrator', 'Control Function Head', 'Control Officer', 'Executive Viewer', 'Line Manager', 'Control Owner'],
+        icon: 'M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z',
+    },
+    {
+        label: 'Third Parties',
+        route: 'vendors.index',
+        match: '/vendors',
+        feature: 'vendors',
+        allowedRoles: ['System Administrator', 'Control Function Head', 'Control Officer', 'Executive Viewer', 'Line Manager', 'Control Owner'],
+        icon: 'M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z',
+    },
+    {
+        label: 'Sustainability',
+        route: 'sustainability.index',
+        match: '/sustainability',
+        feature: 'sustainability',
+        allowedRoles: ['System Administrator', 'Control Function Head', 'Control Officer', 'Executive Viewer', 'Line Manager', 'Control Owner'],
+        icon: 'M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418',
+    },
+    {
+        label: 'Assurance Map',
+        route: 'assurance.map',
+        match: '/assurance',
+        feature: 'assurance',
+        allowedRoles: ['System Administrator', 'Control Function Head', 'Control Officer', 'Executive Viewer', 'Line Manager'],
+        icon: 'M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z',
     },
     {
         label: 'Control Library',
@@ -74,6 +145,13 @@ const NAV_ITEMS = [
         route: 'exceptions.index',
         match: '/exceptions',
         icon: 'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z',
+    },
+    {
+        label: 'Exception Manager',
+        route: 'exception-manager.index',
+        match: '/exception-manager',
+        feature: 'exception-manager',
+        icon: 'M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z',
     },
     {
         label: 'Compensating Controls',
@@ -145,6 +223,20 @@ const NAV_ITEMS = [
         icon: 'M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z',
     },
     {
+        label: 'Continuous Monitoring',
+        route: 'monitoring.dashboard',
+        match: '/monitoring',
+        feature: 'continuous-monitoring',
+        icon: 'M2.25 13.5h3.86a2.25 2.25 0 002.012-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.218a2.25 2.25 0 012.013 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.859m-19.5.338V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H6.911a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661z',
+    },
+    {
+        label: 'Segregation of Duties',
+        route: 'sod.violations',
+        match: '/sod',
+        feature: 'sod-analysis',
+        icon: 'M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z',
+    },
+    {
         label: 'Frameworks',
         route: 'frameworks.index',
         match: '/frameworks',
@@ -166,6 +258,15 @@ const NAV_ITEMS = [
         icon: 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z',
     },
     {
+        // Phase 16.2: declaration, transfer register, signed attestations.
+        label: 'Data Residency',
+        route: 'residency.index',
+        match: '/residency',
+        feature: 'residency',
+        allowedRoles: ['System Administrator', 'Control Function Head', 'Control Officer', 'Executive Viewer'],
+        icon: 'M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418',
+    },
+    {
         label: 'Regulatory Changes',
         route: 'regulatory-changes.index',
         match: '/regulatory-changes',
@@ -182,11 +283,42 @@ const NAV_ITEMS = [
         icon: 'M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z',
     },
     {
+        label: 'Dashboards',
+        route: 'dashboards.index',
+        match: '/dashboards',
+        feature: 'dashboard-builder',
+        icon: 'M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605',
+    },
+    {
+        label: 'Report Library',
+        route: 'reports.library',
+        match: '/report-library',
+        feature: 'report-designer',
+        allowedRoles: ['System Administrator', 'Control Function Head', 'Control Officer', 'Executive Viewer'],
+        icon: 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z',
+    },
+    {
+        label: 'Submissions',
+        route: 'submissions.index',
+        match: '/submissions',
+        feature: 'submission-packs',
+        allowedRoles: ['System Administrator', 'Control Function Head', 'Control Officer', 'Executive Viewer'],
+        icon: 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z',
+    },
+    {
         label: 'Escalation Matrix',
         route: 'admin.escalation-matrix',
         match: '/admin/escalation-matrix',
         allowedRoles: ['System Administrator', 'Control Function Head'],
         icon: 'M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941',
+    },
+    {
+        label: 'Exception Routing',
+        route: 'admin.exception-routing',
+        match: '/admin/exception-routing',
+        allowedRoles: ['System Administrator', 'Control Function Head'],
+        feature: 'exception-manager',
+        icon: 'M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5',
     },
     {
         label: 'Evidence Disposal',
@@ -204,6 +336,30 @@ const NAV_ITEMS = [
         icon: 'M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5',
     },
     {
+        label: 'Data Sources',
+        route: 'admin.data-sources.index',
+        match: '/admin/data-sources',
+        allowedRoles: ['System Administrator', 'Control Function Head'],
+        feature: 'data-sources',
+        icon: 'M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75',
+    },
+    {
+        label: 'AI Governance',
+        route: 'admin.ai.index',
+        match: '/admin/ai',
+        allowedRoles: ['System Administrator', 'Control Function Head'],
+        feature: 'ai-governance',
+        icon: 'M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z',
+    },
+    {
+        // Phase 15.3/15.4: template catalogue, delivery log, channel costs.
+        label: 'Messaging',
+        route: 'admin.messaging',
+        match: '/admin/messaging',
+        allowedRoles: ['System Administrator', 'Control Function Head'],
+        icon: 'M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z',
+    },
+    {
         label: 'Integrations',
         route: 'admin.integrations',
         match: '/admin/integrations',
@@ -217,6 +373,13 @@ const NAV_ITEMS = [
         allowedRoles: ['System Administrator', 'Control Function Head'],
         feature: 'audit-log-ui',
         icon: 'M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5zM9 5.25h10.5M9 11.25h10.5M9 17.25h10.5M4.5 5.25h.008v.008H4.5V5.25zm0 6h.008v.008H4.5v-.008zm0 6h.008v.008H4.5v-.008z',
+    },
+    {
+        label: 'Roles & Permissions',
+        route: 'admin.roles',
+        match: '/admin/roles',
+        allowedRoles: ['System Administrator'],
+        icon: 'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z',
     },
     {
         label: 'Single Sign-On',
@@ -258,9 +421,70 @@ function NavIcon({ d }) {
     );
 }
 
+// Scroll offset is ephemeral, so it lives in sessionStorage; the collapsed state
+// is a lasting preference, so it lives in localStorage.
+const NAV_SCROLL_KEY = 'sidebar-nav-scroll';
+const SIDEBAR_COLLAPSED_KEY = 'sidebar-collapsed';
+
+function readStored(storage, key) {
+    try {
+        return window[storage].getItem(key);
+    } catch {
+        return null;
+    }
+}
+
+function writeStored(storage, key, value) {
+    try {
+        window[storage].setItem(key, value);
+    } catch {
+        // Storage disabled — the sidebar just falls back to its defaults.
+    }
+}
+
+/**
+ * The layout is not a persistent Inertia layout, so it remounts on every visit
+ * and the scrollable nav would otherwise snap back to the top each time. Keep
+ * the scroll offset in session storage and restore it before the browser paints.
+ */
+function SidebarNav({ children }) {
+    const navRef = useRef(null);
+
+    useLayoutEffect(() => {
+        const nav = navRef.current;
+        if (!nav) {
+            return undefined;
+        }
+
+        const saved = readStored('sessionStorage', NAV_SCROLL_KEY);
+        if (saved !== null) {
+            nav.scrollTop = Number(saved);
+        } else {
+            // First visit of the session: bring the current page into view rather
+            // than leaving a deep-linked item scrolled off the bottom.
+            const active = nav.querySelector('[data-active="true"]');
+            if (active) {
+                const offset = active.getBoundingClientRect().top - nav.getBoundingClientRect().top;
+                nav.scrollTop += offset - (nav.clientHeight - active.offsetHeight) / 2;
+            }
+        }
+
+        const onScroll = () => writeStored('sessionStorage', NAV_SCROLL_KEY, String(nav.scrollTop));
+        nav.addEventListener('scroll', onScroll, { passive: true });
+        return () => nav.removeEventListener('scroll', onScroll);
+    }, []);
+
+    return (
+        <nav ref={navRef} className="sidebar-scroll flex-1 space-y-0.5 overflow-y-auto px-2 py-4">
+            {children}
+        </nav>
+    );
+}
+
 export default function AuthenticatedLayout({ header, children }) {
-    const { auth, unreadNotifications, branding, features = [], lowBandwidth } = usePage().props;
-    const [collapsed, setCollapsed] = useState(false);
+    const { props: { auth, unreadNotifications, branding, features = [], lowBandwidth }, url } = usePage();
+    // Read synchronously so a collapsed sidebar never flashes open on remount.
+    const [collapsed, setCollapsed] = useState(() => readStored('localStorage', SIDEBAR_COLLAPSED_KEY) === '1');
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const userRoles = auth?.roles ?? [];
@@ -270,9 +494,20 @@ export default function AuthenticatedLayout({ header, children }) {
             (!item.feature || features.includes(item.feature)),
     );
 
-    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
-    const isActive = (item) =>
-        item.match === 'dashboard' ? currentPath.startsWith('/dashboard') : currentPath.startsWith(item.match);
+    // usePage().url is the path + query string of the current Inertia visit.
+    const currentPath = (url ?? '/').split(/[?#]/)[0];
+    const basePath = (item) => (item.match === 'dashboard' ? '/dashboard' : item.match);
+    // Match on segment boundaries so /risks never swallows /risks/heatmap, and
+    // keep only the longest match so the deepest item is the one highlighted.
+    const matches = (item) => {
+        const base = basePath(item);
+        return currentPath === base || currentPath.startsWith(`${base}/`);
+    };
+    const activeItem = visibleItems.reduce(
+        (best, item) => (matches(item) && (!best || basePath(item).length > basePath(best).length) ? item : best),
+        null,
+    );
+    const isActive = (item) => item === activeItem;
 
     const sidebarWidth = collapsed ? 72 : 260;
 
@@ -302,7 +537,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 </Link>
             </div>
 
-            <nav className="sidebar-scroll flex-1 space-y-0.5 overflow-y-auto px-2 py-4">
+            <SidebarNav>
                 {visibleItems.map((item) => {
                     const active = isActive(item);
                     return (
@@ -310,6 +545,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             key={item.route}
                             href={route(item.route)}
                             title={collapsed ? item.label : undefined}
+                            data-active={active}
                             className={`flex items-center gap-3 rounded-lg py-2.5 text-sm font-medium transition-colors duration-200 ${
                                 collapsed ? 'justify-center px-2' : 'px-3'
                             } ${
@@ -323,11 +559,15 @@ export default function AuthenticatedLayout({ header, children }) {
                         </Link>
                     );
                 })}
-            </nav>
+            </SidebarNav>
 
             <button
                 type="button"
-                onClick={() => setCollapsed((c) => !c)}
+                onClick={() => {
+                    const next = !collapsed;
+                    setCollapsed(next);
+                    writeStored('localStorage', SIDEBAR_COLLAPSED_KEY, next ? '1' : '0');
+                }}
                 className="hidden shrink-0 items-center justify-center border-t border-white/10 py-3 text-white/60 transition-colors hover:text-white lg:flex"
             >
                 <svg className={`h-5 w-5 transition-transform duration-200 ${collapsed ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" strokeWidth={1.7} stroke="currentColor">
@@ -449,6 +689,9 @@ export default function AuthenticatedLayout({ header, children }) {
             <FlashNotification />
             <CommandPalette />
             <ConnectionBanner />
+            {/* Atlas renders its own launcher and hides itself entirely when
+                the feature is off or the user lacks 'use ai' (Phase 14). */}
+            <AtlasChat />
         </div>
     );
 }

@@ -1,5 +1,6 @@
 <?php
 
+use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -51,6 +52,19 @@ return [
     */
 
     'channels' => [
+
+        // Structured JSON for production (16.3): one JSON object per line,
+        // carrying the request correlation id from Log::withContext, ready
+        // for Loki/CloudWatch/ELK without a parsing stage. Select with
+        // LOG_CHANNEL=structured or add to LOG_STACK.
+        'structured' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/structured.log'),
+            'level' => env('LOG_LEVEL', 'info'),
+            'days' => env('LOG_DAILY_DAYS', 30),
+            'formatter' => JsonFormatter::class,
+            'replace_placeholders' => true,
+        ],
 
         'stack' => [
             'driver' => 'stack',

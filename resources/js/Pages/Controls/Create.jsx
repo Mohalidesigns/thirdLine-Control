@@ -1,3 +1,4 @@
+import AiAssistButton from '@/Components/AiAssistButton';
 import PageHeader from '@/Components/PageHeader';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
@@ -37,6 +38,16 @@ export default function Create({ nextRef, categories, processes, units, users, t
             <Head title="Add Control" />
             <PageHeader
                 title="Add Control"
+                actions={
+                    /* Accepting a suggestion creates a Draft control with the
+                       accepter as its creator, so maker-checker still applies
+                       and they cannot then approve it themselves (R2, R4). */
+                    <AiAssistButton
+                        capability="control.draft"
+                        label="Draft with AI"
+                        payload={{ prompt: form.data.title || form.data.objective || '' }}
+                    />
+                }
                 subtitle="New controls start as drafts and go through maker-checker approval"
                 breadcrumbs={[{ label: 'Control Library', href: route('controls.index') }, { label: 'Create New' }]}
             />

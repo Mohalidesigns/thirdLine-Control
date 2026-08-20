@@ -15,8 +15,11 @@ use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 /**
- * The two guarantees Phase 11.4 exists to keep: allowlist-only access with
- * no administrator bypass, and anonymity that cannot be undone.
+ * The guarantees Phase 11.4 exists to keep: allowlist-gated access whose
+ * only override is the named, read-only 'view all cases' oversight
+ * permission (System Administrator alone), and anonymity that cannot be
+ * undone. Oversight is sight, never reach: acting on a case still requires
+ * membership, and every oversight view is logged.
  */
 class CaseConfidentialityTest extends TestCase
 {
@@ -73,29 +76,60 @@ class CaseConfidentialityTest extends TestCase
 
     // ── The rule the phase brief names explicitly ────────────────────
 
-    public function test_a_system_administrator_not_on_the_allowlist_gets_403(): void
+    public function test_the_system_administrator_has_oversight_of_every_case(): void
     {
         $case = $this->openCase()['case'];
 
         $this->assertTrue(
-            $this->admin->can('view cases'),
-            'The administrator holds the permission — it is membership that is missing.',
+            $this->admin->can('view all cases'),
+            'Oversight is the named permission, not the role name.',
         );
 
         $this->actingAs($this->admin)
             ->get(route('cases.show', $case))
-            ->assertForbidden();
+            ->assertOk();
+
+        $this->assertTrue(
+            AuditTrail::where('entity_type', (new InvestigationCase)->getMorphClass())
+                ->where('entity_id', $case->id)
+                ->where('action', 'viewed')
+                ->exists(),
+            'An oversight view is logged like any other access.',
+        );
     }
 
-    public function test_a_system_administrator_not_on_the_allowlist_sees_no_row_in_the_query(): void
+    public function test_oversight_reaches_the_query_layer_but_only_for_the_permission_holder(): void
     {
-        $this->openCase();
+        $this->openCase(overrides: [
+            'lead_investigator_id' => $this->officer->id,
+            'access_user_ids' => [$this->officer->id],
+        ]);
+
+        $this->actingAs($this->admin);
+        $this->assertSame(1, InvestigationCase::count(),
+            'The oversight permission opens the query layer.');
+
+        // The Control Function Head holds every case permission except
+        // oversight — the role name alone must widen nothing.
+        $this->actingAs($this->cfh);
+        $this->assertFalse($this->cfh->can('view all cases'));
+        $this->assertSame(0, InvestigationCase::count(),
+            'Without the oversight permission the allowlist scope still holds.');
+    }
+
+    public function test_oversight_is_read_only(): void
+    {
+        $case = $this->openCase()['case'];
 
         $this->actingAs($this->admin);
 
-        $this->assertSame(0, InvestigationCase::count(),
-            'The allowlist scope must hold at the query layer, not only in the policy.');
-        $this->assertNull(InvestigationCase::first());
+        $this->assertTrue($this->admin->can('view', $case));
+        $this->assertFalse($this->admin->can('update', $case), 'Sight is not reach — acting needs membership.');
+        $this->assertFalse($this->admin->can('investigate', $case));
+        $this->assertFalse($this->admin->can('close', $case));
+        $this->assertFalse($this->admin->can('manageAccess', $case));
+        $this->assertFalse($this->admin->can('viewPrivileged', $case),
+            'Privileged notes stay inside the allowlist even under oversight.');
     }
 
     public function test_a_control_officer_not_on_the_allowlist_gets_403(): void

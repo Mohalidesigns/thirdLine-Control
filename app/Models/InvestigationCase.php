@@ -22,9 +22,13 @@ use Illuminate\Support\Str;
  * Two rules make this model different from every other one in the product:
  *
  *   1. Access is allowlist-only. The `allowlist` global scope restricts
- *      every query to cases the current user is explicitly on, with NO
- *      administrator bypass — a System Administrator who is not named on a
- *      whistleblowing case cannot see it, which is the point.
+ *      every query to cases the current user is explicitly on. The single
+ *      exception is the named oversight permission 'view all cases'
+ *      (System Administrator only): it grants read-only sight of every
+ *      case so a report can never be invisible to the platform owner, but
+ *      it is not membership — investigating, noting and access management
+ *      still require being on the allowlist, and every oversight view is
+ *      audit-logged like any other.
  *   2. An anonymous case is not de-anonymisable. reporter_id stays NULL,
  *      only a one-way hash of the reporter's follow-up token is stored, and
  *      auditsAnonymously() keeps user, IP and agent out of the audit trail
@@ -87,11 +91,16 @@ class InvestigationCase extends Model
     {
         // Layer four of the four-layer enforcement: even a query that skips
         // the controller and the policy cannot return a case the user is not
-        // named on. Deliberately has no role-based escape hatch.
+        // named on. The only escape hatch is the named oversight permission
+        // — a role name alone never widens the query.
         static::addGlobalScope('allowlist', function (Builder $builder) {
             $user = auth()->user();
 
             if (! $user) {
+                return;
+            }
+
+            if ($user->can('view all cases')) {
                 return;
             }
 

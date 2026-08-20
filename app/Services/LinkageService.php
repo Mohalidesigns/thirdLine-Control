@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\EntityLink;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -37,6 +38,11 @@ class LinkageService
         // node the viewer may not see renders as "(removed record)" with no
         // route, which is the right answer for a confidential case.
         'case' => ['ref' => 'case_ref', 'title' => 'title', 'route' => 'cases.show'],
+        // Phase 17 — strategic objectives and third parties join the graph
+        // rather than getting their own join tables, which is what makes
+        // "objective ← risk ← control ← KRI" one traversal (17.1).
+        'objective' => ['ref' => 'code', 'title' => 'title', 'route' => 'objectives.show'],
+        'vendor' => ['ref' => 'reference', 'title' => 'legal_name', 'route' => 'vendors.show'],
     ];
 
     /** Hard cap on the nodes any single graph response may carry. */
@@ -253,6 +259,70 @@ class LinkageService
             'truncated' => $truncated,
             'hops' => max(1, $hops),
         ];
+    }
+
+    /**
+     * Neighbour ids of one target type for many source records at once —
+     * the batch form of neighbours(), for pages that ask the same question
+     * of every row (17.1's strategy map asks it of every objective).
+     *
+     * @param  array<int, int>  $ids
+     * @return array<int, array<int, int>> source id → neighbour ids
+     */
+    public function neighbourIds(string $type, array $ids, string $targetType): array
+    {
+        $this->assertKnown($type);
+        $this->assertKnown($targetType);
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $links = EntityLink::query()
+            ->where(fn ($q) => $q
+                ->where(fn ($s) => $s->where('source_type', $type)->whereIn('source_id', $ids)
+                    ->where('target_type', $targetType))
+                ->orWhere(fn ($t) => $t->where('target_type', $type)->whereIn('target_id', $ids)
+                    ->where('source_type', $targetType)))
+            ->get(['source_type', 'source_id', 'target_type', 'target_id']);
+
+        $result = [];
+
+        foreach ($links as $link) {
+            $isSource = $link->source_type === $type && in_array($link->source_id, $ids, true);
+            $ownId = $isSource ? $link->source_id : $link->target_id;
+            $otherId = $isSource ? $link->target_id : $link->source_id;
+
+            $result[$ownId][] = $otherId;
+        }
+
+        return array_map(fn (array $neighbours) => array_values(array_unique($neighbours)), $result);
+    }
+
+    /**
+     * How many of each risk's mapped controls are rated Weak — "are the
+     * controls over this risk effective", answered for a whole page of
+     * risks in one query (R6).
+     *
+     * @param  array<int, int>  $riskIds
+     * @return array<int, int> risk id → ineffective control count
+     */
+    public function ineffectiveControlCounts(array $riskIds): array
+    {
+        if ($riskIds === []) {
+            return [];
+        }
+
+        return DB::table('risk_control_map')
+            ->join('controls', 'controls.id', '=', 'risk_control_map.control_id')
+            ->whereIn('risk_control_map.risk_id', $riskIds)
+            ->whereNull('controls.deleted_at')
+            ->where('controls.overall_rating', 'Weak')
+            ->groupBy('risk_control_map.risk_id')
+            ->selectRaw('risk_control_map.risk_id, count(*) as total')
+            ->pluck('total', 'risk_id')
+            ->map(fn ($total) => (int) $total)
+            ->all();
     }
 
     /** Candidate records of a type the user can link to, for the picker. */

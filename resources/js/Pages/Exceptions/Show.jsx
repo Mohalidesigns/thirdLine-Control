@@ -1,7 +1,9 @@
 import ActivityTab from '@/Components/ActivityTab';
 import EvidencePanel from '@/Components/EvidencePanel';
+import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
+import AiAssistButton from '@/Components/AiAssistButton';
 import PageHeader from '@/Components/PageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
@@ -35,9 +37,30 @@ function ActionModal({ show, onClose, title, description, children }) {
     );
 }
 
-export default function Show({ exception, evidence = [], users = [], can = {} }) {
+export default function Show({ exception, evidence = [], users = [], units = [], processes = [], can = {} }) {
     const [modal, setModal] = useState(null);
     const close = () => setModal(null);
+
+    // CR-01: the fan-out issue form — a list of addressed targets, each
+    // with its own respondent and ask.
+    const emptyTarget = {
+        target_type: 'unit',
+        unit_id: '',
+        process_id: '',
+        respondent_id: '',
+        external_name: '',
+        external_email: '',
+        external_organisation: '',
+        issue_note: '',
+        required_response: 'both',
+    };
+    const escalateForm = useForm({ targets: [{ ...emptyTarget }] });
+
+    const setTarget = (index, field, value) => {
+        const targets = [...escalateForm.data.targets];
+        targets[index] = { ...targets[index], [field]: value };
+        escalateForm.setData('targets', targets);
+    };
 
     const commentForm = useForm({ note: '' });
     const assignForm = useForm({ user_id: '' });
@@ -102,6 +125,19 @@ export default function Show({ exception, evidence = [], users = [], can = {} })
                             <SecondaryButton onClick={() => setModal('decide')}>Decide extension</SecondaryButton>
                         )}
                         {can.acceptRisk && <SecondaryButton onClick={() => setModal('risk')}>Accept risk</SecondaryButton>}
+                        {can.escalate && !['Verified-Closed', 'Risk Accepted'].includes(exception.status) && (
+                            <PrimaryButton onClick={() => setModal('escalate')}>Escalate to department</PrimaryButton>
+                        )}
+                        {/* Sits with the lifecycle actions because that is where
+                            the work is (§C.9). It drafts a root cause and a
+                            remediation plan for review — it never moves the
+                            exception along its lifecycle. */}
+                        <AiAssistButton
+                            capability="exception.triage"
+                            subjectType="exception"
+                            subjectId={exception.id}
+                            label="Suggest root cause"
+                        />
                     </>
                 }
             />
@@ -150,7 +186,10 @@ export default function Show({ exception, evidence = [], users = [], can = {} })
                     <div className="card">
                         <div className="card-header">
                             <h3 className="text-sm font-semibold">Compensating controls</h3>
-                            {['Open', 'Assigned', 'In Progress', 'Remediated'].includes(exception.status) && (
+                            {/* A compensating control offsets a specific failed
+                                control — without a linked control there is
+                                nothing to register it against (FR-6.3). */}
+                            {exception.control && ['Open', 'Assigned', 'In Progress', 'Remediated'].includes(exception.status) && (
                                 <button type="button" className="text-sm text-[var(--color-primary)] hover:underline" onClick={() => setModal('compensating')}>
                                     + Register
                                 </button>
@@ -177,6 +216,49 @@ export default function Show({ exception, evidence = [], users = [], can = {} })
                                 </ul>
                             ) : (
                                 <p className="text-sm text-gray-400">None registered.</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Escalations & responses (CR-01) */}
+                    <div className="card">
+                        <div className="card-header">
+                            <h3 className="text-sm font-semibold">Escalations &amp; responses</h3>
+                            {exception.escalation_status && exception.escalation_status !== 'None' && (
+                                <StatusBadge status={exception.escalation_status} />
+                            )}
+                        </div>
+                        <div className="card-body">
+                            {(exception.escalations ?? []).length ? (
+                                <ul className="divide-y divide-gray-100">
+                                    {exception.escalations.map((escalation) => (
+                                        <li key={escalation.id} className="py-2.5">
+                                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                                <p className="text-sm">
+                                                    <Link
+                                                        href={route('exception-manager.show', escalation.id)}
+                                                        className="font-mono text-xs font-semibold text-[var(--color-primary)] hover:underline"
+                                                    >
+                                                        {escalation.reference}
+                                                    </Link>{' '}
+                                                    → {escalation.unit?.name ?? escalation.process?.name ?? escalation.external_organisation ?? escalation.respondent?.name}
+                                                    {escalation.round_no > 1 && <span className="ms-1.5 badge badge-high">Round {escalation.round_no}</span>}
+                                                </p>
+                                                <span className="flex items-center gap-1.5">
+                                                    {escalation.is_response_late && <span className="badge badge-status-overdue">Overdue</span>}
+                                                    <StatusBadge status={escalation.status} />
+                                                </span>
+                                            </div>
+                                            <p className="mt-0.5 text-xs text-gray-400">
+                                                Respondent {escalation.respondent?.name ?? escalation.external_email ?? '—'} · respond by {formatDate(escalation.response_due_at)}
+                                            </p>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="text-sm text-gray-400">
+                                    Not yet issued to any department. The exception is still an internal tracker row until it is escalated.
+                                </p>
                             )}
                         </div>
                     </div>
@@ -423,6 +505,131 @@ export default function Show({ exception, evidence = [], users = [], can = {} })
                 </form>
             </ActionModal>
 
+            {/* ── Escalate to department (CR-01) ───────────────────── */}
+            <Modal show={modal === 'escalate'} onClose={close} title="Escalate to departments" maxWidth="2xl">
+                <p className="mb-4 text-sm text-gray-500">
+                    Each target becomes its own escalation with its own respondent, SLA clock and response thread.
+                    The exception itself does not change status.
+                </p>
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        escalateForm.post(route('exception-manager.issue', exception.id), {
+                            preserveScroll: true,
+                            onSuccess: () => { escalateForm.reset(); close(); },
+                        });
+                    }}
+                    className="space-y-6"
+                >
+                    {escalateForm.data.targets.map((target, index) => (
+                        <div key={index} className="space-y-3 rounded-lg border border-gray-200 p-4">
+                            <div className="flex items-center justify-between">
+                                <p className="text-sm font-semibold">Target {index + 1}</p>
+                                {escalateForm.data.targets.length > 1 && (
+                                    <button
+                                        type="button"
+                                        className="text-xs text-[var(--color-error)] hover:underline"
+                                        onClick={() => escalateForm.setData('targets', escalateForm.data.targets.filter((_, i) => i !== index))}
+                                    >
+                                        Remove
+                                    </button>
+                                )}
+                            </div>
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <div>
+                                    <InputLabel value="Addressed to" required />
+                                    <SelectInput value={target.target_type} onChange={(e) => setTarget(index, 'target_type', e.target.value)}>
+                                        <option value="unit">Department / unit</option>
+                                        <option value="process">Business process</option>
+                                        <option value="user">Named user</option>
+                                        <option value="external_party">External processor</option>
+                                    </SelectInput>
+                                </div>
+                                {target.target_type === 'unit' && (
+                                    <div>
+                                        <InputLabel value="Unit" required />
+                                        <SelectInput value={target.unit_id} onChange={(e) => setTarget(index, 'unit_id', e.target.value)}>
+                                            <option value="">— Select —</option>
+                                            {units.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+                                        </SelectInput>
+                                    </div>
+                                )}
+                                {target.target_type === 'process' && (
+                                    <div>
+                                        <InputLabel value="Process" required />
+                                        <SelectInput value={target.process_id} onChange={(e) => setTarget(index, 'process_id', e.target.value)}>
+                                            <option value="">— Select —</option>
+                                            {processes.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                        </SelectInput>
+                                    </div>
+                                )}
+                                {target.target_type !== 'external_party' && (
+                                    <div>
+                                        <InputLabel value={target.target_type === 'user' ? 'Respondent' : 'Respondent (empty = resolved by routing)'} required={target.target_type === 'user'} />
+                                        <SelectInput value={target.respondent_id} onChange={(e) => setTarget(index, 'respondent_id', e.target.value)}>
+                                            <option value="">— Resolve automatically —</option>
+                                            {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+                                        </SelectInput>
+                                    </div>
+                                )}
+                                {target.target_type === 'external_party' && (
+                                    <>
+                                        <div>
+                                            <InputLabel value="Contact name" required />
+                                            <TextInput value={target.external_name} onChange={(e) => setTarget(index, 'external_name', e.target.value)} />
+                                        </div>
+                                        <div>
+                                            <InputLabel value="Contact email" required />
+                                            <TextInput type="email" value={target.external_email} onChange={(e) => setTarget(index, 'external_email', e.target.value)} />
+                                        </div>
+                                        <div>
+                                            <InputLabel value="Organisation" />
+                                            <TextInput value={target.external_organisation} onChange={(e) => setTarget(index, 'external_organisation', e.target.value)} />
+                                        </div>
+                                    </>
+                                )}
+                                <div>
+                                    <InputLabel value="Required response" required />
+                                    <SelectInput value={target.required_response} onChange={(e) => setTarget(index, 'required_response', e.target.value)}>
+                                        <option value="both">Root cause + action plan</option>
+                                        <option value="root_cause">Root cause only</option>
+                                        <option value="action_plan">Action plan only</option>
+                                        <option value="confirmation">Confirmation only</option>
+                                    </SelectInput>
+                                </div>
+                            </div>
+                            <div>
+                                <InputLabel value="What are you asking this department for?" required />
+                                <TextArea
+                                    rows={3}
+                                    value={target.issue_note}
+                                    onChange={(e) => setTarget(index, 'issue_note', e.target.value)}
+                                />
+                                <InputError message={escalateForm.errors[`targets.${index}`] ?? escalateForm.errors[`targets.${index}.issue_note`]} className="mt-1" />
+                            </div>
+                        </div>
+                    ))}
+
+                    <div className="flex items-center justify-between">
+                        <button
+                            type="button"
+                            className="text-sm text-[var(--color-primary)] hover:underline"
+                            onClick={() => escalateForm.setData('targets', [...escalateForm.data.targets, { ...emptyTarget }])}
+                        >
+                            + Add another department
+                        </button>
+                        <div className="flex gap-2">
+                            <SecondaryButton onClick={close}>Cancel</SecondaryButton>
+                            <PrimaryButton
+                                disabled={escalateForm.processing || escalateForm.data.targets.some((t) => !t.issue_note.trim())}
+                            >
+                                Issue {escalateForm.data.targets.length > 1 ? `${escalateForm.data.targets.length} escalations` : 'escalation'}
+                            </PrimaryButton>
+                        </div>
+                    </div>
+                </form>
+            </Modal>
+
             <ActionModal
                 show={modal === 'compensating'}
                 onClose={close}
@@ -430,9 +637,11 @@ export default function Show({ exception, evidence = [], users = [], can = {} })
                 description="Recognised in residual risk only after control function approval."
             >
                 <form onSubmit={submitTo(compForm, 'compensating-controls.store')} className="space-y-4">
+                    <InputError message={compForm.errors.compensating} />
                     <div>
                         <InputLabel value="Description" required />
                         <TextArea value={compForm.data.description} onChange={(e) => compForm.setData('description', e.target.value)} />
+                        <InputError message={compForm.errors.description} className="mt-1" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>

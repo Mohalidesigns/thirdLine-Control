@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Control;
 use App\Models\ControlException;
+use App\Models\ExceptionEscalation;
 use App\Models\SpotCheck;
 use App\Models\TestInstance;
 use App\Services\ExcelExportService;
@@ -27,6 +28,42 @@ class ReportController extends Controller
     public function exceptionRegisterPdf(Request $request): Response
     {
         return $this->reportService->exceptionRegister($request->only(['status', 'severity']));
+    }
+
+    /** CR1.8 — the Exception Manager register with scorecard, ageing and board extract. */
+    public function exceptionManagerPdf(Request $request): Response
+    {
+        return $this->reportService->exceptionManagerRegister(
+            $request->user()->tenant_id,
+            $request->only(['status', 'severity', 'unit_id']),
+        );
+    }
+
+    public function exceptionManagerXlsx(Request $request): StreamedResponse
+    {
+        $rows = ExceptionEscalation::query()
+            ->with(['exception:id,reference,title', 'unit:id,name', 'respondent:id,name', 'issuer:id,name'])
+            ->when($request->status, fn ($q, $s) => $s === 'open' ? $q->open() : $q->where('status', $s))
+            ->when($request->severity, fn ($q, $s) => $q->where('severity', $s))
+            ->when($request->unit_id, fn ($q, $u) => $q->where('unit_id', $u))
+            ->orderByDesc('issued_at')
+            ->limit(5000)
+            ->get()
+            ->map(fn ($e) => [
+                $e->reference, $e->exception?->reference, str($e->exception?->title)->limit(80),
+                $e->targetLabel(), $e->respondent?->name ?? $e->external_email, $e->severity,
+                $e->status, $e->round_no,
+                $e->issued_at?->format('Y-m-d'), $e->acknowledged_at?->format('Y-m-d'),
+                $e->response_due_at?->format('Y-m-d'), $e->first_response_at?->format('Y-m-d'),
+                $e->is_response_late ? 'Yes' : 'No',
+                $e->closed_at?->format('Y-m-d'),
+            ]);
+
+        return $this->excelExportService->stream('exception-manager.xlsx', [
+            'Escalation', 'Exception', 'Title', 'Department', 'Respondent', 'Severity',
+            'Status', 'Round', 'Issued', 'Acknowledged', 'Response due', 'First response',
+            'Late', 'Closed',
+        ], $rows);
     }
 
     public function testingSummaryPdf(): Response

@@ -5,6 +5,10 @@ namespace App\Services;
 use App\Models\CheckResult;
 use App\Models\ControlException;
 use App\Models\Finding;
+use App\Models\MonitoringFinding;
+use App\Models\MonitoringRule;
+use App\Models\MonitoringRun;
+use App\Models\SodViolation;
 use App\Models\TestInstance;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
@@ -101,6 +105,134 @@ class ExceptionService
         ]);
     }
 
+    /**
+     * A monitoring run that found failures raises ONE exception
+     * summarising them (12.4). One per run, not one per row: a rule that
+     * finds four thousand duplicate mandates must not create four
+     * thousand exceptions and bury the register.
+     */
+    public function raiseFromMonitoringRun(MonitoringRun $run, MonitoringRule $rule): ControlException
+    {
+        $existing = ControlException::withoutGlobalScopes()
+            ->where('source_type', 'Monitoring')
+            ->where('source_id', $run->id)
+            ->first();
+
+        if ($existing) {
+            return $existing;
+        }
+
+        $template = (array) ($rule->exception_template ?? []);
+        $control = $rule->control;
+        $severity = (string) ($template['severity'] ?? $rule->severity);
+
+        return ControlException::withoutGlobalScopes()->create([
+            'tenant_id' => $rule->tenant_id,
+            'reference' => ControlException::nextReference('EXC'),
+            'source_type' => 'Monitoring',
+            'source_id' => $run->id,
+            'control_id' => $rule->control_id,
+            'risk_id' => $control?->risks()->first()?->id,
+            'title' => mb_substr(
+                (string) ($template['title'] ?? "{$rule->name} — {$run->records_failed} exception(s) detected"),
+                0, 255,
+            ),
+            'description' => (string) ($template['description'] ?? sprintf(
+                'Monitoring run %s evaluated %d record(s) against rule %s and found %d exception(s) (%.2f%%).',
+                $run->run_ref, $run->records_evaluated, $rule->rule_ref, $run->records_failed,
+                $run->exception_rate * 100,
+            )),
+            'severity' => $severity,
+            'owner_id' => $control?->owner_id,
+            'responsible_party_id' => $control?->owner_id,
+            'unit_id' => $control?->unit_id,
+            'raised_by' => $rule->owner_id,
+            'date_raised' => now()->toDateString(),
+            'target_closure_date' => now()->addDays($this->defaultClosureDays($severity))->toDateString(),
+            'status' => $control?->owner_id ? 'Assigned' : 'Open',
+        ]);
+    }
+
+    /**
+     * A single finding a human has confirmed. Distinct from the run-level
+     * exception above: this one exists because a person looked at a row
+     * and said it was real.
+     */
+    public function raiseFromMonitoringFinding(MonitoringFinding $finding): ControlException
+    {
+        if ($finding->exception_id) {
+            return $finding->exception;
+        }
+
+        $rule = $finding->run?->rule;
+        $control = $rule?->control;
+
+        $exception = ControlException::withoutGlobalScopes()->create([
+            'tenant_id' => $finding->tenant_id,
+            'reference' => ControlException::nextReference('EXC'),
+            'source_type' => 'Monitoring',
+            'source_id' => $finding->run_id,
+            'control_id' => $rule?->control_id,
+            'title' => mb_substr(
+                'Confirmed monitoring finding — '.($finding->record_identifier ?: ($rule?->name ?? 'record')),
+                0, 255,
+            ),
+            'description' => (string) $finding->failure_reason,
+            'severity' => $finding->severity,
+            'owner_id' => $control?->owner_id,
+            'responsible_party_id' => $control?->owner_id,
+            'unit_id' => $control?->unit_id,
+            'raised_by' => $finding->reviewed_by,
+            'date_raised' => now()->toDateString(),
+            'target_closure_date' => now()->addDays($this->defaultClosureDays($finding->severity))->toDateString(),
+            'status' => $control?->owner_id ? 'Assigned' : 'Open',
+        ]);
+
+        $finding->update(['exception_id' => $exception->id]);
+
+        return $exception;
+    }
+
+    /**
+     * An unmitigated toxic combination in a client system (12.3). It is
+     * raised against the mitigating control where the matrix names one,
+     * so the failure lands on the control that was supposed to catch it.
+     */
+    public function raiseFromSodViolation(SodViolation $violation): ControlException
+    {
+        if ($violation->exception_id) {
+            return $violation->exception;
+        }
+
+        $rule = $violation->rule;
+
+        $exception = ControlException::withoutGlobalScopes()->create([
+            'tenant_id' => $violation->tenant_id,
+            'reference' => ControlException::nextReference('EXC'),
+            'source_type' => 'SoD',
+            'source_id' => $violation->id,
+            'control_id' => $rule->mitigating_control_id,
+            'title' => mb_substr('SoD conflict — '.$rule->name.' ('.$violation->subject_identifier.')', 0, 255),
+            'description' => sprintf(
+                '%s holds both "%s" and "%s" in %s. Detected by continuous monitoring on %s.',
+                $violation->subject_name ?: $violation->subject_identifier,
+                $rule->function_a,
+                $rule->function_b,
+                $rule->system_key ?: 'the source system',
+                $violation->detected_at?->toDateString() ?? now()->toDateString(),
+            ),
+            'severity' => $rule->risk_level,
+            'unit_id' => $violation->entity_id,
+            'date_raised' => now()->toDateString(),
+            'target_closure_date' => now()->addDays($this->defaultClosureDays($rule->risk_level))->toDateString(),
+            'status' => 'Open',
+        ]);
+
+        $violation->update(['exception_id' => $exception->id]);
+
+        return $exception;
+    }
+
     public function assign(ControlException $exception, User $assignee, User $actor): ControlException
     {
         $this->transition($exception, in_array($exception->status, ['Open'], true) ? 'Assigned' : $exception->status, [
@@ -162,12 +294,17 @@ class ExceptionService
             ]);
         }
 
+        // CR-01 (R-D): the departmental loop must be closed before the
+        // control lapse can be — the error names the open escalations.
+        app(ExceptionEscalationService::class)->assertClosable($exception);
+
         $this->transition($exception, 'Verified-Closed', [
             'verification_method' => $verification['verification_method'],
             'verified_by' => $verifier->id,
             'verified_at' => now(),
             'closure_notes' => $verification['closure_notes'] ?? null,
             'is_overdue' => false,
+            'closure_type' => 'Remediated',
         ]);
 
         $exception->logActivity('Verification', 'Remediated', 'Verified-Closed', $verification['verification_method']);
@@ -229,9 +366,18 @@ class ExceptionService
             'risk_accepted_by' => $approver->id,
             'risk_acceptance_expiry' => $expiryDate,
             'is_overdue' => false,
+            'closure_type' => 'Risk Accepted',
         ]);
 
         $exception->logActivity('Status Change', $from, 'Risk Accepted', $reason);
+
+        // CR-01 (CR1.5): risk acceptance ends the departmental loop — every
+        // open escalation is withdrawn with the acceptance as the reason.
+        app(ExceptionEscalationService::class)->withdrawAllOpen(
+            $exception,
+            $approver,
+            "Risk accepted on {$exception->reference}: {$reason}",
+        );
 
         return $exception;
     }

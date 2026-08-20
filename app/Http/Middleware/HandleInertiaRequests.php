@@ -72,6 +72,9 @@ class HandleInertiaRequests extends Middleware
             ],
             // Content-pack dry-run report (Phase 8) — flashed, not persisted.
             'packPlan' => fn () => $request->session()->get('packPlan'),
+            // CR-01: the one-time secure-link URL — flashed once at
+            // generation, never persisted anywhere (R-H).
+            'secureLinkUrl' => fn () => $request->session()->get('secureLinkUrl'),
             'ziggy' => fn () => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),

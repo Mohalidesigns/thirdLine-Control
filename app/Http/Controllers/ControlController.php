@@ -36,6 +36,9 @@ class ControlController extends Controller
             ->when($request->nature, fn ($q, $n) => $q->where('nature', $n))
             ->when($request->design, fn ($q, $d) => $q->where('design_effectiveness', $d))
             ->when($request->operating, fn ($q, $o) => $q->where('operating_effectiveness', $o))
+            // Phase 13: the control-health tile drills through on this, and a
+            // filter the aggregate emits but the list ignores is drift.
+            ->when($request->overall, fn ($q, $o) => $q->where('overall_rating', $o))
             ->when($request->category_id, fn ($q, $c) => $q->where('category_id', $c))
             ->when($request->unit_id, fn ($q, $u) => $q->where('unit_id', $u))
             ->when($request->library_level, fn ($q, $l) => $q->where('library_level', $l))

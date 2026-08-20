@@ -2,20 +2,38 @@
 
 namespace App\Providers;
 
+use App\Listeners\QueueKnowledgeIndexing;
+use App\Models\AiConfiguration;
+use App\Models\AiInteraction;
 use App\Models\CompensatingControl;
 use App\Models\Control;
 use App\Models\ControlException;
+use App\Models\CrossBorderTransfer;
+use App\Models\Entity;
+use App\Models\ExceptionAction;
+use App\Models\ExceptionEscalation;
+use App\Models\ExceptionResponse;
 use App\Models\InvestigationCase;
 use App\Models\SsoConfiguration;
 use App\Models\TenantBranding;
 use App\Models\TestInstance;
+use App\Policies\AiConfigurationPolicy;
+use App\Policies\AiInteractionPolicy;
 use App\Policies\CompensatingControlPolicy;
 use App\Policies\ControlPolicy;
+use App\Policies\CrossBorderTransferPolicy;
+use App\Policies\EntityPolicy;
+use App\Policies\ExceptionActionPolicy;
+use App\Policies\ExceptionEscalationPolicy;
 use App\Policies\ExceptionPolicy;
+use App\Policies\ExceptionResponsePolicy;
 use App\Policies\SsoConfigurationPolicy;
 use App\Policies\TestInstancePolicy;
+use App\Services\Ai\KnowledgeIndexer;
 use App\Services\FeatureService;
+use App\Services\ResidencyGuard;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
@@ -42,6 +60,25 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ControlException::class, ExceptionPolicy::class);
         Gate::policy(CompensatingControl::class, CompensatingControlPolicy::class);
         Gate::policy(SsoConfiguration::class, SsoConfigurationPolicy::class);
+        Gate::policy(AiInteraction::class, AiInteractionPolicy::class);
+        Gate::policy(AiConfiguration::class, AiConfigurationPolicy::class);
+        Gate::policy(Entity::class, EntityPolicy::class);
+        Gate::policy(CrossBorderTransfer::class, CrossBorderTransferPolicy::class);
+        // CR-01 — the Exception Manager loop.
+        Gate::policy(ExceptionEscalation::class, ExceptionEscalationPolicy::class);
+        Gate::policy(ExceptionResponse::class, ExceptionResponsePolicy::class);
+        Gate::policy(ExceptionAction::class, ExceptionActionPolicy::class);
+
+        $this->registerKnowledgeIndexing();
+
+        // Residency guard at the queue layer (16.2): every dispatch checks
+        // the broker's declared region before the payload is created. This
+        // hook has no off switch — the guard cannot be disabled at runtime.
+        Queue::createPayloadUsing(function (?string $connection) {
+            app(ResidencyGuard::class)->assertQueueAllowed($connection);
+
+            return [];
+        });
 
         // Cases resolve without the allowlist scope so the *policy* is what
         // denies a non-member, giving an explicit 403 rather than a 404 that
@@ -79,6 +116,21 @@ class AppServiceProvider extends ServiceProvider
             }
         } catch (\Throwable) {
             // Database unavailable (first boot, artisan key:generate…) — defaults apply.
+        }
+    }
+
+    /**
+     * Keep the AI knowledge index in step with the records it describes
+     * (Phase 14.3). Saving marks the record's chunks stale and queues a
+     * rebuild; the write itself is never blocked, and QueueKnowledgeIndexing
+     * swallows its own failures, because a search index must not be able to
+     * veto a business save.
+     */
+    private function registerKnowledgeIndexing(): void
+    {
+        foreach (KnowledgeIndexer::sourceMap() as $class) {
+            $class::saved(fn ($record) => app(QueueKnowledgeIndexing::class)->saved($record));
+            $class::deleted(fn ($record) => app(QueueKnowledgeIndexing::class)->deleted($record));
         }
     }
 }

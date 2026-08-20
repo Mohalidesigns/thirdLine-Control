@@ -124,6 +124,12 @@ class Control extends Model
         return $this->hasMany(TestInstance::class);
     }
 
+    /** Continuous monitoring rules testing this control (12.4). */
+    public function monitoringRules(): HasMany
+    {
+        return $this->hasMany(MonitoringRule::class);
+    }
+
     public function effectivenessRatings(): HasMany
     {
         return $this->hasMany(EffectivenessRating::class);

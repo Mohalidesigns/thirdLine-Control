@@ -6,6 +6,7 @@ use App\Models\Concerns\Auditable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -21,6 +22,7 @@ class User extends Authenticatable
         'tenant_id',
         'name',
         'email',
+        'phone',
         'password',
         'position',
         'unit_id',
@@ -51,6 +53,16 @@ class User extends Authenticatable
         ];
     }
 
+    public function routeNotificationForWhatsapp(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function routeNotificationForSms(): ?string
+    {
+        return $this->phone;
+    }
+
     public function hasMfaEnabled(): bool
     {
         return $this->mfa_confirmed_at !== null && $this->mfa_secret !== null;
@@ -59,6 +71,22 @@ class User extends Authenticatable
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    /**
+     * Legal entities this user was explicitly granted (16.1). Absence of a
+     * grant is denial — group-level visibility is never implicit (R2).
+     */
+    public function entities(): BelongsToMany
+    {
+        return $this->belongsToMany(Entity::class)
+            ->withPivot(['granted_by', 'note', 'created_at']);
+    }
+
+    /** @return array<int, int> */
+    public function accessibleEntityIds(): array
+    {
+        return $this->entities()->pluck('entities.id')->all();
     }
 
     public function unit(): BelongsTo

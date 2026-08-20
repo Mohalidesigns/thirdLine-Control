@@ -6,6 +6,7 @@ use App\Models\ControlException;
 use App\Models\CsaCampaign;
 use App\Models\EscalationEvent;
 use App\Models\EscalationMatrix;
+use App\Models\ExceptionEscalation;
 use App\Models\Metric;
 use App\Models\MetricBreach;
 use App\Models\Risk;
@@ -51,6 +52,22 @@ class EscalationService
                         'treatment_overdue' => $this->escalateOverdueTreatments($rule),
                         'appetite_breach' => $this->escalateStandingAppetiteBreaches($rule),
                         'kri_breach' => $this->escalateStandingMetricBreaches($rule),
+                        // CR-01: an addressed department that misses its SLA
+                        // feeds this ladder (CR1.6 / FR-8.3).
+                        'escalation_unacknowledged' => $this->escalateDepartmentalEscalations($rule, fn ($q) => $q
+                            ->where('status', 'Issued')
+                            ->whereNull('acknowledged_at')
+                            ->whereNotNull('acknowledge_due_at')
+                            ->where('acknowledge_due_at', '<=', now()->subDays($rule->days_threshold))),
+                        'escalation_response_overdue' => $this->escalateDepartmentalEscalations($rule, fn ($q) => $q
+                            ->whereIn('status', ExceptionEscalation::AWAITING_RESPONSE_STATUSES)
+                            ->whereNotNull('response_due_at')
+                            ->where('response_due_at', '<=', now()->subDays($rule->days_threshold))),
+                        'escalation_response_rejected' => $this->escalateDepartmentalEscalations($rule, fn ($q) => $q
+                            ->where('status', 'Reissued')
+                            ->whereHas('responses', fn ($r) => $r
+                                ->where('review_status', 'Rejected')
+                                ->where('reviewed_at', '<=', now()->subDays($rule->days_threshold)))),
                         default => 0,
                     };
                 }
@@ -86,6 +103,66 @@ class EscalationService
         });
 
         return $count;
+    }
+
+    /**
+     * CR-01 (CR1.6): the deliberate departmental escalation meets the
+     * automatic tier ladder here. The ladder never re-fires for a round
+     * that has already been answered — the constraints exclude answered
+     * statuses, and the dedupe is per (escalation, round, rule) so a
+     * reissued round climbs afresh while an answered one stays quiet.
+     */
+    private function escalateDepartmentalEscalations(EscalationMatrix $rule, callable $constraint): int
+    {
+        $count = 0;
+
+        $query = ExceptionEscalation::withoutGlobalScope('tenant')
+            ->where('tenant_id', $rule->tenant_id)
+            ->where('severity', $rule->severity)
+            ->whereHas('slaPolicy', fn ($q) => $q->where('auto_escalate_to_matrix', true));
+
+        $constraint($query);
+
+        $query->with(['exception', 'respondent', 'unit'])->each(function (ExceptionEscalation $escalation) use ($rule, &$count) {
+            $already = EscalationEvent::withoutGlobalScopes()
+                ->where('exception_escalation_id', $escalation->id)
+                ->where('escalation_round_no', $escalation->round_no)
+                ->where('matrix_id', $rule->id)
+                ->exists();
+
+            if ($already) {
+                return;
+            }
+
+            $recipient = $this->resolveDepartmentalRecipient($rule, $escalation);
+            $this->fire($rule, $recipient, exception: $escalation->exception, departmentalEscalation: $escalation);
+            $escalation->updateQuietly(['matrix_escalated_at' => $escalation->matrix_escalated_at ?? now()]);
+            $count++;
+        });
+
+        return $count;
+    }
+
+    /**
+     * Tier recipients for a departmental escalation: 'Respondent' and
+     * 'Line Manager' resolve relative to the addressed officer; unit head is
+     * the natural first rung above them; anything else is a role lookup.
+     */
+    private function resolveDepartmentalRecipient(EscalationMatrix $rule, ExceptionEscalation $escalation): ?User
+    {
+        if ($rule->recipient_user_id) {
+            return User::find($rule->recipient_user_id);
+        }
+
+        return match ($rule->recipient_role) {
+            'Respondent', 'Self' => $escalation->respondent,
+            'Line Manager' => $escalation->respondent?->manager ?? $escalation->unit?->head,
+            'Unit Head' => $escalation->unit?->head,
+            default => User::withoutGlobalScopes()
+                ->where('tenant_id', $rule->tenant_id)
+                ->role($rule->recipient_role)
+                ->first(),
+        };
     }
 
     private function escalateOverdueTests(EscalationMatrix $rule): int
@@ -369,8 +446,11 @@ class EscalationService
         ?Metric $metric = null,
         ?MetricBreach $breach = null,
         ?RiskTreatment $treatment = null,
+        ?ExceptionEscalation $departmentalEscalation = null,
     ): ?EscalationEvent {
         $summary = match (true) {
+            $departmentalEscalation !== null => "{$departmentalEscalation->reference} [{$departmentalEscalation->severity}] "
+                ."unanswered by {$departmentalEscalation->targetLabel()} (round {$departmentalEscalation->round_no}) — {$exception?->title}",
             $exception !== null => "{$exception->reference} [{$exception->severity}] {$exception->title}",
             $testInstance !== null => "{$testInstance->reference} overdue test — {$testInstance->control?->title}",
             $risk !== null => "{$risk->code} outside risk appetite — score {$risk->currentScore()}"
@@ -389,6 +469,8 @@ class EscalationService
             'risk_id' => $risk?->id,
             'metric_id' => $metric?->id,
             'treatment_id' => $treatment?->id,
+            'exception_escalation_id' => $departmentalEscalation?->id,
+            'escalation_round_no' => $departmentalEscalation?->round_no,
             'matrix_id' => $rule->id,
             'tier_no' => $rule->tier_no,
             'recipient_user_id' => $recipient?->id,

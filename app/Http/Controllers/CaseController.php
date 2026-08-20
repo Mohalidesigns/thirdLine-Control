@@ -16,7 +16,9 @@ use Inertia\Response;
 /**
  * Case management (11.4). Every query here runs through the model's
  * allowlist global scope, so a user who is not on a case sees no row on the
- * index and a 403 on the detail page — including a System Administrator.
+ * index and a 403 on the detail page. The one exception is the read-only
+ * 'view all cases' oversight permission (System Administrator): full sight,
+ * every view logged, and no power to act on a case they are not named on.
  */
 class CaseController extends Controller
 {

@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\AuthenticateIntegration;
 use App\Http\Middleware\EnforceMfa;
 use App\Http\Middleware\EnsureFeatureEnabled;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,15 +22,25 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Correlation id first, so every later middleware and handler logs
+        // with it; security headers on the way out (16.3).
+        $middleware->web(prepend: [
+            AssignRequestId::class,
+        ]);
+
         $middleware->web(append: [
             HandleInertiaRequests::class,
             EnforceMfa::class,
+            SecurityHeaders::class,
         ]);
 
         // SAML IdPs POST assertions cross-origin — the assertion itself is
-        // the proof, validated in SamlService (signature + replay).
+        // the proof, validated in SamlService (signature + replay). The
+        // Phase 15 webhooks are machine callers with their own proof:
+        // Meta's HMAC signature, the aggregator/USSD shared tokens.
         $middleware->validateCsrfTokens(except: [
             'auth/sso/*/acs',
+            'webhooks/*',
         ]);
 
         $middleware->alias([

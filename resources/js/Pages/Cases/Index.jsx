@@ -107,8 +107,9 @@ export default function Index({
             <div className="mb-6 rounded-lg border-l-4 border-l-[var(--color-accent)] bg-amber-50 p-4 text-sm">
                 <p className="font-semibold text-[var(--color-text-primary)]">Allowlist access</p>
                 <p className="mt-1 text-[var(--color-text-secondary)]">
-                    This list shows only the cases you are explicitly named on. No role — including system
-                    administration — has automatic access, and every time a case file is opened it is logged.
+                    This list shows only the cases you are explicitly named on. The single exception is the
+                    System Administrator&apos;s read-only oversight sight — acting on a case still requires being
+                    named on it, and every time a case file is opened it is logged.
                 </p>
             </div>
 

@@ -4,6 +4,7 @@ import '../css/app.css';
 import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
+import { startSyncEngine } from './offline/outbox';
 import { configureLocalisation } from './utils';
 
 const appName = import.meta.env.VITE_APP_NAME || 'SecondLine';
@@ -46,6 +47,10 @@ router.on('navigate', (event) => {
     if (!swRegistered && (props.features ?? []).includes('pwa') && 'serviceWorker' in navigator) {
         swRegistered = true;
         navigator.serviceWorker.register('/sw.js').catch(() => {});
+
+        // Offline outbox (Phase 15.1): replay queued actions when
+        // connectivity returns, refresh the cached working set.
+        startSyncEngine();
     }
 });
 
