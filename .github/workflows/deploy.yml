@@ -1,8 +1,13 @@
 name: Deploy to Server
 
+# Gated on CI: a push to main no longer deploys directly — the deploy fires
+# only after the CI workflow on that same commit completes successfully, so
+# a red suite can never reach control-prod. workflow_dispatch remains as the
+# manual escape hatch (it skips the gate deliberately — break-glass only).
 on:
-  push:
-    branches: [ main ]
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
   workflow_dispatch:
 
 # Avoid overlapping deploys; let the latest push win.
@@ -13,6 +18,11 @@ concurrency:
 jobs:
   deploy:
     name: Deploy (self-hosted)
+    # Deploy only when CI on main succeeded (or on an explicit manual run).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
     # Pinned to this server's runner via its unique label.
     runs-on: [self-hosted, control]
     steps:
