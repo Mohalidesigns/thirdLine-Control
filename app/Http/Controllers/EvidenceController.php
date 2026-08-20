@@ -7,6 +7,7 @@ use App\Models\RetentionPolicy;
 use App\Services\EvidenceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -24,7 +25,18 @@ class EvidenceController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'file' => ['required', 'file', 'max:20480'],
+            // DEF-010/DEF-011: extension allowlist and a non-empty body —
+            // a zero-byte file satisfies a mandatory-evidence gate while
+            // proving nothing.
+            'file' => [
+                'required', 'file', 'max:20480',
+                'extensions:'.implode(',', EvidenceService::ALLOWED_EXTENSIONS),
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    if ($value instanceof UploadedFile && $value->getSize() === 0) {
+                        $fail('An empty file cannot be stored as evidence.');
+                    }
+                },
+            ],
             'linked_type' => ['required', Rule::in(array_keys(EvidenceService::LINKABLE))],
             'linked_id' => ['required', 'integer'],
             'contains_personal_data' => ['required', 'boolean'],
@@ -32,6 +44,15 @@ class EvidenceController extends Controller
             'personal_data_categories.*' => [Rule::in(Evidence::PII_CATEGORIES)],
             'classification' => ['nullable', Rule::in(['Public', 'Internal', 'Confidential', 'Restricted'])],
         ]);
+
+        // DEF-009: attaching evidence is an authoring act — gate it the way
+        // download() already gates reading. The required permission follows
+        // the record the evidence is attached to.
+        abort_unless(
+            $request->user()->hasAnyPermission(EvidenceService::ATTACH_PERMISSIONS[$validated['linked_type']]),
+            403,
+            'You do not hold a permission that allows attaching evidence to this record type.'
+        );
 
         $this->evidenceService->store(
             $request->file('file'),

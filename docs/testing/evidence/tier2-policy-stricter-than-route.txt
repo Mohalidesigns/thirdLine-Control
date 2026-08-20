@@ -12,3 +12,13 @@ officer                 frameworks/create, obligations/create, cases/board-extra
 owner                   controls/create, links/candidates, exceptions/create, frameworks/create, obligations/create, csa-campaigns/create, regulatory-changes, policies/create
 manager                 controls/create, links/candidates, exceptions/create, frameworks/create, obligations/create, csa-campaigns/create, policies/create
 exec                    controls/create, links/candidates, exceptions/create, frameworks/create, obligations/create, csa-campaigns/create, policies/create, incidents/create
+admin                   exceptions/create
+officer                 frameworks/create, obligations/create, cases/board-extract
+owner                   controls/create, links/candidates, exceptions/create, frameworks/create, obligations/create, csa-campaigns/create, regulatory-changes, policies/create
+manager                 controls/create, links/candidates, exceptions/create, frameworks/create, obligations/create, csa-campaigns/create, policies/create
+exec                    controls/create, links/candidates, exceptions/create, frameworks/create, obligations/create, csa-campaigns/create, policies/create, incidents/create
+admin                   exceptions/create
+officer                 frameworks/create, obligations/create, cases/board-extract
+owner                   controls/create, links/candidates, exceptions/create, frameworks/create, obligations/create, csa-campaigns/create, regulatory-changes, policies/create
+manager                 controls/create, links/candidates, exceptions/create, frameworks/create, obligations/create, csa-campaigns/create, policies/create
+exec                    controls/create, links/candidates, exceptions/create, frameworks/create, obligations/create, csa-campaigns/create, policies/create, incidents/create

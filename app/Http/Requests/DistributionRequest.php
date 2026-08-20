@@ -18,7 +18,7 @@ class DistributionRequest extends FormRequest
             'entity_ids.*' => ['integer', 'exists:organisation_units,id'],
             'due_at' => ['nullable', 'date', 'after_or_equal:today'],
             'owner_ids' => ['nullable', 'array'],
-            'owner_ids.*' => ['integer', 'exists:users,id'],
+            'owner_ids.*' => ['integer', 'tenant_user'],
             'tasks' => ['nullable', 'array'],
             'tasks.*.title' => ['required', 'string', 'max:255'],
             'tasks.*.description' => ['nullable', 'string'],

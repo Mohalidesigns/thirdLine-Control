@@ -20,6 +20,18 @@ class EvidenceService
     /** Evidence lives on a non-public disk and is only ever streamed after authorisation (FR-9.5/9.6). */
     public const DISK = 'local';
 
+    /**
+     * Extension allowlist for uploads (DEF-010). Deliberately excludes
+     * anything executable or script-capable in a browser: php, exe, sh,
+     * bat, js, svg, html. The `extensions` rule checks the FINAL extension,
+     * so `invoice.pdf.php` is rejected too.
+     */
+    public const ALLOWED_EXTENSIONS = [
+        'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+        'csv', 'txt', 'png', 'jpg', 'jpeg', 'gif', 'webp',
+        'zip', 'msg', 'eml',
+    ];
+
     public const LINKABLE = [
         'test_instance' => TestInstance::class,
         'exception' => ControlException::class,
@@ -29,6 +41,20 @@ class EvidenceService
         // CR-01: departmental response attachments are evidence rows with
         // linked_type/linked_id — never a file column on the response.
         'exception-escalation' => ExceptionEscalation::class,
+    ];
+
+    /**
+     * Who may ATTACH evidence, per linked record type (DEF-009). Evidence
+     * is the artefact closure decisions rest on, so placing it is an
+     * authoring act — read-only tiers (Executive Viewer, and Line Manager
+     * outside the CR-01 respond loop) hold none of these.
+     */
+    public const ATTACH_PERMISSIONS = [
+        'test_instance' => ['execute tests', 'review tests'],
+        'exception' => ['create exceptions', 'remediate exceptions', 'respond exceptions', 'close exceptions'],
+        'finding' => ['execute tests', 'review tests'],
+        'obligation_instance' => ['submit obligations'],
+        'exception-escalation' => ['respond exceptions', 'review exception-responses'],
     ];
 
     /**

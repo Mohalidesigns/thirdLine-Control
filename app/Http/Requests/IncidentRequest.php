@@ -35,8 +35,8 @@ class IncidentRequest extends FormRequest
             'detection_method' => ['nullable', 'string', 'max:255'],
             'entity_id' => ['nullable', 'exists:organisation_units,id'],
             'process_id' => ['nullable', 'exists:business_processes,id'],
-            'owner_id' => ['nullable', 'exists:users,id'],
-            'investigator_id' => ['nullable', 'exists:users,id'],
+            'owner_id' => ['nullable', 'tenant_user'],
+            'investigator_id' => ['nullable', 'tenant_user'],
             'near_miss' => ['nullable', 'boolean'],
 
             // R7: minor units plus an ISO-4217 code, never a decimal amount.

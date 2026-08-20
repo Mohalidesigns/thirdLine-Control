@@ -16,27 +16,27 @@
 
 | ID | Severity | Module | Title | Status |
 |---|---|---|---|---|
-| DEF-001 | High | Escalation / Notifications | Escalation email fails for every non-exception, non-test escalation subject | Open |
-| DEF-002 | High | Escalation / Audit trail | `delivery_status` records `Sent` for escalations whose delivery failed | Open |
-| DEF-003 | Low | Exceptions (SoD) | `verifyAndClose()` does not re-check the exception-owner rule the policy enforces | Open |
-| DEF-004 | Medium | Audit trail | `audit_trails` is mutable via the query builder — immutability is model-layer only | Open |
-| DEF-005 | Medium | Audit trail | Denied authorisation attempts are not recorded anywhere in the application | Open |
-| DEF-006 | Low | Exceptions (ageing) | One bad row aborts the entire nightly ageing sweep, silently | Open |
-| DEF-007 | **High** | Auth / session | Deactivating a user does not end their live session — access continues with full role permissions | Open |
-| DEF-008 | Medium | Tenancy / validation | `exists:users,id` validates existence but not tenancy — a foreign user can be made responsible for our records | Open |
-| DEF-009 | Medium | Evidence | Any authenticated user, including read-only roles, can attach evidence to any record in their tenant | Open |
-| DEF-010 | Medium | Evidence | No file-type restriction on evidence upload — `.php`, `.exe`, `.sh`, `.svg`, `.html` and double extensions all accepted | Open |
-| DEF-011 | Low | Evidence | A zero-byte file is accepted as evidence | Open |
-| DEF-012 | **High** | Escalation | `exception_overdue` ignores `days_threshold` — every tier and every severity escalates at once, on day one | Open |
-| DEF-013 | Medium | Control testing | Generated test instances carry no assigned tester — dead ternary in the scheduler | Open |
-| DEF-014 | Low | Effectiveness ratings | Re-rating returns a record to Pending Approval but leaves the previous approver attached | Open |
-| DEF-015 | Medium | Dashboard / Reporting | Four of the seven filters required by FR-10.6 are implemented nowhere | Open |
-| DEF-016 | **High** | ThirdLine integration | Inbound control sync silently discards every attribute except the title | Open |
-| DEF-017 | Medium | ThirdLine integration | A replayed delivery is given a new idempotency key, defeating retry de-duplication | Open |
-| DEF-018 | Medium | Forms (all) | No submission idempotency — a double-clicked or resubmitted form creates a duplicate record | Open |
-| DEF-019 | **High** | API / Security | No rate limiting on any `/api/v1` route — valid or invalid keys can be replayed without limit | Open |
-| DEF-020 | Medium | Deployment | `.env.example` ships `APP_DEBUG=true` and no deployment document mentions turning it off | Open |
-| DEF-021 | Low | Security headers | `X-Powered-By: PHP/8.4.18` discloses the runtime version on every response | Open |
+| DEF-001 | High | Escalation / Notifications | Escalation email fails for every non-exception, non-test escalation subject | Fixed |
+| DEF-002 | High | Escalation / Audit trail | `delivery_status` records `Sent` for escalations whose delivery failed | Fixed |
+| DEF-003 | Low | Exceptions (SoD) | `verifyAndClose()` does not re-check the exception-owner rule the policy enforces | Fixed |
+| DEF-004 | Medium | Audit trail | `audit_trails` is mutable via the query builder — immutability is model-layer only | Fixed |
+| DEF-005 | Medium | Audit trail | Denied authorisation attempts are not recorded anywhere in the application | Fixed |
+| DEF-006 | Low | Exceptions (ageing) | One bad row aborts the entire nightly ageing sweep, silently | Fixed |
+| DEF-007 | **High** | Auth / session | Deactivating a user does not end their live session — access continues with full role permissions | Fixed |
+| DEF-008 | Medium | Tenancy / validation | `exists:users,id` validates existence but not tenancy — a foreign user can be made responsible for our records | Fixed |
+| DEF-009 | Medium | Evidence | Any authenticated user, including read-only roles, can attach evidence to any record in their tenant | Fixed |
+| DEF-010 | Medium | Evidence | No file-type restriction on evidence upload — `.php`, `.exe`, `.sh`, `.svg`, `.html` and double extensions all accepted | Fixed |
+| DEF-011 | Low | Evidence | A zero-byte file is accepted as evidence | Fixed |
+| DEF-012 | **High** | Escalation | `exception_overdue` ignores `days_threshold` — every tier and every severity escalates at once, on day one | Fixed |
+| DEF-013 | Medium | Control testing | Generated test instances carry no assigned tester — dead ternary in the scheduler | Fixed |
+| DEF-014 | Low | Effectiveness ratings | Re-rating returns a record to Pending Approval but leaves the previous approver attached | Fixed |
+| DEF-015 | Medium | Dashboard / Reporting | Four of the seven filters required by FR-10.6 are implemented nowhere | Fixed |
+| DEF-016 | **High** | ThirdLine integration | Inbound control sync silently discards every attribute except the title | Fixed |
+| DEF-017 | Medium | ThirdLine integration | A replayed delivery is given a new idempotency key, defeating retry de-duplication | Fixed |
+| DEF-018 | Medium | Forms (all) | No submission idempotency — a double-clicked or resubmitted form creates a duplicate record | Fixed |
+| DEF-019 | **High** | API / Security | No rate limiting on any `/api/v1` route — valid or invalid keys can be replayed without limit | Fixed |
+| DEF-020 | Medium | Deployment | `.env.example` ships `APP_DEBUG=true` and no deployment document mentions turning it off | Fixed |
+| DEF-021 | Low | Security headers | `X-Powered-By: PHP/8.4.18` discloses the runtime version on every response | Fixed |
 
 ---
 
@@ -103,6 +103,8 @@ Regulatory. FR-8.5 requires escalations delivered by in-app notification **and**
 **Suspected cause**
 `app/Notifications/EscalationNotification.php:27-29` (do not fix — remediation pass follows sign-off)
 
+**Resolution (2026-08-20)** — `EscalationNotification::deepLink()` now resolves the deep link across all eight subjects the event can carry (departmental escalation, exception, test instance, risk, metric, treatment, campaign) with a dashboard fallback. Regression: `EscalationEngineTest::test_def_001_the_escalation_email_builds_for_every_subject_type`.
+
 ---
 
 ## DEF-002
@@ -163,6 +165,8 @@ Judged **High** rather than Critical: the audit trail is inaccurate but not fals
 **Suspected cause**
 `app/Services/EscalationService.php:407-413` (do not fix — remediation pass follows sign-off)
 
+**Resolution (2026-08-20)** — `EscalationNotification::failed()` reconciles the register when the queued send exhausts its retries: the event is re-marked `Failed` from inside the queue worker. Regression: `EscalationEngineTest::test_def_002_a_failed_queued_delivery_marks_the_event_failed`.
+
 ---
 
 ## DEF-003
@@ -202,6 +206,8 @@ This test is expected to fail until remediated; it is the regression guard.
 
 **Suspected cause**
 `app/Services/ExceptionService.php:277-300` — the guard present at `app/Policies/ExceptionPolicy.php:78` (`return $exception->owner_id !== $user->id;`) has no service-layer counterpart. (Do not fix — remediation pass follows sign-off.)
+
+**Resolution (2026-08-20)** — `ExceptionService::verifyAndClose()` now re-checks the fourth closure rule (`$exception->owner_id !== $verifier->id`) alongside the three it already enforced, restoring the stated defence-in-depth. Regression: `ExceptionClosureControlTest::test_g01_service_layer_also_refuses_when_verifier_owns_the_exception`.
 
 ---
 
@@ -247,6 +253,8 @@ This test restores the original value before asserting, so it never leaves the t
 
 **Suspected cause**
 `app/Models/AuditTrail.php:34-38` — model-layer guards only. (Do not fix.)
+
+**Resolution (2026-08-20)** — migration `2026_08_20_100003_add_audit_trail_immutability_triggers` installs BEFORE UPDATE / BEFORE DELETE triggers on `audit_trails` (SIGNAL on MySQL/MariaDB, RAISE(ABORT) on SQLite). Inserts remain unrestricted — the table is append-only at the storage layer. Regression: `AuditTrailIntegrityTest::test_tc_new_03_query_builder_bypass_of_audit_immutability`.
 
 ---
 
@@ -294,6 +302,8 @@ Regulatory / detective-control gap. Repeated attempts by a control owner to clos
 
 **Suspected cause**
 No `AuthorizationException` handler in `bootstrap/app.php`; no denial listener in `app/Providers/`. (Do not fix.)
+
+**Resolution (2026-08-20)** — new `DenialAuditor` service writes an `audit_trails` row (`action = denied`, with route entity, method, path, IP, agent) from exception-handler hooks on `AuthorizationException` and 403 `HttpException` in bootstrap/app.php. Regression: `AuditTrailIntegrityTest::test_tc_17_05_authorisation_failures_are_recorded`.
 
 ---
 
@@ -346,6 +356,8 @@ Observed during construction of the clock harness. `tests/e2e/HarnessSelfCheckTe
 
 **Suspected cause**
 `app/Services/ExceptionService.php:381-390` — unguarded signed diff written to an unsigned column, inside a `chunkById` with no per-row error isolation. (Do not fix.)
+
+**Resolution (2026-08-20)** — `ExceptionService::refreshAgeing()` clamps `age_days` at zero and isolates each row in try/catch: one anomalous row is skipped and logged instead of aborting the sweep and silently disabling overdue detection platform-wide.
 
 ---
 
@@ -416,6 +428,8 @@ Regulatory / access control. FR-12.8 requires session management aligned to CBN 
 **Suspected cause**
 `app/Http/Requests/Auth/LoginRequest.php:44` is the only `is_active` check on the user session path. No per-request revalidation exists. (Do not fix.)
 
+**Resolution (2026-08-20)** — new `EnsureUserIsActive` middleware in the web group re-reads `is_active` from the database on every authenticated request; a deactivated user is logged out, the session invalidated and the token regenerated. Regression: `AuthorisationMatrixTest::test_tc_02_03_deactivating_a_user_terminates_their_live_session` now passes.
+
 ---
 
 ## DEF-008
@@ -476,6 +490,8 @@ Rated **Medium**: no cross-tenant data access, no unauthorised action on a recor
 **Suspected cause**
 `app/Http/Controllers/ExceptionController.php:118` and 45 further `exists:users,id` rules; `App\Models\User` lacks `BelongsToTenant`. (Do not fix.)
 
+**Resolution (2026-08-20)** — new `tenant_user` validation rule (AppServiceProvider) resolves a user id inside the caller's own tenant; all 50 `exists:users,id` occurrences across app/ were replaced with it. Regression: `TenantIsolationTest::test_cannot_assign_our_exception_to_a_user_from_another_tenant`.
+
 ---
 
 ## DEF-009
@@ -531,6 +547,8 @@ Rated **Medium** rather than High: the action is audit-logged and attributable, 
 
 **Suspected cause**
 `app/Http/Controllers/EvidenceController.php:24` — `store()` has neither middleware nor an authorisation check, unlike `download()` at line 47 and `storePolicy()` at line 101. (Do not fix.)
+
+**Resolution (2026-08-20)** — `EvidenceController::store()` now gates attachment by `EvidenceService::ATTACH_PERMISSIONS`, a per-linked-type permission map (e.g. test evidence needs 'execute tests'/'review tests'; escalation-response evidence needs 'respond exceptions'/'review exception-responses'). Read-only tiers hold none of these. Regression: `UngatedRouteAuthorisationTest::test_read_only_roles_cannot_attach_evidence_to_a_control_test`.
 
 ---
 
@@ -601,6 +619,8 @@ Security. The evidence repository can be used to store and distribute arbitrary 
 **Suspected cause**
 `app/Http/Controllers/EvidenceController.php:27`; `app/Services/EvidenceService.php` records the client-supplied MIME. (Do not fix.)
 
+**Resolution (2026-08-20)** — uploads validate against `EvidenceService::ALLOWED_EXTENSIONS` via the `extensions` rule, which checks the FINAL extension (so `invoice.pdf.php` is rejected). php/exe/sh/bat/js/svg/html are excluded. Regression: `EvidenceRetentionTest::test_tc_13_02_dangerous_file_types_are_rejected` (all seven data sets).
+
 ---
 
 ## DEF-011
@@ -633,6 +653,8 @@ Rated Low: no security or data-integrity consequence, and it is visible to anyon
 
 **Suspected cause**
 `app/Http/Controllers/EvidenceController.php:27` — no `min:1` on the file rule. (Do not fix.)
+
+**Resolution (2026-08-20)** — a closure rule on the upload rejects zero-byte files. Regression: `EvidenceRetentionTest::test_tc_13_04_zero_byte_file_is_rejected`.
 
 ---
 
@@ -724,6 +746,8 @@ Rated **High**, not Critical: nothing is lost or exposed, the tier-1 escalation 
 **Suspected cause**
 `app/Services/EscalationService.php:41-43` — the `exception_overdue` constraint omits the `days_threshold` clause present in every sibling branch. (Do not fix.)
 
+**Resolution (2026-08-20)** — the `exception_overdue` branch in `EscalationService::run()` now applies `whereDate('target_closure_date', '<=', now()->subDays($rule->days_threshold))` alongside `is_overdue`, matching its sibling branches. TC-12-02, TC-12-03, the executive-tier guard and the FR-8.4 pacing test all pass.
+
 ---
 
 ## DEF-013
@@ -769,6 +793,8 @@ The workflow is recoverable — `TestingService::start()` assigns the instance t
 **Suspected cause**
 `app/Services/TestingService.php` — `createInstanceForPeriod()`, the `assigned_tester_id` ternary. (Do not fix.)
 
+**Resolution (2026-08-20)** — the dead ternary is completed: generated instances are assigned to the control owner, and `TestingService::start()` now records the ACTUAL performer as tester so the FR-3.8 review SoD check compares against the right person. Regression: `ControlTestingTest::test_fr_3_4_generated_instances_carry_an_assigned_tester`.
+
 ---
 
 ## DEF-014
@@ -810,6 +836,8 @@ Rated **Low**: the controlling field is right, and the mis-stated one is a displ
 
 **Suspected cause**
 `app/Services/TestingService.php` — `rate()`, the `updateOrCreate()` payload. (Do not fix.)
+
+**Resolution (2026-08-20)** — `TestingService::rate()` clears `approved_by`/`approved_at` on re-rate; nobody has approved the new values. Regression: `EffectivenessRatingTest::test_re_rating_clears_the_previous_approver`.
 
 ---
 
@@ -859,6 +887,8 @@ The workaround is the Excel export plus a pivot table, which is why this is Medi
 
 **Suspected cause**
 `app/Services/DashboardService.php::metrics()` — the `when()` chain reads two keys. (Do not fix.)
+
+**Resolution (2026-08-20)** — `DashboardService::metrics()` and `ExceptionController::index()` now accept `period` (YYYY or YYYY-MM on date_raised), `process_id` (via the control), `owner_id` and `risk_id` (via the risk_control_map), completing FR-10.6's seven filters on the data path. Regression: `DashboardReconciliationTest::test_fr_10_6_period_process_owner_and_risk_filters_are_not_implemented`.
 
 ---
 
@@ -951,6 +981,8 @@ Rated **High**: no record is dropped or duplicated, so it is not the plan's name
 **Suspected cause**
 `app/Http/Controllers/Api/IntegrationApiController.php::upsertControl()` — passes `$validated` rather than the full `control` array. (Do not fix.)
 
+**Resolution (2026-08-20)** — `IntegrationApiController::upsertControl()` validates every `control.*` attribute (description, objective, type, nature, frequency, is_key_control) so `validate()` no longer strips them before `ingestControl()`. Regression: `ThirdLineIntegrationTest::test_tc_18_03_bidirectional_accepts_an_inbound_control` passes with full field fidelity.
+
 ---
 
 ## DEF-017
@@ -999,6 +1031,8 @@ The dangerous case is not a clean `503` — it is a **timeout**, where the first
 **Suspected cause**
 `app/Services/IntegrationService.php::send()` — mints a UUID on every call; `replay()` does not pass the original key through. (Do not fix.)
 
+**Resolution (2026-08-20)** — `IntegrationService::replay()` passes the original `idempotency_key` through `send()`, which mints a fresh UUID only for first deliveries. Regression: `ThirdLineIntegrationTest::test_a_replay_reuses_the_original_idempotency_key`.
+
 ---
 
 ## DEF-018
@@ -1043,6 +1077,8 @@ Rated **Medium**: no data is lost or corrupted, the duplicate is visible and can
 
 **Suspected cause**
 `app/Http/Controllers/ExceptionController.php::store()` and every equivalent `store()` in the product — no submission idempotency anywhere. (Do not fix.)
+
+**Resolution (2026-08-20)** — new `DedupeFormSubmission` middleware in the web group: an identical re-POST (same user, path, payload and files) to a guarded create endpoint within 10 minutes is absorbed with a flash notice instead of minting a second record. Validation failures are never remembered, so a corrected form stays repeatable. Regression: `FormMatrixTest::test_12_d_19_a_double_submitted_form_creates_two_records`.
 
 ---
 
@@ -1095,6 +1131,8 @@ Rated **High**, and it compounds with two other open defects: DEF-005 means the 
 **Suspected cause**
 `routes/api.php:7` — the `v1` group declares no `throttle` middleware. (Do not fix.)
 
+**Resolution (2026-08-20)** — an `integration-api` rate limiter (60/min, keyed by caller IP) is applied to the whole `/api/v1` group ahead of `integration.auth`, so invalid-key probing is throttled too. Regressions: `ApiContractTest::test_the_api_is_rate_limited` and `test_repeated_authentication_failures_are_rate_limited`.
+
 ---
 
 ## DEF-020
@@ -1128,6 +1166,8 @@ Rated **Medium**: it is a documentation and default-hardening gap rather than a 
 **Suspected cause**
 `.env.example:4`; absence of guidance in `docs/deployment/`. (Do not fix.)
 
+**Resolution (2026-08-20)** — `.env.example` now ships `APP_DEBUG=false` with an explanatory comment, and docs/deployment/nigeria.md opens its Environment section with the production-hardening block. The guard test was updated to assert the fixed posture. Regression: `SecurityBaselineTest::test_the_shipped_environment_template_does_not_default_to_debug_in_production`.
+
 ---
 
 ## DEF-021
@@ -1154,6 +1194,8 @@ Rated **Low**: no data exposure and no direct exploitability.
 
 **Evidence**
 `evidence/S10-security-live-verification.txt`
+
+**Resolution (2026-08-20)** — `SecurityHeaders` strips `X-Powered-By` on every response (both the response object and PHP's own header list), so the posture no longer depends on `expose_php` being set per host.
 
 ---
 

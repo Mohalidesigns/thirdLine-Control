@@ -17,6 +17,7 @@ use App\Models\InvestigationCase;
 use App\Models\SsoConfiguration;
 use App\Models\TenantBranding;
 use App\Models\TestInstance;
+use App\Models\User;
 use App\Policies\AiConfigurationPolicy;
 use App\Policies\AiInteractionPolicy;
 use App\Policies\CompensatingControlPolicy;
@@ -32,10 +33,14 @@ use App\Policies\TestInstancePolicy;
 use App\Services\Ai\KnowledgeIndexer;
 use App\Services\FeatureService;
 use App\Services\ResidencyGuard;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
@@ -55,6 +60,23 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // DEF-019 — the machine surface must be throttled like the human
+        // one. Keyed by caller IP so invalid-key probing shares one bucket
+        // rather than getting a fresh allowance per guessed key.
+        RateLimiter::for('integration-api', fn (Request $request) => Limit::perMinute(60)->by($request->ip()));
+
+        // DEF-008 — `exists:users,id` proves a row exists in ANY tenant.
+        // Every user reference in a form must resolve inside the caller's
+        // own tenant, or a foreign user can silently be made responsible
+        // for our records. Use `tenant_user` wherever a form accepts a
+        // user id.
+        Validator::extend('tenant_user', function (string $attribute, mixed $value) {
+            return User::query()
+                ->whereKey($value)
+                ->where('tenant_id', auth()->user()?->tenant_id)
+                ->exists();
+        }, 'The selected user does not belong to this organisation.');
+
         Gate::policy(Control::class, ControlPolicy::class);
         Gate::policy(TestInstance::class, TestInstancePolicy::class);
         Gate::policy(ControlException::class, ExceptionPolicy::class);

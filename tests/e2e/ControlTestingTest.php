@@ -24,7 +24,7 @@ class ControlTestingTest extends E2ETestCase
     }
 
     /** A control with an active script and two mandatory check items. */
-    private function testable_control(string $frequency = 'Monthly'): Control
+    private function makeTestableControl(string $frequency = 'Monthly'): Control
     {
         $control = Control::withoutGlobalScopes()->where('status', 'Active')->firstOrFail();
 
@@ -89,7 +89,7 @@ class ControlTestingTest extends E2ETestCase
 
     public function test_tc_07_01_a_second_run_for_the_same_period_does_not_duplicate(): void
     {
-        $control = $this->testableControl();
+        $control = $this->makeTestableControl();
         $asOf = CarbonImmutable::parse('2026-05-14');
 
         $first = $this->service()->createInstanceForPeriod($control, $asOf);
@@ -103,7 +103,7 @@ class ControlTestingTest extends E2ETestCase
 
     public function test_tc_07_11_a_retired_control_is_not_schedulable(): void
     {
-        $control = $this->testableControl();
+        $control = $this->makeTestableControl();
         $control->forceFill(['status' => 'Retired'])->saveQuietly();
 
         $before = TestInstance::withoutGlobalScopes()->where('control_id', $control->id)->count();
@@ -119,7 +119,7 @@ class ControlTestingTest extends E2ETestCase
 
     public function test_an_event_driven_control_is_not_auto_scheduled(): void
     {
-        $control = $this->testableControl('Event-driven');
+        $control = $this->makeTestableControl('Event-driven');
         $before = TestInstance::withoutGlobalScopes()->where('control_id', $control->id)->count();
 
         $this->runCommandAt('secondline:generate-test-instances', now());
@@ -137,7 +137,7 @@ class ControlTestingTest extends E2ETestCase
      */
     public function test_fr_3_4_generated_instances_carry_an_assigned_tester(): void
     {
-        $control = $this->testableControl();
+        $control = $this->makeTestableControl();
 
         $instance = $this->service()->createInstanceForPeriod($control, CarbonImmutable::parse('2026-07-14'));
 
@@ -169,7 +169,7 @@ class ControlTestingTest extends E2ETestCase
 
     public function test_tc_07_03_a_fully_passed_test_raises_no_exception(): void
     {
-        $control = $this->testableControl();
+        $control = $this->makeTestableControl();
         $instance = $this->instanceFor($control, CarbonImmutable::parse('2026-06-14'));
 
         $before = ControlException::withoutGlobalScopes()->count();
@@ -183,7 +183,7 @@ class ControlTestingTest extends E2ETestCase
 
     public function test_tc_07_04_every_failed_check_item_raises_an_exception_automatically(): void
     {
-        $control = $this->testableControl();
+        $control = $this->makeTestableControl();
         $instance = $this->instanceFor($control, CarbonImmutable::parse('2026-06-15'));
         $instance->load('testScript.checkItems');
 
@@ -208,7 +208,7 @@ class ControlTestingTest extends E2ETestCase
 
     public function test_fr_3_2_a_failed_check_requires_a_comment(): void
     {
-        $control = $this->testableControl();
+        $control = $this->makeTestableControl();
         $instance = $this->instanceFor($control, CarbonImmutable::parse('2026-06-16'))->load('testScript.checkItems');
         $tester = $this->account('officer');
 
@@ -221,7 +221,7 @@ class ControlTestingTest extends E2ETestCase
 
     public function test_submission_is_blocked_until_every_mandatory_item_is_answered(): void
     {
-        $control = $this->testableControl();
+        $control = $this->makeTestableControl();
         $instance = $this->instanceFor($control, CarbonImmutable::parse('2026-06-17'))->load('testScript.checkItems');
         $tester = $this->account('officer');
 
@@ -240,7 +240,7 @@ class ControlTestingTest extends E2ETestCase
 
     private function submittedInstance(string $period = '2026-06-18'): TestInstance
     {
-        $control = $this->testableControl();
+        $control = $this->makeTestableControl();
         $instance = $this->instanceFor($control, CarbonImmutable::parse($period))->load('testScript.checkItems');
 
         $this->executeAll($instance, 'Pass');
@@ -301,7 +301,7 @@ class ControlTestingTest extends E2ETestCase
 
     public function test_only_a_submitted_test_can_be_reviewed(): void
     {
-        $control = $this->testableControl();
+        $control = $this->makeTestableControl();
         $instance = $this->instanceFor($control, CarbonImmutable::parse('2026-06-23'));
 
         $this->expectException(ValidationException::class);
@@ -343,7 +343,7 @@ class ControlTestingTest extends E2ETestCase
 
     public function test_tc_07_08_an_overdue_test_is_flagged_and_a_reviewed_one_is_not(): void
     {
-        $control = $this->testableControl();
+        $control = $this->makeTestableControl();
         $instance = $this->instanceFor($control, CarbonImmutable::parse('2026-06-26'));
         $instance->forceFill(['due_date' => now()->subDays(3), 'status' => 'In Progress'])->saveQuietly();
 

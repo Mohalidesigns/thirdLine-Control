@@ -25,7 +25,7 @@ class PolicyRequest extends FormRequest
             'policy_type' => ['required', Rule::in(Policy::TYPES)],
             'category_id' => ['nullable', 'exists:policy_categories,id'],
             'document_id' => ['nullable', 'exists:documents,id'],
-            'owner_id' => ['required', 'exists:users,id'],
+            'owner_id' => ['required', 'tenant_user'],
             'effective_from' => ['nullable', 'date'],
             'effective_to' => ['nullable', 'date', 'after:effective_from'],
             'review_frequency' => ['required', Rule::in(Policy::REVIEW_FREQUENCIES)],
@@ -36,7 +36,7 @@ class PolicyRequest extends FormRequest
             'applies_to.unit_ids' => ['nullable', 'array'],
             'applies_to.unit_ids.*' => ['integer', 'exists:organisation_units,id'],
             'applies_to.user_ids' => ['nullable', 'array'],
-            'applies_to.user_ids.*' => ['integer', 'exists:users,id'],
+            'applies_to.user_ids.*' => ['integer', 'tenant_user'],
             'requires_attestation' => ['nullable', 'boolean'],
             'attestation_frequency' => [
                 'nullable',

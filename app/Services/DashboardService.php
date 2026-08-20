@@ -19,9 +19,25 @@ class DashboardService
 {
     public function metrics(array $filters = []): array
     {
+        // FR-10.6 requires seven filters: period, unit, process, control
+        // owner, severity, status and risk (DEF-015).
         $exceptions = ControlException::query()
             ->when($filters['unit_id'] ?? null, fn ($q, $v) => $q->where('unit_id', $v))
-            ->when($filters['severity'] ?? null, fn ($q, $v) => $q->where('severity', $v));
+            ->when($filters['severity'] ?? null, fn ($q, $v) => $q->where('severity', $v))
+            ->when($filters['owner_id'] ?? null, fn ($q, $v) => $q->where('owner_id', $v))
+            ->when($filters['process_id'] ?? null, fn ($q, $v) => $q
+                ->whereHas('control', fn ($c) => $c->where('process_id', $v)))
+            ->when($filters['risk_id'] ?? null, fn ($q, $v) => $q
+                ->whereHas('control.risks', fn ($r) => $r->where('risks.id', $v)))
+            ->when($filters['period'] ?? null, function ($q, $v) {
+                // 'YYYY' scopes a year; 'YYYY-MM' scopes a month — the
+                // quarter a board pack covers is three month filters or a
+                // year export sliced downstream.
+                [$year, $month] = array_pad(explode('-', (string) $v), 2, null);
+
+                return $q->whereYear('date_raised', (int) $year)
+                    ->when($month, fn ($qq) => $qq->whereMonth('date_raised', (int) $month));
+            });
 
         $openStatuses = ControlException::OPEN_STATUSES;
 

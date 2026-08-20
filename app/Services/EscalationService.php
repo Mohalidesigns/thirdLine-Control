@@ -41,9 +41,14 @@ class EscalationService
                             ->where('status', 'Open')
                             ->whereNull('responsible_party_id')
                             ->whereDate('date_raised', '<=', now()->subDays($rule->days_threshold))),
+                        // is_overdue (set by the tenant-timezone ageing sweep)
+                        // decides WHETHER the exception escalates at all; the
+                        // tier's days_threshold paces WHEN each rung fires
+                        // (FR-8.3/FR-8.4).
                         'exception_overdue' => $this->escalateExceptions($rule, fn ($q) => $q
                             ->where('is_overdue', true)
-                            ->whereNotIn('status', ['Remediated'])),
+                            ->whereNotIn('status', ['Remediated'])
+                            ->whereDate('target_closure_date', '<=', now()->subDays($rule->days_threshold))),
                         'exception_inactive' => $this->escalateExceptions($rule, fn ($q) => $q
                             ->whereNotIn('status', ['Remediated'])
                             ->where('updated_at', '<=', now()->subDays($rule->days_threshold))),

@@ -32,7 +32,7 @@ class CsaCampaignRequest extends FormRequest
             'instructions' => ['nullable', 'string'],
             'scope_definition' => ['nullable', 'array'],
             'scope_definition.assignments' => ['nullable', 'array'],
-            'scope_definition.assignments.*.respondent_id' => ['required_with:scope_definition.assignments', 'integer', 'exists:users,id'],
+            'scope_definition.assignments.*.respondent_id' => ['required_with:scope_definition.assignments', 'integer', 'tenant_user'],
             'scope_definition.assignments.*.entity_id' => ['nullable', 'integer', 'exists:organisation_units,id'],
             'scope_definition.assignments.*.control_id' => ['nullable', 'integer', 'exists:controls,id'],
             'scope_definition.invited_count' => ['nullable', 'integer', 'min:0'],

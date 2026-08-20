@@ -27,11 +27,11 @@ class ExceptionRoutingRuleRequest extends FormRequest
             'match_source_type' => ['nullable', 'string', 'max:50'],
             'route_to_type' => ['required', Rule::in(ExceptionRoutingRule::ROUTE_TO_TYPES)],
             'route_to_role' => ['nullable', 'string', 'max:100', 'required_if:route_to_type,role'],
-            'route_to_user_id' => ['nullable', 'exists:users,id', 'required_if:route_to_type,user'],
+            'route_to_user_id' => ['nullable', 'tenant_user', 'required_if:route_to_type,user'],
             'route_to_unit_id' => ['nullable', 'exists:organisation_units,id'],
             'cc_role' => ['nullable', 'string', 'max:100'],
             'cc_user_ids' => ['nullable', 'array'],
-            'cc_user_ids.*' => ['integer', 'exists:users,id'],
+            'cc_user_ids.*' => ['integer', 'tenant_user'],
             'sla_policy_id' => ['nullable', 'exists:exception_sla_policies,id'],
         ];
     }

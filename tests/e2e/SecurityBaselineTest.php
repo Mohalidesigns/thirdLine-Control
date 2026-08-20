@@ -227,14 +227,16 @@ class SecurityBaselineTest extends E2ETestCase
 
         $this->assertMatchesRegularExpression('/^APP_ENV=local$/m', $example, '.env.example should default to local.');
 
-        $this->assertTrue(
-            str_contains($example, 'APP_DEBUG=true'),
-            'Fixture assumption changed — re-read the template.'
+        // DEF-020 remediation: the template now ships APP_DEBUG=false, so a
+        // copied-verbatim .env fails safe rather than serving stack traces.
+        $this->assertMatchesRegularExpression(
+            '/^APP_DEBUG=false$/m',
+            $example,
+            'DEF-020: .env.example must default APP_DEBUG to false — an operator copying the template '
+            .'verbatim must not run production with verbose errors enabled.'
         );
 
-        // A local-defaulting template with APP_DEBUG=true is the framework
-        // norm and is fine, *provided* the deployment guidance says to turn
-        // it off. That guidance is what this asserts.
+        // And the deployment guidance must still say to keep it off.
         $guidance = collect(glob(base_path('docs/deployment/*')))
             ->merge([base_path('SECURITY.md')])
             ->filter(fn ($f) => is_file($f))

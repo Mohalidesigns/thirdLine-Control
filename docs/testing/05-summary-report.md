@@ -10,7 +10,18 @@
 
 ## 1. Release recommendation
 
-> ## DO NOT RELEASE
+> ## REMEDIATED — 2026-08-20
+>
+> All 21 logged defects (6 High, 10 Medium, 5 Low) have since been fixed on branch
+> `claude/atheris-exception-manager-hy7wvq`; every defect's regression guard in
+> `tests/e2e` now passes, and the product's own regression suite remains green.
+> Per-defect resolutions are recorded in [02-defect-log.md](02-defect-log.md).
+> The remaining exit-criteria gap is coverage (criterion 1 and 3 — the untested
+> half of the requirement set), not open defects.
+>
+> The assessment below is preserved as written at the time of the run.
+
+> ## DO NOT RELEASE *(as of the 2026-08-14 run — superseded above)*
 >
 > **Six open High-severity defects**, none with accepted risk sign-off. Four of the seven exit criteria are failed outright.
 >

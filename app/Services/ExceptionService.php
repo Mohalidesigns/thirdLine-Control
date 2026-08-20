@@ -11,6 +11,7 @@ use App\Models\MonitoringRun;
 use App\Models\SodViolation;
 use App\Models\TestInstance;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class ExceptionService
@@ -297,6 +298,15 @@ class ExceptionService
             ]);
         }
 
+        // DEF-003: the fourth closure rule, previously enforced only in
+        // ExceptionPolicy — re-checked here so a non-HTTP caller (console
+        // command, listener) cannot silently lose the guard.
+        if ($exception->owner_id === $verifier->id) {
+            throw ValidationException::withMessages([
+                'closure' => 'The owner of an exception cannot verify and close it.',
+            ]);
+        }
+
         // CR-01 (R-D): the departmental loop must be closed before the
         // control lapse can be — the error names the open escalations.
         app(ExceptionEscalationService::class)->assertClosable($exception);
@@ -399,12 +409,24 @@ class ExceptionService
             ->whereIn('status', ControlException::OPEN_STATUSES)
             ->chunkById(200, function ($exceptions) use (&$count) {
                 foreach ($exceptions as $exception) {
-                    $exception->updateQuietly([
-                        'age_days' => (int) $exception->date_raised->diffInDays(now()->startOfDay()),
-                        'is_overdue' => $exception->target_closure_date !== null
-                            && now()->startOfDay()->gt($exception->target_closure_date),
-                    ]);
-                    $count++;
+                    // DEF-006: per-row isolation. One anomalous row (e.g. a
+                    // future date_raised producing a negative age for the
+                    // unsigned column) must not silently disable overdue
+                    // detection for every row after it. Clamp, and log
+                    // rather than abort.
+                    try {
+                        $exception->updateQuietly([
+                            'age_days' => max(0, (int) $exception->date_raised->diffInDays(now()->startOfDay())),
+                            'is_overdue' => $exception->target_closure_date !== null
+                                && now()->startOfDay()->gt($exception->target_closure_date),
+                        ]);
+                        $count++;
+                    } catch (\Throwable $e) {
+                        Log::warning('Ageing sweep skipped an exception', [
+                            'exception_id' => $exception->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
                 }
             });
 

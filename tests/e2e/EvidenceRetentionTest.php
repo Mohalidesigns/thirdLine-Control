@@ -344,6 +344,14 @@ class EvidenceRetentionTest extends E2ETestCase
         ])->saveQuietly();
 
         $path = $evidence->storage_path;
+
+        // The DB row rolls back with the test transaction but the file
+        // deletion does not — remember the seeded bytes so the fixture can
+        // be restored for later tests (HarnessSelfCheck verifies checksums).
+        $seededBytes = Storage::disk(EvidenceService::DISK)->exists($path)
+            ? Storage::disk(EvidenceService::DISK)->get($path)
+            : "Synthetic E2E fixture. Past retention expiry, no legal hold.\n";
+
         Storage::disk(EvidenceService::DISK)->put($path, 'restored for disposal test');
 
         app(EvidenceService::class)->approveDisposalFinal($evidence->refresh(), $this->account('admin'));
@@ -367,6 +375,10 @@ class EvidenceRetentionTest extends E2ETestCase
         $this->actingAs($this->account('officer'))
             ->get('/evidence/'.$evidence->id.'/download')
             ->assertStatus(410);
+
+        // Put the fixture back — the DB row rolls back with the transaction
+        // but the deleted file would stay gone for every later test.
+        Storage::disk(EvidenceService::DISK)->put($path, $seededBytes);
     }
 
     public function test_legal_hold_can_only_be_set_by_the_control_function(): void

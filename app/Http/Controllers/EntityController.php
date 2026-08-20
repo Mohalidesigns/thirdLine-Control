@@ -60,7 +60,7 @@ class EntityController extends Controller
         $this->authorize('grantAccess', $entity);
 
         $data = $request->validate([
-            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'user_id' => ['required', 'integer', 'tenant_user'],
             'note' => ['nullable', 'string', 'max:255'],
         ]);
 

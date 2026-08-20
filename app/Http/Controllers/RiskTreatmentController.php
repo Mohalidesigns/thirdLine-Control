@@ -154,7 +154,7 @@ class RiskTreatmentController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'due_at' => ['nullable', 'date'],
-            'owner_id' => ['nullable', 'exists:users,id'],
+            'owner_id' => ['nullable', 'tenant_user'],
         ]);
 
         $this->treatments->addMilestone($treatment, $validated);

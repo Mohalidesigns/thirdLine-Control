@@ -45,7 +45,7 @@ class DataSourceRequest extends FormRequest
             'rate_limit_per_minute' => ['nullable', 'integer', 'min:1', 'max:10000'],
             'timeout_seconds' => ['nullable', 'integer', 'min:1', 'max:600'],
             'data_residency_note' => ['nullable', 'string', 'max:2000'],
-            'owner_id' => ['nullable', 'exists:users,id'],
+            'owner_id' => ['nullable', 'tenant_user'],
         ];
     }
 

@@ -67,7 +67,10 @@ class UngatedRouteAuthorisationTest extends E2ETestCase
         'uploads/chunked/{uuid}' => 'ChunkedUploadController::ownUpload() scopes by user_id',
 
         // Open finding — see DEF-009.
-        'evidence' => 'DEF-009: any authenticated user may attach evidence to any record in their tenant',
+        // Public but unusable without a valid signature; the controller also
+        // checks the password-hash fragment and is_active (see routes/web.php).
+        'set-password/{user}' => 'signed middleware + throttle + hash-fragment and is_active checks in SetPasswordController',
+        'password/change' => 'forced first-login change — acts only on the caller\'s own password',
     ];
 
     /** @return array<int, string> uris of un-gated mutating routes with no visible check */

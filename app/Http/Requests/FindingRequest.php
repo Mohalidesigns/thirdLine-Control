@@ -22,7 +22,7 @@ class FindingRequest extends FormRequest
             'recommendation' => ['nullable', 'string'],
             'management_response' => ['nullable', 'string'],
             'agreed_action' => ['nullable', 'string'],
-            'responsible_party_id' => ['nullable', 'exists:users,id'],
+            'responsible_party_id' => ['nullable', 'tenant_user'],
             'target_date' => ['nullable', 'date'],
         ];
     }

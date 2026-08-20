@@ -20,7 +20,7 @@ class DocumentRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'document_type' => ['required', Rule::in(Document::TYPES)],
             'folder_id' => ['nullable', 'exists:document_folders,id'],
-            'owner_id' => ['nullable', 'exists:users,id'],
+            'owner_id' => ['nullable', 'tenant_user'],
             'review_due_at' => ['nullable', 'date', 'after:today'],
             'is_confidential' => ['boolean'],
             'access_role_ids' => ['required_if:is_confidential,true', 'nullable', 'array'],

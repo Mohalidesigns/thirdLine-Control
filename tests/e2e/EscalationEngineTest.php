@@ -6,6 +6,9 @@ use App\Models\Control;
 use App\Models\ControlException;
 use App\Models\EscalationEvent;
 use App\Models\EscalationMatrix;
+use App\Models\Metric;
+use App\Models\Risk;
+use App\Notifications\EscalationNotification;
 use Carbon\CarbonImmutable;
 
 /**
@@ -356,6 +359,80 @@ class EscalationEngineTest extends E2ETestCase
             $this->tiersFiredFor($exception),
             'TC-12-08: an exception due today in Lagos escalated as overdue. Thresholds must evaluate '
             .'against the tenant timezone, not raw UTC.'
+        );
+    }
+
+    // -----------------------------------------------------------------
+    // DEF-001 / DEF-002 — delivery for non-exception subjects, and an
+    // honest register when delivery fails
+    // -----------------------------------------------------------------
+
+    /**
+     * DEF-001 — the escalation email must build for every subject the
+     * event can carry, not only exceptions and test instances. A risk or
+     * metric subject used to throw UrlGenerationException inside the
+     * queue worker, so the email was never delivered.
+     */
+    public function test_def_001_the_escalation_email_builds_for_every_subject_type(): void
+    {
+        $recipient = $this->account('cfh');
+
+        $subjects = [
+            'risk_id' => Risk::withoutGlobalScopes()->value('id'),
+            'metric_id' => Metric::withoutGlobalScopes()->value('id'),
+            'exception_id' => null, // no subject at all → must still build
+        ];
+
+        foreach ($subjects as $column => $id) {
+            if ($column !== 'exception_id' && $id === null) {
+                continue; // fixture absent in this seed — the other subjects still run
+            }
+
+            $event = EscalationEvent::withoutGlobalScopes()->create([
+                'tenant_id' => $recipient->tenant_id,
+                $column => $id,
+                'tier_no' => 1,
+                'channel' => 'both',
+                'triggered_at' => now(),
+                'delivery_status' => 'Pending',
+                'payload_summary' => "DEF-001 fixture — {$column}",
+            ]);
+
+            $mail = (new EscalationNotification($event))->toMail($recipient);
+
+            $this->assertNotEmpty(
+                $mail->actionUrl,
+                "DEF-001: the escalation email for a {$column} subject built no deep link."
+            );
+        }
+    }
+
+    /**
+     * DEF-002 — a queued delivery that fails after dispatch must correct
+     * the register. delivery_status is the record an examiner reads
+     * (FR-8.7); it must not assert delivery that did not occur.
+     */
+    public function test_def_002_a_failed_queued_delivery_marks_the_event_failed(): void
+    {
+        $recipient = $this->account('cfh');
+
+        $event = EscalationEvent::withoutGlobalScopes()->create([
+            'tenant_id' => $recipient->tenant_id,
+            'tier_no' => 1,
+            'recipient_user_id' => $recipient->id,
+            'channel' => 'both',
+            'triggered_at' => now(),
+            'delivery_status' => 'Sent', // what fire() records at dispatch time
+            'payload_summary' => 'DEF-002 fixture',
+        ]);
+
+        // What the queue worker invokes when the send job exhausts its retries.
+        (new EscalationNotification($event))->failed(new \RuntimeException('SMTP down'));
+
+        $this->assertSame(
+            'Failed',
+            $event->fresh()->delivery_status,
+            'DEF-002: a permanently failed queued delivery left the register asserting "Sent".'
         );
     }
 }

@@ -29,7 +29,7 @@ class ControlRequest extends FormRequest
             'process_id' => ['nullable', 'exists:business_processes,id'],
             'unit_id' => ['nullable', 'exists:organisation_units,id'],
             'department' => ['nullable', 'string', 'max:255'],
-            'owner_id' => ['nullable', 'exists:users,id'],
+            'owner_id' => ['nullable', 'tenant_user'],
             'frequency' => ['required', Rule::in(Control::FREQUENCIES)],
             'test_frequency' => ['nullable', Rule::in(Control::FREQUENCIES)],
             'is_key_control' => ['boolean'],

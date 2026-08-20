@@ -141,7 +141,7 @@ class ComplaintController extends Controller
     {
         $this->authorize('update', $complaint);
 
-        $validated = $request->validate(['assigned_to' => ['required', 'exists:users,id']]);
+        $validated = $request->validate(['assigned_to' => ['required', 'tenant_user']]);
 
         $this->complaints->assign($complaint, User::findOrFail($validated['assigned_to']), $request->user());
 

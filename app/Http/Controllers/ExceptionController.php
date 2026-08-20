@@ -35,6 +35,18 @@ class ExceptionController extends Controller
             ->when($request->status, fn ($q, $s) => $s === 'open' ? $q->open() : $q->where('status', $s))
             ->when($request->severity, fn ($q, $s) => $q->where('severity', $s))
             ->when($request->unit_id, fn ($q, $u) => $q->where('unit_id', $u))
+            // FR-10.6 (DEF-015): period, process, control owner and risk.
+            ->when($request->owner_id, fn ($q, $o) => $q->where('owner_id', $o))
+            ->when($request->process_id, fn ($q, $p) => $q
+                ->whereHas('control', fn ($c) => $c->where('process_id', $p)))
+            ->when($request->risk_id, fn ($q, $r) => $q
+                ->whereHas('control.risks', fn ($w) => $w->where('risks.id', $r)))
+            ->when($request->period, function ($q, $p) {
+                [$year, $month] = array_pad(explode('-', (string) $p), 2, null);
+
+                return $q->whereYear('date_raised', (int) $year)
+                    ->when($month, fn ($qq) => $qq->whereMonth('date_raised', (int) $month));
+            })
             ->when($request->boolean('overdue'), fn ($q) => $q->overdue());
 
         if ($request->input('view') === 'mine'
@@ -44,7 +56,7 @@ class ExceptionController extends Controller
 
         return Inertia::render('Exceptions/Index', [
             'exceptions' => $query->orderByDesc('date_raised')->paginate(15)->withQueryString(),
-            'filters' => $request->only(['search', 'status', 'severity', 'unit_id', 'overdue', 'view']),
+            'filters' => $request->only(['search', 'status', 'severity', 'unit_id', 'owner_id', 'process_id', 'risk_id', 'period', 'overdue', 'view']),
             'statuses' => ControlException::STATUSES,
             'severities' => ControlException::SEVERITIES,
             'units' => OrganisationUnit::orderBy('name')->get(['id', 'name']),
@@ -124,7 +136,7 @@ class ExceptionController extends Controller
     {
         $this->authorize('update', $exception);
 
-        $request->validate(['user_id' => ['required', 'exists:users,id']]);
+        $request->validate(['user_id' => ['required', 'tenant_user']]);
 
         $this->exceptionService->assign($exception, User::findOrFail($request->integer('user_id')), $request->user());
 

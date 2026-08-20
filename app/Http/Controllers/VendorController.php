@@ -250,7 +250,7 @@ class VendorController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:4000'],
             'severity' => ['required', 'in:'.implode(',', VendorFinding::SEVERITIES)],
-            'owner_id' => ['nullable', 'exists:users,id'],
+            'owner_id' => ['nullable', 'tenant_user'],
             'due_date' => ['nullable', 'date'],
         ]);
 

@@ -209,7 +209,7 @@ class SustainabilityController extends Controller
             'adoption_year' => ['nullable', 'integer', 'min:2020', 'max:2100'],
             'fiscal_year_start' => ['required', 'date'],
             'period_label' => ['required', 'string', 'max:40'],
-            'owner_id' => ['nullable', 'exists:users,id'],
+            'owner_id' => ['nullable', 'tenant_user'],
         ]);
 
         $filing = $this->sustainability->createFiling(

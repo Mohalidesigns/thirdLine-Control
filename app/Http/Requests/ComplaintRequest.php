@@ -38,7 +38,7 @@ class ComplaintRequest extends FormRequest
             'currency' => ['nullable', Rule::in(Money::SUPPORTED), 'required_with:amount_disputed_minor'],
             'entity_id' => ['nullable', 'exists:organisation_units,id'],
             'branch' => ['nullable', 'string', 'max:120'],
-            'assigned_to' => ['nullable', 'exists:users,id'],
+            'assigned_to' => ['nullable', 'tenant_user'],
         ];
     }
 

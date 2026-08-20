@@ -57,8 +57,8 @@ class ObligationAssignmentController extends Controller
         $data = $request->validate([
             'obligation_ids' => ['required', 'array', 'max:200'],
             'obligation_ids.*' => ['integer', 'exists:regulatory_obligations,id'],
-            'owner_id' => ['required', 'exists:users,id'],
-            'reviewer_id' => ['nullable', 'different:owner_id', 'exists:users,id'],
+            'owner_id' => ['required', 'tenant_user'],
+            'reviewer_id' => ['nullable', 'different:owner_id', 'tenant_user'],
         ]);
 
         $assigned = 0;

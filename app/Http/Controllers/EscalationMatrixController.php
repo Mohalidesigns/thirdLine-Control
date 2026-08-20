@@ -62,7 +62,7 @@ class EscalationMatrixController extends Controller
             'trigger_condition' => ['required', Rule::in(['exception_unassigned', 'exception_overdue', 'exception_inactive', 'test_overdue', 'extension_pending'])],
             'days_threshold' => ['required', 'integer', 'between:0,365'],
             'recipient_role' => ['required', 'string', 'max:100'],
-            'recipient_user_id' => ['nullable', 'exists:users,id'],
+            'recipient_user_id' => ['nullable', 'tenant_user'],
             'channel' => ['required', Rule::in(['in_app', 'email', 'both'])],
             'is_active' => ['boolean'],
         ]);

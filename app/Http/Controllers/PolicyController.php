@@ -165,7 +165,7 @@ class PolicyController extends Controller
             'scope.all_staff' => ['nullable', 'boolean'],
             'scope.role_names' => ['nullable', 'array'],
             'scope.user_ids' => ['nullable', 'array'],
-            'scope.user_ids.*' => ['integer', 'exists:users,id'],
+            'scope.user_ids.*' => ['integer', 'tenant_user'],
         ]);
 
         $published = $this->policies->publish($policy, $request->user(), $validated['scope'] ?? null);

@@ -31,7 +31,7 @@ class RiskRequest extends FormRequest
             // hard-coded 5×5 grid (R1).
             'inherent_likelihood' => ['required', 'integer', "between:1,{$maxLikelihood}"],
             'inherent_impact' => ['required', 'integer', "between:1,{$maxImpact}"],
-            'risk_owner_id' => ['nullable', 'exists:users,id'],
+            'risk_owner_id' => ['nullable', 'tenant_user'],
 
             'risk_category_id' => ['nullable', 'exists:risk_categories,id'],
             'risk_type' => ['nullable', Rule::in(Risk::TYPES)],
@@ -43,7 +43,7 @@ class RiskRequest extends FormRequest
             'horizon' => ['nullable', 'string', 'max:60'],
             'appetite_id' => ['nullable', 'exists:risk_appetites,id'],
             'parent_risk_id' => ['nullable', 'exists:risks,id', 'different:id'],
-            'second_line_reviewer_id' => ['nullable', 'exists:users,id'],
+            'second_line_reviewer_id' => ['nullable', 'tenant_user'],
             'entity_id' => ['nullable', 'exists:organisation_units,id'],
             'process_id' => ['nullable', 'exists:business_processes,id'],
             'financial_impact_minor' => ['nullable', 'integer', 'min:0'],
