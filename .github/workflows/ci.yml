@@ -13,12 +13,23 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          # composer.lock is resolved on PHP 8.4 (Symfony 8.x requires >=8.4.1)
+          # — pinning lower makes composer install fail before a single test.
+          php-version: '8.4'
           extensions: mbstring, gd, zip, pdo_sqlite
           coverage: none
 
       - name: Install composer dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
+
+      # The runner has no .env, so nothing supplies APP_KEY — and every test
+      # touching encryption (sessions, encrypted credentials) dies with
+      # MissingAppKeyException. phpunit.xml still wins for the vars it sets
+      # (sqlite :memory:, array drivers); the .env only fills the gaps.
+      - name: Prepare test environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
 
       - name: Lint (Pint)
         run: composer lint
