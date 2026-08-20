@@ -40,6 +40,7 @@ import {
     Megaphone,
     MessageCircle,
     MessageSquare,
+    Network,
     Package,
     Palette,
     PieChart,
@@ -101,6 +102,17 @@ const NAVIGATION = [
         icon: ListTodo,
         children: [
             { label: 'My Tasks', to: 'tasks.mine', match: '/my-tasks', icon: ListTodo },
+        ],
+    },
+    {
+        // CR2-A: the front door for a control function — the three
+        // sub-units and the control universe. Sits above the flat
+        // Controls library by design.
+        id: 'control-structure',
+        label: 'Control Structure',
+        icon: Network,
+        children: [
+            { label: 'Control Structure', to: 'control-structure.index', match: '/control-structure', icon: Network, feature: 'control-structure', permission: 'view control-structure' },
         ],
     },
     {

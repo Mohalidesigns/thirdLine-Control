@@ -7,21 +7,27 @@ use App\Models\AiConfiguration;
 use App\Models\AiInteraction;
 use App\Models\CompensatingControl;
 use App\Models\Control;
+use App\Models\ControlEntity;
 use App\Models\ControlException;
+use App\Models\ControlUnit;
 use App\Models\CrossBorderTransfer;
 use App\Models\Entity;
 use App\Models\ExceptionAction;
 use App\Models\ExceptionEscalation;
 use App\Models\ExceptionResponse;
 use App\Models\InvestigationCase;
+use App\Models\OrganisationUnit;
 use App\Models\SsoConfiguration;
 use App\Models\TenantBranding;
 use App\Models\TestInstance;
 use App\Models\User;
+use App\Observers\OrganisationUnitObserver;
 use App\Policies\AiConfigurationPolicy;
 use App\Policies\AiInteractionPolicy;
 use App\Policies\CompensatingControlPolicy;
+use App\Policies\ControlEntityPolicy;
 use App\Policies\ControlPolicy;
+use App\Policies\ControlUnitPolicy;
 use App\Policies\CrossBorderTransferPolicy;
 use App\Policies\EntityPolicy;
 use App\Policies\ExceptionActionPolicy;
@@ -90,6 +96,13 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ExceptionEscalation::class, ExceptionEscalationPolicy::class);
         Gate::policy(ExceptionResponse::class, ExceptionResponsePolicy::class);
         Gate::policy(ExceptionAction::class, ExceptionActionPolicy::class);
+        // CR2-A — the Internal Control structure.
+        Gate::policy(ControlUnit::class, ControlUnitPolicy::class);
+        Gate::policy(ControlEntity::class, ControlEntityPolicy::class);
+
+        // CR2-A: a newly created Branch unit is provisioned under Branch
+        // Control immediately, not on the next nightly sync.
+        OrganisationUnit::observe(OrganisationUnitObserver::class);
 
         $this->registerKnowledgeIndexing();
 

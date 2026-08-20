@@ -88,6 +88,10 @@ class ExceptionController extends Controller
             'status' => $request->input('owner_id') ? 'Assigned' : 'Open',
         ]);
 
+        // CR2-A: a manual raise on a shared control also tells its
+        // co-owner units.
+        $this->exceptionService->notifyRaised($exception);
+
         return redirect()->route('exceptions.show', $exception)
             ->with('success', "Exception {$exception->reference} raised.");
     }

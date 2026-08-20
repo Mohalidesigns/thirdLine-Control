@@ -129,6 +129,14 @@ class RolePermissionSeeder extends Seeder
             // configuration confers no part in the loop itself.
             'escalate exceptions', 'respond exceptions', 'review exception-responses',
             'withdraw exceptions', 'configure exception-routing',
+            // Internal control structure (CR2-A). Structure administration
+            // ('manage control-structure') is deliberately separate from
+            // control assignment ('attach control-entities') and from
+            // naming stakeholders ('manage control-stakeholders') — holding
+            // the platform keys is not the same as deciding which controls
+            // a branch runs.
+            'view control-structure', 'manage control-structure',
+            'attach control-entities', 'manage control-stakeholders',
         ];
 
         foreach ($permissions as $permission) {
@@ -147,6 +155,8 @@ class RolePermissionSeeder extends Seeder
         Role::findOrCreate('System Administrator', 'web')->syncPermissions(array_diff($all, [
             'escalate exceptions', 'respond exceptions',
             'review exception-responses', 'withdraw exceptions',
+            // CR2-A: structure admin, yes; control assignment, no.
+            'attach control-entities', 'manage control-stakeholders',
         ]));
 
         // Installing regulatory content packs changes platform-wide data, so
@@ -245,6 +255,9 @@ class RolePermissionSeeder extends Seeder
             'view sustainability', 'manage sustainability', 'prepare ghg-data',
             'manage sustainability-filings',
             'view assurance', 'manage assurance',
+            // CR2-A: the second line runs the control universe end to end.
+            'view control-structure', 'manage control-structure',
+            'attach control-entities', 'manage control-stakeholders',
         ]);
 
         Role::findOrCreate('Control Owner', 'web')->syncPermissions([
@@ -284,6 +297,9 @@ class RolePermissionSeeder extends Seeder
             // Preparing a GHG figure is a first-line act — the business
             // unit holds the meter readings. Verifying it is not.
             'view sustainability', 'prepare ghg-data',
+            // CR2-A: first line sees where its controls sit in the
+            // structure; it never reshapes the universe.
+            'view control-structure',
         ]);
 
         Role::findOrCreate('Line Manager', 'web')->syncPermissions([
@@ -306,6 +322,9 @@ class RolePermissionSeeder extends Seeder
             'view entities', 'view group-dashboard',
             // Read across the extended-GRC registers; authors none of them.
             'view objectives', 'view vendors', 'view sustainability', 'view assurance',
+            // CR2-A: a line manager reads the structure their department
+            // appears in.
+            'view control-structure',
         ]);
 
         Role::findOrCreate('Executive Viewer', 'web')->syncPermissions([

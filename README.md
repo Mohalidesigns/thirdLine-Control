@@ -358,6 +358,7 @@ and before/after JSON. A logging failure never breaks the business operation
 | `atheris:roll-up-objectives` | daily 04:00 | Recompute strategic objective progress from measures, initiatives and cascaded objectives, leaves before parents. Runs after the KRI engine so the scorecard a board opens reflects last night's readings (17.1) |
 | `atheris:refresh-assurance` | daily 05:15 | Raise an exception for every significant risk carrying no live independent assurance, so an assurance gap sits in the same queue as every other control failure rather than in a slide nobody actions (17.4) |
 | `exceptions:chase` | daily 06:30 | CR-01 chase engine: send acknowledgement/response reminders on each SLA policy's business-day offsets (idempotent — a second run the same day sends nothing), mark responses overdue, and stamp escalations past their policy threshold for the FR-8 tier ladder. Runs before the 07:00 matrix sweep so a stamped escalation climbs the same morning |
+| `control-structure:sync-branches` | daily 01:45 | CR-02 branch auto-provisioning backstop: ensure every Branch organisation unit has a control entity under Branch Control and every active template activity is instantiated under it (idempotent, add-only — the observer handles new branches immediately; this sweep also carries NEW template activities to existing branches) |
 
 Run on demand:
 
@@ -1604,6 +1605,79 @@ gains denormalised loop caches (`escalation_status`, `open_escalation_count`,
 `is_response_overdue`, `closure_type`, …) maintained by
 `ExceptionEscalationService` — the escalation rows stay the source of truth.
 BRD: FR-5.11..FR-5.20.
+
+## Internal Control Structure (CR-02)
+
+The control function organised the way the client's audit product organises
+its audit universe: three seeded, tenant-extensible sub-units
+(`control_units` — Head Office Control `HOC`, Information Systems Control
+`ISC`, Branch Control `BRC`), each holding a register of **control
+entities** (`control_entities`, `CE-…`) — the departments, IS domains,
+branches and branch activities the second line oversees. Behaviour switches
+on `control_units.domain`, never on a name string (R-B); a tenant may add
+more units (e.g. Subsidiary Control).
+
+**Three org concepts now coexist — keep the language straight.**
+`organisation_units` is the operational tree (who works where), `entities`
+is the Phase-16 legal-entity register (consolidation, residency),
+`control_entities` is the control universe (what the second line oversees).
+Control entities BRIDGE organisation units via `organisation_unit_id`; they
+never replace them (R-A) — creating a branch control entity with no bridge
+is a validation error.
+
+**Branch auto-provisioning.** Branch Control's branch list is DERIVED from
+organisation units of type Branch — never a second hand-maintained list.
+`control-structure:sync-branches` (daily, 01:45, idempotent, add-only)
+ensures every branch has a control entity and every ACTIVE template
+activity (`is_template=true` rows under `BRC`: Cash Management, Teller
+Operations, Vault, ATM, POS, Customer Account Opening, KYC, Funds Transfer,
+Clearing & Settlements, E-Business Channels) is instantiated copy-on-write
+under it. A template edit or delete never touches instantiated rows (R-C);
+a new template activity reaches existing branches on the next sync. An
+`OrganisationUnitObserver` provisions a newly created Branch immediately —
+a branch opened in Kano on Monday appears under Branch Control on Monday.
+
+**Attachment.** `control_entity_control` (with per-attachment `is_key`) is
+how every register, exception and test view scopes to the structure — a
+control may sit under MANY entities (ATM lives under ISC and under every
+branch). Detach is blocked while the control has open exceptions or tests
+in flight; deactivate the entity instead. No `entity_id` columns were
+sprayed onto existing tables.
+
+**Cross-functional stakeholders.** `control_stakeholders` adds units to a
+control (`owner` / `co_owner` / `contributor` / `consulted`, optional named
+contact). Exactly one `owner` row per control and it must agree with
+`controls.unit_id` — `ControlStructureService` keeps them in lockstep
+(R-D); `controls.unit_id`/`owner_id` stay the canonical single owner. The
+unit-scoped control register lists shared (co-owner/contributor) controls
+badged "Shared"; an exception raised on a shared control — by ANY raise
+path — notifies co-owner unit heads and named contacts through
+`NotificationDispatcher` (`control.shared.exception_raised`, not muteable;
+`control.stakeholder.added` on naming).
+
+**Surfaces.** `/control-structure` — three sub-unit cards with counts
+(entities, attached controls, open exceptions, overdue reviews) plus any
+tenant-added units; `Unit` — the register (flat sequenced list for HOC/ISC,
+searchable branch list with drill for BRC, template activity management);
+`Entity` — the profile (bridge, owner, rating, review cadence) with
+Controls / Exceptions / Tests tabs live and Risks / Trend / Investigations
+tab shells awaiting CR2-B and CR2-D. `Controls/Show` gains "Control
+structure" and "Stakeholders" panels. Nav: a "Control Structure" group
+above the flat Controls library. Widgets (`WidgetRegistry`):
+`structure_entities_by_rating`, `structure_coverage` (% of active entities
+with ≥1 key control), `structure_branch_heat`, `structure_reviews_overdue`.
+
+**Permissions.** `view control-structure` (all roles except unassigned),
+`manage control-structure` (CFH, Control Officer, System Administrator),
+`attach control-entities` and `manage control-stakeholders` (CFH and
+Control Officer ONLY — structure admin is not control assignment, so the
+System Administrator holds neither).
+
+Feature flag: `control-structure`. New tables: `control_units`,
+`control_entities`, `control_entity_control`, `control_stakeholders`.
+Seeder: `ControlStructureSeeder` (Nigerian-bank taxonomy as data, R1; three
+demo branches fully provisioned, demo attachments, a demo co-owner).
+BRD: FR-13.1..FR-13.8.
 
 ## Key business rules (where they live)
 

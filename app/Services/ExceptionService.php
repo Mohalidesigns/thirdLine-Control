@@ -51,7 +51,7 @@ class ExceptionService
             ->orderByDesc('date_raised')
             ->first();
 
-        return ControlException::create([
+        return $this->notifyRaised(ControlException::create([
             'tenant_id' => $instance->tenant_id,
             'reference' => ControlException::nextReference('EXC'),
             'source_type' => 'Test',
@@ -70,7 +70,7 @@ class ExceptionService
             'status' => $control->owner_id ? 'Assigned' : 'Open',
             'is_recurring' => (bool) $prior,
             'recurrence_of_exception_id' => $prior?->id,
-        ]);
+        ]));
     }
 
     public function raiseFromFinding(Finding $finding): ControlException
@@ -86,7 +86,7 @@ class ExceptionService
 
         $spotCheck = $finding->spotCheck;
 
-        return ControlException::create([
+        return $this->notifyRaised(ControlException::create([
             'tenant_id' => $spotCheck->tenant_id,
             'reference' => ControlException::nextReference('EXC'),
             'source_type' => 'Spot Check',
@@ -103,7 +103,7 @@ class ExceptionService
             'target_closure_date' => $finding->target_date?->toDateString()
                 ?? now()->addDays($this->defaultClosureDays($finding->severity))->toDateString(),
             'status' => $finding->control?->owner_id ? 'Assigned' : 'Open',
-        ]);
+        ]));
     }
 
     /**
@@ -127,7 +127,7 @@ class ExceptionService
         $control = $rule->control;
         $severity = (string) ($template['severity'] ?? $rule->severity);
 
-        return ControlException::withoutGlobalScopes()->create([
+        return $this->notifyRaised(ControlException::withoutGlobalScopes()->create([
             'tenant_id' => $rule->tenant_id,
             'reference' => ControlException::nextReference('EXC'),
             'source_type' => 'Monitoring',
@@ -151,7 +151,7 @@ class ExceptionService
             'date_raised' => now()->toDateString(),
             'target_closure_date' => now()->addDays($this->defaultClosureDays($severity))->toDateString(),
             'status' => $control?->owner_id ? 'Assigned' : 'Open',
-        ]);
+        ]));
     }
 
     /**
@@ -191,7 +191,7 @@ class ExceptionService
 
         $finding->update(['exception_id' => $exception->id]);
 
-        return $exception;
+        return $this->notifyRaised($exception);
     }
 
     /**
@@ -230,6 +230,18 @@ class ExceptionService
         ]);
 
         $violation->update(['exception_id' => $exception->id]);
+
+        return $this->notifyRaised($exception);
+    }
+
+    /**
+     * CR2-A (CR2A.4): every raise path tells the co-owner units of a
+     * shared control that it failed. Fire-and-log — a notification
+     * hiccup never blocks the raise itself.
+     */
+    public function notifyRaised(ControlException $exception): ControlException
+    {
+        app(ControlStructureService::class)->notifySharedExceptionRaised($exception);
 
         return $exception;
     }
