@@ -76,6 +76,9 @@ class FeatureFlagSeeder extends Seeder
 
         // CR-01 — Exception Manager
         'exception-manager' => 'Departmental exception escalation: fan-out issue, on-the-record responses, review/re-issue rounds, SLA chase and closure',
+
+        // CR-02 — Internal control structure
+        'control-structure' => 'The Internal Control sub-units and control universe: control entities, branch auto-provisioning, control attachment and cross-functional stakeholders',
     ];
 
     /**

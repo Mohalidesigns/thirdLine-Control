@@ -77,6 +77,10 @@ class DatabaseSeeder extends Seeder
             // rule and a demo register exercising the full issue → respond →
             // review → re-issue → close loop.
             ExceptionManagerDemoSeeder::class,
+            // CR2-A: the Internal Control sub-units and control universe.
+            // Runs after the demo data so it can attach the demo controls
+            // to branch activities and name a co-owner stakeholder.
+            ControlStructureSeeder::class,
         ]);
     }
 }

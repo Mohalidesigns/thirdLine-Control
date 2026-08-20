@@ -53,6 +53,9 @@ export default function Show({
     assessments = [],
     designRatings = [],
     operatingRatings = [],
+    stakeholderUnits = [],
+    stakeholderUsers = [],
+    stakeholderRoles = [],
     can = {},
 }) {
     const [tab, setTab] = useState('Overview');
@@ -317,6 +320,39 @@ export default function Show({
                                 )}
                             </div>
                         </div>
+
+                        {can.viewStructure && (
+                            <div className="card">
+                                <div className="card-header"><h3 className="text-sm font-semibold">Control structure</h3></div>
+                                <div className="card-body">
+                                    {(control.control_entities ?? []).length ? (
+                                        <ul className="space-y-2">
+                                            {control.control_entities.map((entity) => (
+                                                <li key={entity.id} className="text-sm">
+                                                    <Link href={route('control-structure.entity', entity.id)} className="flex items-center justify-between gap-2 hover:underline">
+                                                        <span className="truncate text-[var(--color-primary)]">{entity.name}</span>
+                                                        <span className="flex shrink-0 items-center gap-1.5 text-xs text-gray-400">
+                                                            {entity.control_unit?.code}
+                                                            {entity.pivot?.is_key ? <span className="badge badge-status-active">Key</span> : null}
+                                                        </span>
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <p className="text-sm text-gray-400">Not attached to any control entity yet.</p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        <StakeholderPanel
+                            control={control}
+                            units={stakeholderUnits}
+                            users={stakeholderUsers}
+                            roles={stakeholderRoles}
+                            canManage={can.manageStakeholders}
+                        />
 
                         {improvements.length > 0 && (
                             <div className="card">
@@ -585,5 +621,107 @@ export default function Show({
                 </form>
             </Modal>
         </AuthenticatedLayout>
+    );
+}
+
+/**
+ * CR2-A: cross-functional stakeholders. The owner row mirrors the
+ * control's owning unit and is managed by reassigning the control; the
+ * panel adds and removes co-owners, contributors and consulted units.
+ */
+function StakeholderPanel({ control, units, users, roles, canManage }) {
+    const [adding, setAdding] = useState(false);
+    const form = useForm({ organisation_unit_id: '', role: 'co_owner', user_id: '', notes: '' });
+
+    const stakeholders = control.stakeholders ?? [];
+    const takenUnitIds = stakeholders.map((s) => s.organisation_unit_id);
+
+    const submit = (e) => {
+        e.preventDefault();
+        form.post(route('controls.stakeholders.store', control.id), {
+            preserveScroll: true,
+            onSuccess: () => { form.reset(); setAdding(false); },
+        });
+    };
+
+    if (!canManage && stakeholders.length === 0) return null;
+
+    return (
+        <div className="card">
+            <div className="card-header flex items-center justify-between">
+                <h3 className="text-sm font-semibold">Stakeholders</h3>
+                {canManage && (
+                    <button type="button" className="text-xs font-medium text-[var(--color-primary)] hover:underline" onClick={() => setAdding(!adding)}>
+                        {adding ? 'Close' : 'Add unit'}
+                    </button>
+                )}
+            </div>
+            <div className="card-body space-y-3">
+                {stakeholders.length ? (
+                    <ul className="space-y-2">
+                        {stakeholders.map((stakeholder) => (
+                            <li key={stakeholder.id} className="flex items-center justify-between gap-2 text-sm">
+                                <span className="truncate">
+                                    {stakeholder.organisation_unit?.name}
+                                    {stakeholder.contact && (
+                                        <span className="ml-1.5 text-xs text-gray-400">· {stakeholder.contact.name}</span>
+                                    )}
+                                </span>
+                                <span className="flex shrink-0 items-center gap-2">
+                                    <span className={`badge ${stakeholder.role === 'owner' ? 'badge-status-active' : 'badge-status-pending'}`}>
+                                        {stakeholder.role.replaceAll('_', '-')}
+                                    </span>
+                                    {canManage && stakeholder.role !== 'owner' && (
+                                        <button
+                                            type="button"
+                                            className="text-xs font-medium text-red-600 hover:underline"
+                                            onClick={() => router.delete(route('controls.stakeholders.destroy', [control.id, stakeholder.id]), { preserveScroll: true })}
+                                        >
+                                            Remove
+                                        </button>
+                                    )}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="text-sm text-gray-400">
+                        No stakeholder units — this control's risk sits with its owning unit alone.
+                    </p>
+                )}
+
+                {adding && (
+                    <form onSubmit={submit} className="space-y-3 border-t border-gray-100 pt-3">
+                        <div>
+                            <InputLabel value="Unit" required />
+                            <SelectInput value={form.data.organisation_unit_id} onChange={(e) => form.setData('organisation_unit_id', e.target.value)}>
+                                <option value="">— select —</option>
+                                {units.filter((u) => !takenUnitIds.includes(u.id)).map((u) => (
+                                    <option key={u.id} value={u.id}>{u.name}</option>
+                                ))}
+                            </SelectInput>
+                            <InputError message={form.errors.organisation_unit_id} />
+                        </div>
+                        <div>
+                            <InputLabel value="Role" required />
+                            <SelectInput value={form.data.role} onChange={(e) => form.setData('role', e.target.value)}>
+                                {roles.map((r) => <option key={r} value={r}>{r.replaceAll('_', '-')}</option>)}
+                            </SelectInput>
+                            <InputError message={form.errors.role} />
+                        </div>
+                        <div>
+                            <InputLabel value="Named contact (optional)" />
+                            <SelectInput value={form.data.user_id} onChange={(e) => form.setData('user_id', e.target.value || '')}>
+                                <option value="">— unit head —</option>
+                                {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+                            </SelectInput>
+                        </div>
+                        <div className="flex justify-end">
+                            <PrimaryButton disabled={form.processing || !form.data.organisation_unit_id}>Add stakeholder</PrimaryButton>
+                        </div>
+                    </form>
+                )}
+            </div>
+        </div>
     );
 }

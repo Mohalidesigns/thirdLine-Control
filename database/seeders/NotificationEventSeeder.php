@@ -274,6 +274,23 @@ class NotificationEventSeeder extends Seeder
             'default_channels' => ['in_app', 'email'],
             'is_user_configurable' => true,
         ],
+        // CR2-A — Internal control structure: cross-functional controls.
+        [
+            'key' => 'control.stakeholder.added',
+            'label' => 'Your unit named a stakeholder on a control',
+            'description' => 'Your unit was added as a co-owner, contributor or consulted party on a shared control.',
+            'category' => 'control-structure',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => true,
+        ],
+        [
+            'key' => 'control.shared.exception_raised',
+            'label' => 'Shared control failed',
+            'description' => 'An exception was raised on a control your unit co-owns. Not muteable — a co-owner cannot silence a failure it shares responsibility for.',
+            'category' => 'control-structure',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => false,
+        ],
     ];
 
     public function run(): void

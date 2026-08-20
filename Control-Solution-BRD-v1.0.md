@@ -272,6 +272,19 @@ The scope deliberately favours operational discipline over analytical sophistica
 | FR-12.7 | Single sign-on via SAML 2.0 / OIDC, with MFA support | Should |
 | FR-12.8 | Session timeout, password policy, and account lockout aligned to CBN IT standards | Must |
 
+### Module 13 — Internal Control Structure (CR-02)
+
+| ID | Requirement | Priority |
+| :---- | :---- | :---- |
+| FR-13.1 | Organise the Internal Control function as seeded, tenant-extensible sub-units (Head Office Control, Information Systems Control, Branch Control), each holding a register of control entities; behaviour keys on the sub-unit's domain, never its name | Must |
+| FR-13.2 | Maintain a control-entity register per sub-unit (departments, IS control domains, branches, branch activities) with reference, second-line relationship officer, risk rating, review cadence and an explicit bridge to the operational organisation-unit tree; the control universe never replaces the operational tree or the legal-entity register | Must |
+| FR-13.3 | Derive Branch Control's branch list from organisation units of type Branch, auto-provisioning a control entity and the active template activities for every branch — immediately on branch creation, and via an idempotent, add-only daily sync; template instantiation is copy-on-write and template edits never rewrite instantiated rows | Must |
+| FR-13.4 | Attach controls to control entities singly or in bulk with a per-attachment key-control flag; one control may sit under many entities; detachment is blocked while the control has open exceptions or tests in flight | Must |
+| FR-13.5 | Record cross-functional stakeholder units on a control (owner, co-owner, contributor, consulted, with optional named contact); exactly one owner stakeholder, kept in lockstep with the control's owning unit; co-owner and contributor units see the control in their unit's register, badged as shared | Must |
+| FR-13.6 | Notify co-owner unit heads and named contacts when an exception is raised on a shared control, through the standard notification dispatcher, on every raise path | Must |
+| FR-13.7 | Provide the structure as the product's front door: sub-unit cards with entity/control/exception/review counts, per-unit registers with branch drill-down, and an entity profile aggregating attached controls, their exceptions and their tests | Must |
+| FR-13.8 | Gate the structure behind dedicated permissions separating structure administration from control assignment: view/manage control-structure, attach control-entities, manage control-stakeholders; the System Administrator manages structure but never assigns controls or stakeholders | Must |
+
 ---
 
 ## 6\. Non-Functional Requirements

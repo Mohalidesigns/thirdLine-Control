@@ -22,6 +22,7 @@ use App\Http\Controllers\ContentPackController;
 use App\Http\Controllers\ControlController;
 use App\Http\Controllers\ControlDistributionController;
 use App\Http\Controllers\ControlRequirementMapController;
+use App\Http\Controllers\ControlStructureController;
 use App\Http\Controllers\CsaCampaignController;
 use App\Http\Controllers\CsaResponseController;
 use App\Http\Controllers\DashboardBuilderController;
@@ -208,6 +209,37 @@ Route::middleware('auth')->group(function () {
     Route::middleware('feature:notification-preferences')->group(function () {
         Route::get('settings/notifications', [NotificationPreferenceController::class, 'edit'])->name('settings.notifications');
         Route::put('settings/notifications', [NotificationPreferenceController::class, 'update'])->name('settings.notifications.update');
+    });
+
+    // ── Internal control structure (CR2-A) ───────────────────────────
+    // The three sub-units and the control universe under them. Structure
+    // admin ('manage control-structure') and control assignment ('attach
+    // control-entities' / 'manage control-stakeholders') are separate
+    // authorities — the route gates mirror that split.
+    Route::middleware('feature:control-structure')->group(function () {
+        Route::middleware('permission:view control-structure')->group(function () {
+            Route::get('control-structure', [ControlStructureController::class, 'index'])->name('control-structure.index');
+            Route::get('control-structure/units/{controlUnit}', [ControlStructureController::class, 'unit'])->name('control-structure.unit');
+            Route::get('control-structure/entities/{controlEntity}', [ControlStructureController::class, 'entity'])->name('control-structure.entity');
+        });
+
+        Route::middleware('permission:manage control-structure')->group(function () {
+            Route::post('control-structure/units', [ControlStructureController::class, 'storeUnit'])->name('control-structure.units.store');
+            Route::put('control-structure/units/{controlUnit}', [ControlStructureController::class, 'updateUnit'])->name('control-structure.units.update');
+            Route::post('control-structure/entities', [ControlStructureController::class, 'storeEntity'])->name('control-structure.entities.store');
+            Route::put('control-structure/entities/{controlEntity}', [ControlStructureController::class, 'updateEntity'])->name('control-structure.entities.update');
+            Route::delete('control-structure/entities/{controlEntity}', [ControlStructureController::class, 'deactivateEntity'])->name('control-structure.entities.deactivate');
+        });
+
+        Route::middleware('permission:attach control-entities')->group(function () {
+            Route::post('control-structure/entities/{controlEntity}/controls', [ControlStructureController::class, 'attachControls'])->name('control-structure.entities.attach');
+            Route::delete('control-structure/entities/{controlEntity}/controls/{control}', [ControlStructureController::class, 'detachControl'])->name('control-structure.entities.detach');
+        });
+
+        Route::middleware('permission:manage control-stakeholders')->group(function () {
+            Route::post('controls/{control}/stakeholders', [ControlStructureController::class, 'addStakeholder'])->name('controls.stakeholders.store');
+            Route::delete('controls/{control}/stakeholders/{stakeholder}', [ControlStructureController::class, 'removeStakeholder'])->name('controls.stakeholders.destroy');
+        });
     });
 
     // ── Control library ──────────────────────────────────────────────

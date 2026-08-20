@@ -73,3 +73,9 @@ Schedule::command('atheris:roll-up-objectives')->dailyAt('04:00');
 // matrix sweep at 07:00, so an escalation stamped for the ladder today is
 // walked by the ladder the same morning, not tomorrow.
 Schedule::command('exceptions:chase')->dailyAt('06:30');
+
+// CR2-A — the nightly backstop for branch auto-provisioning. The
+// OrganisationUnit observer provisions a new branch the moment it is
+// created; this sweep also carries NEW template activities to branches
+// that already exist (add-only, idempotent).
+Schedule::command('control-structure:sync-branches')->dailyAt('01:45');

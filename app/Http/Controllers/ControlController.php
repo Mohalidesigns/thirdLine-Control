@@ -6,6 +6,7 @@ use App\Http\Requests\ControlRequest;
 use App\Models\BusinessProcess;
 use App\Models\Control;
 use App\Models\ControlCategory;
+use App\Models\ControlStakeholder;
 use App\Models\ImprovementAction;
 use App\Models\OrganisationUnit;
 use App\Models\User;
@@ -40,7 +41,14 @@ class ControlController extends Controller
             // filter the aggregate emits but the list ignores is drift.
             ->when($request->overall, fn ($q, $o) => $q->where('overall_rating', $o))
             ->when($request->category_id, fn ($q, $c) => $q->where('category_id', $c))
-            ->when($request->unit_id, fn ($q, $u) => $q->where('unit_id', $u))
+            // CR2A.4: the unit-scoped register also lists controls SHARED
+            // with the unit (co-owner / contributor stakeholder), badged
+            // "Shared" in the UI. Consulted units see nothing extra.
+            ->when($request->unit_id, fn ($q, $u) => $q->where(fn ($w) => $w
+                ->where('unit_id', $u)
+                ->orWhereHas('stakeholders', fn ($s) => $s
+                    ->where('organisation_unit_id', $u)
+                    ->whereIn('role', ControlStakeholder::SHARED_ROLES))))
             ->when($request->library_level, fn ($q, $l) => $q->where('library_level', $l))
             ->when($request->function_grouping, fn ($q, $g) => $q->where('function_grouping', $g))
             ->when($request->control_level, fn ($q, $l) => $q->where('control_level', $l))
@@ -54,8 +62,20 @@ class ControlController extends Controller
 
         $statsBase = Control::query()->where('is_template', false);
 
+        $controls = $query->orderBy('control_ref')->paginate(15)->withQueryString();
+
+        // Flag rows that appear in the unit filter only through a
+        // stakeholder share, so the register can badge them.
+        if ($request->unit_id) {
+            $controls->getCollection()->transform(function (Control $control) use ($request) {
+                $control->setAttribute('is_shared', (int) $control->unit_id !== (int) $request->unit_id);
+
+                return $control;
+            });
+        }
+
         return Inertia::render('Controls/Index', [
-            'controls' => $query->orderBy('control_ref')->paginate(15)->withQueryString(),
+            'controls' => $controls,
             'filters' => $request->only(['search', 'status', 'type', 'nature', 'design', 'operating', 'category_id', 'unit_id',
                 'library_level', 'function_grouping', 'control_level', 'implementation_status']),
             'categories' => ControlCategory::available()->orderBy('name')->get(['id', 'name']),
@@ -106,6 +126,10 @@ class ControlController extends Controller
         $control->load([
             'category', 'process', 'unit', 'owner', 'creator', 'approver',
             'versions.author', 'risks', 'testScripts.checkItems',
+            // CR2-A: the structure panel and the stakeholders panel.
+            'controlEntities.controlUnit:id,code,name',
+            'stakeholders.organisationUnit:id,name,head_user_id',
+            'stakeholders.contact:id,name',
         ]);
 
         return Inertia::render('Controls/Show', [
@@ -121,11 +145,16 @@ class ControlController extends Controller
             'assessments' => $control->assessments()->with('assessor')->limit(24)->get(),
             'designRatings' => array_values(array_diff(Control::DESIGN_RATINGS, ['Not Assessed'])),
             'operatingRatings' => array_values(array_diff(Control::OPERATING_RATINGS, ['Not Tested'])),
+            'stakeholderUnits' => OrganisationUnit::orderBy('name')->get(['id', 'name']),
+            'stakeholderUsers' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'stakeholderRoles' => array_values(array_diff(ControlStakeholder::ROLES, ['owner'])),
             'can' => [
                 'update' => auth()->user()->can('update', $control),
                 'approve' => auth()->user()->can('approve', $control),
                 'retire' => auth()->user()->can('retire', $control),
                 'assess' => auth()->user()->can('assess', $control),
+                'manageStakeholders' => auth()->user()->can('manage control-stakeholders'),
+                'viewStructure' => auth()->user()->can('view control-structure'),
             ],
         ]);
     }

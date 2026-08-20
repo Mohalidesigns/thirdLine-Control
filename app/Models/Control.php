@@ -206,6 +206,22 @@ class Control extends Model
         return $query->whereDoesntHave('risks')->where('is_template', false);
     }
 
+    // ── Internal control structure (CR2-A) ───────────────────────────
+
+    /** Control-universe entities this control is attached to. */
+    public function controlEntities(): BelongsToMany
+    {
+        return $this->belongsToMany(ControlEntity::class, 'control_entity_control')
+            ->withPivot(['id', 'tenant_id', 'is_key'])
+            ->withTimestamps();
+    }
+
+    /** Cross-functional stakeholder units (owner / co_owner / contributor / consulted). */
+    public function stakeholders(): HasMany
+    {
+        return $this->hasMany(ControlStakeholder::class);
+    }
+
     // ── Group vs entity library (Phase 9.1) ──────────────────────────
 
     /** The group master this entity control was distributed from. */

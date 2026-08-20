@@ -56,6 +56,15 @@ class OrganisationUnit extends Model
     }
 
     /**
+     * Control-universe rows bridged to this operational unit (CR2-A) —
+     * for a Branch, the control entity Branch Control derives from it.
+     */
+    public function controlEntities(): HasMany
+    {
+        return $this->hasMany(ControlEntity::class, 'organisation_unit_id');
+    }
+
+    /**
      * Fiscal year end for this entity, falling back to the tenant's
      * fiscal_year_start_month (R7 — never assume a December year end).
      */
