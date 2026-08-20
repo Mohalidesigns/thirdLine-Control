@@ -6,7 +6,6 @@ use App\Models\AiConfiguration;
 use App\Models\AiInteraction;
 use App\Models\Control;
 use App\Models\ControlException;
-use App\Models\Tenant;
 use App\Models\User;
 use App\Services\Ai\BudgetService;
 use App\Services\Ai\CapabilityRegistry;
@@ -36,9 +35,11 @@ use Spatie\Permission\Models\Role;
  */
 class Phase14AiSeeder extends Seeder
 {
+    use Concerns\ResolvesDemoTenant;
+
     public function run(): void
     {
-        $tenant = Tenant::first();
+        $tenant = $this->demoTenant();
 
         if (! $tenant) {
             return;

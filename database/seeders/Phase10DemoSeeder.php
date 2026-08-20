@@ -27,9 +27,11 @@ use Illuminate\Database\Seeder;
  */
 class Phase10DemoSeeder extends Seeder
 {
+    use Concerns\ResolvesDemoTenant;
+
     public function run(): void
     {
-        $tenant = Tenant::firstOrFail();
+        $tenant = $this->demoTenantOrFail();
         $tid = $tenant->id;
 
         $cfh = User::withoutGlobalScopes()->where('email', 'cfh@secondline.test')->first();

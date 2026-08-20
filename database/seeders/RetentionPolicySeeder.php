@@ -3,11 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\RetentionPolicy;
-use App\Models\Tenant;
 use Illuminate\Database\Seeder;
 
 class RetentionPolicySeeder extends Seeder
 {
+    use Concerns\ResolvesDemoTenant;
+
     /**
      * Placeholder policies — the BRD is explicit that actual retention
      * periods are a client DPO decision (§12), so these are illustrative
@@ -15,7 +16,7 @@ class RetentionPolicySeeder extends Seeder
      */
     public function run(): void
     {
-        $tenant = Tenant::firstOrFail();
+        $tenant = $this->demoTenantOrFail();
 
         $policies = [
             ['General Test Evidence', 'General', 72, 'Delete', true, 'Statutory record-keeping for financial institutions — confirm with DPO.', true],

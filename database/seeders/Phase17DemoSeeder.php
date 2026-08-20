@@ -16,7 +16,6 @@ use App\Models\ObjectiveMetric;
 use App\Models\Risk;
 use App\Models\SustainabilityFiling;
 use App\Models\SustainabilityTopic;
-use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VendorAssessment;
@@ -43,9 +42,11 @@ use Illuminate\Database\Seeder;
  */
 class Phase17DemoSeeder extends Seeder
 {
+    use Concerns\ResolvesDemoTenant;
+
     public function run(): void
     {
-        $tenant = Tenant::first();
+        $tenant = $this->demoTenant();
 
         if (! $tenant) {
             return;

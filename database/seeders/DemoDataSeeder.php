@@ -11,7 +11,6 @@ use App\Models\EffectivenessRating;
 use App\Models\OrganisationUnit;
 use App\Models\RatingMatrixEntry;
 use App\Models\Risk;
-use App\Models\Tenant;
 use App\Models\TestInstance;
 use App\Models\TestScript;
 use App\Models\User;
@@ -20,9 +19,11 @@ use Illuminate\Support\Carbon;
 
 class DemoDataSeeder extends Seeder
 {
+    use Concerns\ResolvesDemoTenant;
+
     public function run(): void
     {
-        $tenant = Tenant::firstOrFail();
+        $tenant = $this->demoTenantOrFail();
         $tid = $tenant->id;
 
         $cfh = User::where('email', 'cfh@secondline.test')->first();
