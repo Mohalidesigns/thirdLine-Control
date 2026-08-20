@@ -28,3 +28,18 @@ jobs:
     steps:
       - name: Run deploy script
         run: /usr/local/bin/control-deploy main
+
+      # Reference data lives in idempotent seeders, never in migrations
+      # (syncPermissions() wipes migration-time grants), so a deploy that
+      # only migrates leaves new feature flags, permissions and seeded
+      # taxonomies missing — which is exactly how CR2-A shipped dark.
+      # These four are safe to re-run on every deploy.
+      - name: Seed reference data (idempotent)
+        run: |
+          cd /var/www/control
+          /usr/bin/php artisan db:seed --class=RolePermissionSeeder --force
+          /usr/bin/php artisan db:seed --class=FeatureFlagSeeder --force
+          /usr/bin/php artisan db:seed --class=NotificationEventSeeder --force
+          /usr/bin/php artisan db:seed --class=ControlStructureSeeder --force
+          /usr/bin/php artisan permission:cache-reset
+          chown -R www-data:www-data storage bootstrap/cache
