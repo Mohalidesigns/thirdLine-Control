@@ -5,7 +5,7 @@ export default function GuestLayout({ children }) {
 
     const backgroundStyle = branding?.login_background_url
         ? {
-              backgroundImage: `linear-gradient(rgba(11, 31, 58, 0.85), rgba(11, 31, 58, 0.85)), url(${branding.login_background_url})`,
+              backgroundImage: `linear-gradient(rgba(26, 54, 93, 0.85), rgba(26, 54, 93, 0.85)), url(${branding.login_background_url})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
           }

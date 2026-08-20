@@ -8,9 +8,28 @@
    AEGIS design tokens — Atheris Control Solution (SecondLine)
    ============================================================ */
 :root {
-    --color-primary: #0B1F3A;
-    --color-primary-light: #16324F;
-    --color-primary-dark: #061426;
+    /* ── Brand navy scale — #1A365D base ─────────────────────────────
+       The ONLY navy in the product. Components reference the tokens
+       (or the --color-primary aliases below), never a raw hex.
+       tailwind.config.js mirrors this scale as the `navy` colour. */
+    --navy-50:  #F0F4F9;
+    --navy-100: #D9E2EF;
+    --navy-200: #B3C4DD;
+    --navy-300: #7F9AC0;
+    --navy-400: #4A6D9E;
+    --navy-500: #2A4E7E;
+    --navy-600: #1A365D;  /* base — the brand navy */
+    --navy-700: #152C4C;
+    --navy-800: #10223A;
+    --navy-900: #0B1727;
+    --navy:        var(--navy-600);
+    --navy-hover:  var(--navy-700);
+    --navy-subtle: var(--navy-50);
+
+    --color-primary: var(--navy-600);
+    /* Historical name — this is the hover/pressed shade of primary. */
+    --color-primary-light: var(--navy-700);
+    --color-primary-dark: var(--navy-800);
     --color-secondary: #2D7D46;
     --color-secondary-light: #38A169;
     --color-accent: #C9A227;
@@ -124,15 +143,15 @@ body {
         @apply mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between;
     }
     .page-title {
-        @apply text-2xl font-bold text-[var(--color-text-primary)];
+        @apply text-2xl font-bold text-[var(--navy-800)];
     }
 
     /* Buttons */
     .btn-primary {
-        @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--color-primary-light)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+        @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--color-primary-light)] focus:outline-none focus:ring-2 focus:ring-navy-400/40 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
     }
     .btn-secondary {
-        @apply inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+        @apply inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-navy-400/40 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
     }
     .btn-success {
         @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--color-success)] px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--color-secondary-light)] focus:outline-none focus:ring-2 focus:ring-[var(--color-success)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
@@ -183,7 +202,7 @@ body {
         @apply min-w-full divide-y divide-gray-200 text-sm;
     }
     .data-table thead th {
-        @apply bg-gray-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500;
+        @apply bg-[var(--navy-50)] px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[var(--navy-800)];
     }
     .data-table tbody td {
         @apply px-4 py-3 align-middle text-gray-700;
@@ -197,10 +216,10 @@ body {
         @apply mb-1 block text-sm font-medium text-gray-700;
     }
     .form-input {
-        @apply block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)];
+        @apply block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-[var(--navy-500)] focus:ring-[var(--navy-400)];
     }
     .form-select {
-        @apply block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)];
+        @apply block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-[var(--navy-500)] focus:ring-[var(--navy-400)];
     }
 
     /* Filter bar */
@@ -217,10 +236,10 @@ body {
         @apply mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500;
     }
     .filter-bar-input {
-        @apply rounded-lg border-gray-300 text-sm shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)];
+        @apply rounded-lg border-gray-300 text-sm shadow-sm focus:border-[var(--navy-500)] focus:ring-[var(--navy-400)];
     }
     .filter-bar-select {
-        @apply rounded-lg border-gray-300 text-sm shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)];
+        @apply rounded-lg border-gray-300 text-sm shadow-sm focus:border-[var(--navy-500)] focus:ring-[var(--navy-400)];
     }
     .filter-bar-reset {
         @apply text-sm font-medium text-[var(--color-primary)] underline-offset-2 hover:underline;

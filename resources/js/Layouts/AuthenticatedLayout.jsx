@@ -113,8 +113,8 @@ function SidebarLink({ item, active, collapsed, topLevel = false }) {
                 collapsed ? 'justify-center px-2 py-2.5' : `py-2 ${topLevel ? 'px-3' : 'ps-[2.375rem] pe-3'}`
             } ${
                 active
-                    ? 'border-l-[3px] border-[var(--color-accent)] bg-white/10 text-white'
-                    : 'border-l-[3px] border-transparent text-white/70 hover:bg-white/5 hover:text-white'
+                    ? 'border-l-2 border-[var(--color-accent)] bg-[var(--navy-500)] text-white'
+                    : 'border-l-2 border-transparent text-white/70 hover:bg-[var(--navy-700)] hover:text-white'
             }`}
         >
             {(collapsed || topLevel) && (
@@ -153,7 +153,7 @@ function SidebarGroup({ group, activeItem, open, onToggle, collapsed }) {
                     aria-expanded={flyout}
                     onClick={() => setFlyout((value) => !value)}
                     className={`flex w-full items-center justify-center rounded-lg px-2 py-2.5 transition-colors ${
-                        containsActive ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'
+                        containsActive ? 'bg-[var(--navy-500)] text-white' : 'text-white/60 hover:bg-[var(--navy-700)] hover:text-white'
                     }`}
                 >
                     <GroupIcon className="h-5 w-5" strokeWidth={1.7} aria-hidden="true" />
@@ -184,7 +184,7 @@ function SidebarGroup({ group, activeItem, open, onToggle, collapsed }) {
                 onClick={onToggle}
                 className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[11px] font-semibold uppercase tracking-widest transition-colors ${
                     containsActive && !open ? 'text-white' : 'text-white/50'
-                } hover:bg-white/5 hover:text-white`}
+                } hover:bg-[var(--navy-700)] hover:text-white`}
             >
                 <GroupIcon className="h-4 w-4 shrink-0" strokeWidth={1.7} aria-hidden="true" />
                 <span className="flex-1 truncate text-start">{group.label}</span>

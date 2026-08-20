@@ -21,7 +21,7 @@ use PhpOffice\PhpWord\Style\Tab;
  */
 class WordEngine implements ReportEngine
 {
-    private const NAVY = '0B1F3A';
+    private const NAVY = '1A365D';
 
     private const GOLD = 'C9A227';
 

@@ -5,7 +5,7 @@
     <title>{{ $template['name'] }}</title>
     <style>
         @php
-            $brandPrimary = $branding->primary_colour ?? '#0B1F3A';
+            $brandPrimary = $branding->primary_colour ?? '#1A365D';
             $brandAccent = $branding->accent_colour ?? '#C9A227';
         @endphp
         * { box-sizing: border-box; }
@@ -27,7 +27,7 @@
         .sev-Low { background: #C6F6D5; color: #2D7D46; }
         .stat-row { width: 100%; margin-bottom: 12px; }
         .stat { display: inline-block; width: 23%; background: #F7FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 8px; margin-right: 1%; text-align: center; }
-        .stat .value { font-size: 18px; font-weight: bold; color: #0B1F3A; }
+        .stat .value { font-size: 18px; font-weight: bold; color: #1A365D; }
         .stat .label { font-size: 7.5px; text-transform: uppercase; color: #718096; }
         .footer { position: fixed; bottom: 0; left: 0; right: 0; padding: 8px 24px; font-size: 8px; color: #A0AEC0; border-top: 1px solid #E2E8F0; }
         .mono { font-family: DejaVu Sans Mono, monospace; font-size: 8.5px; }

@@ -165,7 +165,7 @@ class PresentationWriter
                 'text' => (string) $block['text'],
                 'size' => $size,
                 'bold' => true,
-                'colour' => $block['colour'] ?? '0B1F3A',
+                'colour' => $block['colour'] ?? '1A365D',
             ]],
             $block['align'] ?? 'l',
         );
@@ -311,7 +311,7 @@ class PresentationWriter
             .'<a:latin typeface="Calibri"/></a:rPr>'
             .'<a:t>'.$this->escape($text).'</a:t></a:r></a:p></a:txBody>'
             .'<a:tcPr marL="45720" marR="45720" marT="27432" marB="27432" anchor="ctr">'
-            .'<a:solidFill><a:srgbClr val="'.($header ? '0B1F3A' : 'FFFFFF').'"/></a:solidFill>'
+            .'<a:solidFill><a:srgbClr val="'.($header ? '1A365D' : 'FFFFFF').'"/></a:solidFill>'
             .'</a:tcPr></a:tc>';
     }
 
@@ -538,7 +538,7 @@ class PresentationWriter
             .'<a:clrScheme name="Atheris">'
             .'<a:dk1><a:sysClr val="windowText" lastClr="000000"/></a:dk1>'
             .'<a:lt1><a:sysClr val="window" lastClr="FFFFFF"/></a:lt1>'
-            .'<a:dk2><a:srgbClr val="0B1F3A"/></a:dk2>'
+            .'<a:dk2><a:srgbClr val="1A365D"/></a:dk2>'
             .'<a:lt2><a:srgbClr val="F7FAFC"/></a:lt2>'
             .'<a:accent1><a:srgbClr val="'.$accent(0, '2A78D6').'"/></a:accent1>'
             .'<a:accent2><a:srgbClr val="'.$accent(1, 'EB6834').'"/></a:accent2>'
@@ -546,7 +546,7 @@ class PresentationWriter
             .'<a:accent4><a:srgbClr val="'.$accent(3, 'EDA100').'"/></a:accent4>'
             .'<a:accent5><a:srgbClr val="'.$accent(4, 'E87BA4').'"/></a:accent5>'
             .'<a:accent6><a:srgbClr val="'.$accent(5, '008300').'"/></a:accent6>'
-            .'<a:hlink><a:srgbClr val="0B1F3A"/></a:hlink>'
+            .'<a:hlink><a:srgbClr val="1A365D"/></a:hlink>'
             .'<a:folHlink><a:srgbClr val="718096"/></a:folHlink>'
             .'</a:clrScheme>'
             .'<a:fontScheme name="Atheris">'

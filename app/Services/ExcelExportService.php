@@ -24,7 +24,7 @@ class ExcelExportService
 
         $headerRange = 'A1:'.$sheet->getCell([count($headings), 1])->getCoordinate();
         $sheet->getStyle($headerRange)->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
-        $sheet->getStyle($headerRange)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('0B1F3A');
+        $sheet->getStyle($headerRange)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('1A365D');
 
         $rowIndex = 2;
         foreach ($rows as $row) {
