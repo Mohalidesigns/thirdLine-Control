@@ -1,0 +1,95 @@
+{
+    "code": "KE-POCAMLA",
+    "name": "Proceeds of Crime and Anti-Money Laundering Act (POCAMLA)",
+    "version": "1.0.0",
+    "jurisdiction": "KE",
+    "issuing_body": "Financial Reporting Centre (Kenya)",
+    "effective_from": "2010-06-28",
+    "source_url": "https://www.frc.go.ke",
+    "verification_status": "draft",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "This pack ships as DRAFT — requirement shells only, no obligations. Nothing in it has been verified against the Act or the Regulations, and its records are excluded from generated regulatory submissions. Reporting thresholds, filing windows, retention periods and penalties are all unconfirmed and are deliberately not seeded. Previously POCAMLA was covered only as a line inside the CBK prudential guidelines pack; it is separated here because it binds reporting institutions beyond the banks the CBK supervises. Verify before selling or relying on this content in-market (rule R10).",
+    "regulator": {
+        "code": "KE-FRC",
+        "name": "Financial Reporting Centre (Kenya)",
+        "jurisdiction": "KE",
+        "sector": [
+            "banking",
+            "insurance",
+            "all"
+        ],
+        "website": "https://www.frc.go.ke",
+        "is_active": true
+    },
+    "framework": {
+        "code": "KE-POCAMLA",
+        "name": "Proceeds of Crime and Anti-Money Laundering Act",
+        "issuing_body": "Financial Reporting Centre (Kenya)",
+        "jurisdiction": "KE",
+        "version": "1.0.0",
+        "category": "sector",
+        "effective_from": "2010-06-28",
+        "is_certifiable": false,
+        "source_url": "https://www.frc.go.ke",
+        "verification_status": "draft",
+        "description": "Kenya's anti-money-laundering statute for reporting institutions: customer due diligence, record keeping, reporting to the Financial Reporting Centre, and an internal AML compliance function."
+    },
+    "requirements": [
+        {
+            "ref_code": "CDD",
+            "title": "Customer due diligence and beneficial ownership",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Continuous",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "MON",
+            "title": "Ongoing monitoring of business relationships",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Continuous",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "RPT",
+            "title": "Suspicious transaction and cash transaction reporting to the FRC",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Continuous",
+            "verification_status": "draft",
+            "guidance": "Reporting thresholds and filing windows are unconfirmed; no obligation is seeded until they are."
+        },
+        {
+            "ref_code": "REC",
+            "title": "Record keeping and retention",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Continuous",
+            "verification_status": "draft",
+            "guidance": "The retention period is unconfirmed."
+        },
+        {
+            "ref_code": "CMP",
+            "title": "AML compliance function, training and internal controls",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "section",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        }
+    ],
+    "obligations": [],
+    "controls": [],
+    "mappings": []
+}

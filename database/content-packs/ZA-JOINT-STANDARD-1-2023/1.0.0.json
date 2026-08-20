@@ -1,0 +1,102 @@
+{
+    "code": "ZA-JOINT-STANDARD-1-2023",
+    "name": "Joint Standard 1 of 2023 — Information Technology Governance and Risk Management",
+    "version": "1.0.0",
+    "jurisdiction": "ZA",
+    "issuing_body": "Prudential Authority (South African Reserve Bank)",
+    "effective_from": "2024-11-15",
+    "source_url": "https://www.resbank.co.za",
+    "verification_status": "draft",
+    "verified_by": "",
+    "verified_at": null,
+    "changelog": "This pack ships as DRAFT. Nothing in it has been verified against the regulator’s primary document, and its records are excluded from generated regulatory submissions. The effective date above is a working assumption and is one of the items to confirm. Joint Standard 1 sits alongside Joint Standard 2 of 2024 on cybersecurity and cyber resilience; the two are read together. Verify before selling or relying on this content in-market (rule R10).",
+    "regulator": {
+        "code": "ZA-PA",
+        "name": "Prudential Authority (South African Reserve Bank)",
+        "jurisdiction": "ZA",
+        "sector": [
+            "banking",
+            "insurance"
+        ],
+        "website": "https://www.resbank.co.za",
+        "is_active": true
+    },
+    "framework": {
+        "code": "ZA-JOINT-STANDARD-1-2023",
+        "name": "Joint Standard 1 of 2023 — IT Governance and Risk Management",
+        "issuing_body": "Prudential Authority (South African Reserve Bank)",
+        "jurisdiction": "ZA",
+        "version": "1.0.0",
+        "category": "security",
+        "effective_from": "2024-11-15",
+        "is_certifiable": false,
+        "source_url": "https://www.resbank.co.za",
+        "verification_status": "draft",
+        "description": "Information technology governance and risk management requirements for South African financial institutions. Read together with Joint Standard 2 of 2024 on cybersecurity and cyber resilience."
+    },
+    "requirements": [
+        {
+            "ref_code": "GOV",
+            "title": "IT governance framework and board accountability",
+            "level": 1,
+            "sort_order": 1,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "STRAT",
+            "title": "IT strategy aligned to business strategy",
+            "level": 1,
+            "sort_order": 2,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "RISK",
+            "title": "IT risk management framework",
+            "level": 1,
+            "sort_order": 3,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "OPS",
+            "title": "IT operations, change and capacity management",
+            "level": 1,
+            "sort_order": 4,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "TPRM",
+            "title": "Third-party and outsourced IT arrangements",
+            "level": 1,
+            "sort_order": 5,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        },
+        {
+            "ref_code": "CONT",
+            "title": "IT continuity and disaster recovery",
+            "level": 1,
+            "sort_order": 6,
+            "requirement_type": "principle",
+            "is_testable": true,
+            "suggested_frequency": "Annual",
+            "verification_status": "draft"
+        }
+    ],
+    "obligations": [],
+    "controls": [],
+    "mappings": []
+}

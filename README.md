@@ -501,10 +501,16 @@ Behind four feature flags: `frameworks`, `obligations`, `regulatory-changes`,
   publishes one, through New → Under Review → Impact Assessed → Actioned with
   maker-checker on Actioned and links to the affected obligations and controls.
 - **Content packs** — versioned, checksummed JSON in `database/content-packs/`,
-  installed by `ContentPackInstaller`. 45 packs ship: 11 international frameworks,
-  20 Nigerian regulator packs, 13 pan-African packs and one cross-framework mapping
+  installed by `ContentPackInstaller`. 48 packs ship: 11 international frameworks,
+  20 Nigerian regulator packs, 16 pan-African packs and one cross-framework mapping
   set (30 equivalences). Installs are idempotent, produce a diff report first, and
   only ever write global rows.
+- **Cross-framework mappings** live in the single `CROSS-MAP` pack rather than in
+  each pack's own `mappings` array. An edge names both ends
+  (`from_framework`/`from_ref` → `to_framework`/`to_ref`) and carries a coverage
+  percentage and a rationale, so an equivalence is stated once instead of twice
+  and reads the same from either side. `CROSS-MAP` therefore carries no framework,
+  requirements or obligations of its own, and installs last so both ends exist.
 
 **Verification status is enforced, not advisory (R10).** Every framework,
 requirement and obligation carries `verification_status`. Only `verified` records
@@ -513,9 +519,20 @@ is the single gate, and everything else is badged "Unverified" wherever it appea
 As shipped: **COSO IC 2013, COSO ERM 2017 and the ISO 31000 principles are
 `verified`; every Nigerian pack is `unverified`; every pan-African pack is `draft`**,
 because none of those dates, thresholds or penalties has yet been confirmed against
-the regulator's primary document. The 13 known-unverified research items are
-recorded in each pack's `changelog`. Verifying them is the phase-8 research backlog,
-not a code change.
+the regulator's primary document.
+
+**A verified record must say who verified it.** A pack that marks anything
+`verified` — the pack, the framework, a requirement or an obligation — must carry
+`verified_by` and `verified_at`, and `ContentPackInstaller` refuses to install it
+otherwise. The attribution is written onto the framework row, so the claim is
+traceable from the data rather than from a commit message.
+
+The open research items — the 13 the phase-8 brief named, plus what the Part D
+conformance audit added — are listed with their pack, what is unconfirmed and the
+primary document needed in
+[`database/content-packs/VERIFICATION-BACKLOG.md`](database/content-packs/VERIFICATION-BACKLOG.md).
+Owners and target dates are unassigned. Verifying them is research, not a code
+change.
 
 ## Control library v2, CSA & surveys (Phase 9)
 

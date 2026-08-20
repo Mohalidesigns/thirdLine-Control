@@ -205,4 +205,87 @@ class ContentPackInstallTest extends TestCase
         $this->assertGreaterThan(0, Regulator::count());
         $this->assertGreaterThan(0, RegulatoryObligation::withoutGlobalScopes()->count());
     }
+
+    public function test_a_verified_pack_records_who_verified_it_and_when(): void
+    {
+        $this->installer->install('COSO-IC-2013');
+
+        $framework = Framework::withoutGlobalScopes()->where('code', 'COSO-IC-2013')->firstOrFail();
+
+        $this->assertSame('verified', $framework->verification_status);
+        $this->assertNotEmpty($framework->verified_by, 'D.7 step 3: a verified record names its verifier.');
+        $this->assertNotNull($framework->verified_at);
+    }
+
+    public function test_every_pack_that_claims_verified_carries_attribution(): void
+    {
+        foreach (array_keys($this->installer->availablePacks()) as $code) {
+            $pack = $this->installer->read($code)['pack'];
+
+            $statuses = array_merge(
+                [$pack['verification_status'] ?? 'unverified'],
+                array_column($pack['requirements'] ?? [], 'verification_status'),
+                array_column($pack['obligations'] ?? [], 'verification_status'),
+            );
+
+            if (! in_array('verified', $statuses, true)) {
+                continue;
+            }
+
+            $this->assertNotEmpty($pack['verified_by'] ?? null, "{$code} claims verified records without a verifier.");
+            $this->assertNotEmpty($pack['verified_at'] ?? null, "{$code} claims verified records without a date.");
+        }
+    }
+
+    public function test_a_pack_claiming_verified_without_attribution_will_not_install(): void
+    {
+        $directory = database_path('content-packs/TEST-UNATTRIBUTED');
+        mkdir($directory, 0777, true);
+        file_put_contents($directory.'/1.0.0.json', json_encode([
+            'code' => 'TEST-UNATTRIBUTED',
+            'name' => 'Unattributed claim',
+            'version' => '1.0.0',
+            'verification_status' => 'verified',
+            'verified_by' => '',
+            'verified_at' => null,
+            'framework' => ['code' => 'TEST-UNATTRIBUTED', 'name' => 'Unattributed claim'],
+            'requirements' => [],
+        ]));
+
+        try {
+            $this->expectException(\RuntimeException::class);
+            $this->expectExceptionMessageMatches('/verified_by/');
+
+            $this->installer->install('TEST-UNATTRIBUTED');
+        } finally {
+            unlink($directory.'/1.0.0.json');
+            rmdir($directory);
+        }
+    }
+
+    public function test_a_two_part_penalty_keeps_both_halves(): void
+    {
+        $this->installer->install('NCC');
+
+        $obligation = RegulatoryObligation::withoutGlobalScopes()
+            ->where('obligation_ref', 'NCC-ANNUAL-FS')->firstOrFail();
+
+        // ₦3,000,000 on default plus ₦300,000 for each day it continues.
+        $this->assertSame(300_000_00, $obligation->penalty_amount_minor);
+        $this->assertSame(3_000_000_00, $obligation->penalty_fixed_amount_minor);
+        $this->assertSame('per_day', $obligation->penalty_basis);
+    }
+
+    public function test_a_levy_rate_is_not_recorded_as_a_penalty(): void
+    {
+        $this->installer->install('NCC');
+
+        $levy = RegulatoryObligation::withoutGlobalScopes()
+            ->where('obligation_ref', 'NCC-OPERATING-LEVY')->firstOrFail();
+
+        // 1% of net revenue is the levy itself, not the cost of missing it.
+        $this->assertNull($levy->penalty_amount_minor);
+        $this->assertNull($levy->penalty_basis);
+        $this->assertStringContainsString('1% of net revenue', $levy->description);
+    }
 }

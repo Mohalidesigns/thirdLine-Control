@@ -16,6 +16,7 @@ export default function Create(options) {
         grace_period_days: 0,
         penalty_description: '',
         penalty_amount_minor: null,
+        penalty_fixed_amount_minor: null,
         penalty_currency: null,
         penalty_basis: null,
         legal_reference: '',

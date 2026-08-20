@@ -205,8 +205,9 @@
                 "anchor": "fiscal_year_end",
                 "offset_days": 30
             },
-            "penalty_description": "₦500,000 plus ₦5,000 for each day the default continues. The daily element is modelled here; the fixed ₦500,000 element is stated in this description.",
+            "penalty_description": "₦500,000 plus ₦5,000 for each day the default continues. Both elements are modelled: ₦5,000 a day as the recurring amount and ₦500,000 as the fixed amount on default.",
             "penalty_amount_minor": 500000,
+            "penalty_fixed_amount_minor": 50000000,
             "penalty_currency": "NGN",
             "penalty_basis": "per_day",
             "applies_to": {

@@ -7,8 +7,8 @@
     "effective_from": "2018-02-01",
     "source_url": "https://www.iso.org/standard/65694.html",
     "verification_status": "unverified",
-    "verified_by": "",
-    "verified_at": null,
+    "verified_by": "Atheris content team — the eight principles (PRIN and PRIN.1–PRIN.8) confirmed word-for-word against the specification's verbatim statement of them (Part D §D.4) and marked verified. The framework and process records are NOT verified: their wording has not been checked against the purchased standard, so the pack header stays unverified.",
+    "verified_at": "2026-08-14",
     "changelog": "Initial pack. The eight principles are seeded verified per the build specification. The framework and process elements are paraphrased structural labels, not the standard's text, and stay unverified until checked against the purchased standard. ISO 31000 gives guidance and is not certifiable.",
     "framework": {
         "code": "ISO-31000-2018",

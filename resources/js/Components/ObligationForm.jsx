@@ -402,6 +402,34 @@ export default function ObligationForm({ form, options, submitLabel }) {
                             </div>
                         </div>
 
+                        {(data.penalty_basis === 'per_day' || data.penalty_basis === 'per_week') && (
+                            <div>
+                                <InputLabel
+                                    htmlFor="penalty_fixed_amount_minor"
+                                    value="Fixed amount on default (minor units)"
+                                />
+                                <TextInput
+                                    id="penalty_fixed_amount_minor"
+                                    type="number"
+                                    min="0"
+                                    value={data.penalty_fixed_amount_minor ?? ''}
+                                    onChange={(e) =>
+                                        setData(
+                                            'penalty_fixed_amount_minor',
+                                            e.target.value === '' ? null : Number(e.target.value),
+                                        )
+                                    }
+                                    className="mt-1 block w-full"
+                                />
+                                <p className="mt-1 text-xs text-gray-400">
+                                    For a two-part penalty — a sum on default plus the recurring amount above.
+                                    The NCC&rsquo;s ₦3,000,000 plus ₦300,000 a day is entered as 300000000 here.
+                                    Leave blank if the penalty is purely recurring.
+                                </p>
+                                <InputError message={errors.penalty_fixed_amount_minor} className="mt-1" />
+                            </div>
+                        )}
+
                         <div>
                             <InputLabel htmlFor="penalty_description" value="Penalty description" />
                             <TextArea

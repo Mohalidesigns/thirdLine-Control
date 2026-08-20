@@ -32,8 +32,12 @@ class PenaltyExposureTest extends TestCase
         $this->service = app(ObligationService::class);
     }
 
-    private function overdueInstance(string $basis, int $amountMinor, int $daysOverdue): ObligationInstance
-    {
+    private function overdueInstance(
+        string $basis,
+        int $amountMinor,
+        int $daysOverdue,
+        ?int $fixedAmountMinor = null,
+    ): ObligationInstance {
         $tenant = Tenant::create(['name' => 'Test Bank', 'status' => 'active']);
         $regulator = Regulator::create(['code' => 'REG'.fake()->unique()->numberBetween(1, 9999), 'name' => 'Test Regulator', 'jurisdiction' => 'NG']);
 
@@ -46,6 +50,7 @@ class PenaltyExposureTest extends TestCase
             'frequency' => 'annual',
             'due_rule' => ['type' => 'fixed_date', 'month' => 3, 'day' => 31],
             'penalty_amount_minor' => $amountMinor,
+            'penalty_fixed_amount_minor' => $fixedAmountMinor,
             'penalty_currency' => 'NGN',
             'penalty_basis' => $basis,
             'verification_status' => 'unverified',
@@ -118,6 +123,36 @@ class PenaltyExposureTest extends TestCase
         $exposure = $this->service->calculateExposure($this->overdueInstance('per_instance', 200000000, 100));
 
         $this->assertSame(200000000, $exposure->amount);
+    }
+
+    public function test_a_two_part_penalty_charges_the_fixed_sum_once_on_top_of_the_daily_one(): void
+    {
+        // NCC: ₦3,000,000 on default plus ₦300,000 for each day it continues.
+        // Ten days late is ₦3,000,000 + ₦3,000,000, not ₦3,000,000.
+        $exposure = $this->service->calculateExposure(
+            $this->overdueInstance('per_day', 300_000_00, 10, 3_000_000_00)
+        );
+
+        $this->assertSame(6_000_000_00, $exposure->amount);
+        $this->assertSame('₦6,000,000.00', $exposure->format());
+    }
+
+    public function test_a_two_part_penalty_charges_the_fixed_sum_from_the_first_day(): void
+    {
+        // SEC Nigeria: ₦500,000 plus ₦5,000 a day. One day late is ₦505,000 —
+        // with only the daily element modelled this understated it as ₦5,000.
+        $exposure = $this->service->calculateExposure(
+            $this->overdueInstance('per_day', 5_000_00, 1, 500_000_00)
+        );
+
+        $this->assertSame(505_000_00, $exposure->amount);
+    }
+
+    public function test_an_obligation_with_no_fixed_element_is_unchanged(): void
+    {
+        $exposure = $this->service->calculateExposure($this->overdueInstance('per_day', 500000, 30));
+
+        $this->assertSame(15000000, $exposure->amount);
     }
 
     public function test_a_percentage_penalty_without_a_declared_base_is_zero_rather_than_invented(): void

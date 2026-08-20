@@ -19,6 +19,7 @@ export default function Edit({ obligation, ...options }) {
         grace_period_days: obligation.grace_period_days ?? 0,
         penalty_description: obligation.penalty_description ?? '',
         penalty_amount_minor: obligation.penalty_amount_minor,
+        penalty_fixed_amount_minor: obligation.penalty_fixed_amount_minor,
         penalty_currency: obligation.penalty_currency,
         penalty_basis: obligation.penalty_basis,
         legal_reference: obligation.legal_reference ?? '',

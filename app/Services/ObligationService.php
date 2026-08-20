@@ -318,6 +318,11 @@ class ObligationService
      * (100 = 1.00%); it needs a declared base (turnover, net revenue) to
      * become money, so without one the exposure is zero and the UI shows the
      * rate instead of inventing a figure.
+     *
+     * Where a penalty is two-part — a fixed sum on default plus a recurring
+     * sum for each day or week it continues, as with the NCC's ₦3,000,000 plus
+     * ₦300,000 a day — `penalty_fixed_amount_minor` carries the fixed element
+     * and is added once on top of the recurring calculation.
      */
     public function calculateExposure(ObligationInstance $instance, ?Money $base = null): ?Money
     {
@@ -336,7 +341,7 @@ class ObligationService
         $unit = Money::of((int) $obligation->penalty_amount_minor, $currency);
         $days = max(0, (int) $instance->days_overdue);
 
-        return match ($obligation->penalty_basis) {
+        $recurring = match ($obligation->penalty_basis) {
             'fixed', 'per_instance' => $unit,
             'per_day' => $unit->multiply($days),
             // A part-week counts as a whole week: the CBN consumer-protection
@@ -347,6 +352,12 @@ class ObligationService
                 : Money::zero($currency),
             default => Money::zero($currency),
         };
+
+        if ($obligation->penalty_fixed_amount_minor === null) {
+            return $recurring;
+        }
+
+        return $recurring->add(Money::of((int) $obligation->penalty_fixed_amount_minor, $currency));
     }
 
     /**

@@ -42,7 +42,8 @@
             "requirement_type": "section",
             "is_testable": true,
             "suggested_frequency": "Annual",
-            "verification_status": "unverified"
+            "verification_status": "unverified",
+            "guidance": "CAC annual returns — the first within 18 months of incorporation, annually thereafter — and the persons with significant control filing under the PSC Regulations 2022."
         },
         {
             "ref_code": "GOV",
@@ -52,7 +53,8 @@
             "requirement_type": "section",
             "is_testable": true,
             "suggested_frequency": "Annual",
-            "verification_status": "unverified"
+            "verification_status": "unverified",
+            "guidance": "First AGM within 18 months of incorporation and subsequent AGMs no later than 15 months after the preceding one; first board meeting within 6 months of incorporation."
         },
         {
             "ref_code": "TAX",
@@ -62,7 +64,8 @@
             "requirement_type": "section",
             "is_testable": true,
             "suggested_frequency": "Monthly",
-            "verification_status": "unverified"
+            "verification_status": "unverified",
+            "guidance": "Companies income tax — first filing within 18 months of incorporation, then within 6 months of the financial year end; VAT by the 21st of the following month; withholding tax within 30 days of deduction."
         },
         {
             "ref_code": "PAY",
@@ -72,7 +75,8 @@
             "requirement_type": "section",
             "is_testable": true,
             "suggested_frequency": "Monthly",
-            "verification_status": "unverified"
+            "verification_status": "unverified",
+            "guidance": "PAYE monthly by the 10th with annual returns by 31 January; NSITF 1% of monthly payroll; pension 8% employee plus 10% employer, remitted within 7 days of salary payment."
         },
         {
             "ref_code": "REG",
@@ -82,7 +86,8 @@
             "requirement_type": "section",
             "is_testable": true,
             "suggested_frequency": "Annual",
-            "verification_status": "unverified"
+            "verification_status": "unverified",
+            "guidance": "NDPC registration; NIPC registration for foreign-owned companies; NOTAP registration of technology transfer agreements; SCUML/EFCC registration for designated non-financial institutions."
         }
     ],
     "obligations": [
@@ -93,9 +98,9 @@
             "trigger_type": "calendar",
             "frequency": "annual",
             "grace_period_days": 0,
-            "verification_status": "unverified",
+            "verification_status": "draft",
             "is_active": true,
-            "description": "The annual return is filed with the Corporate Affairs Commission. The first return is due within 18 months of incorporation, and annually thereafter.",
+            "description": "The annual return is filed with the Corporate Affairs Commission. The first return is due within 18 months of incorporation, and annually thereafter. CAMA ties the recurring return to the annual general meeting rather than to a calendar date; the statutory window has not been confirmed, so the 30 June date below is a placeholder that keeps the obligation on the calendar and this record ships as a draft shell until it is verified.",
             "requirement_ref": "CAC",
             "due_rule": {
                 "type": "fixed_date",
@@ -167,12 +172,60 @@
             "grace_period_days": 0,
             "verification_status": "unverified",
             "is_active": true,
-            "description": "The first AGM is held within 18 months of incorporation and subsequent AGMs no later than 15 months after the preceding one.",
+            "description": "A subsequent AGM is held no later than 15 months after the preceding one. The first AGM after incorporation is CAC-FIRST-AGM: this record anchors on the previous meeting, so a company that has not yet held one produces no instance here.",
             "requirement_ref": "GOV",
             "due_rule": {
                 "type": "event_relative",
                 "event": "previous_agm",
                 "offset_days": 456
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CAMA 2020",
+            "effective_from": "2020-08-07"
+        },
+        {
+            "obligation_ref": "CAC-FIRST-AGM",
+            "title": "First annual general meeting after incorporation",
+            "obligation_type": "operational",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "A newly incorporated company holds its first annual general meeting within 18 months of incorporation.",
+            "requirement_ref": "GOV",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "incorporation",
+                "offset_days": 548
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "CAMA 2020",
+            "effective_from": "2020-08-07"
+        },
+        {
+            "obligation_ref": "CAC-FIRST-BOARD-MEETING",
+            "title": "First board meeting after incorporation",
+            "obligation_type": "operational",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "A newly incorporated company holds its first board meeting within 6 months of incorporation.",
+            "requirement_ref": "GOV",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "incorporation",
+                "offset_days": 183
             },
             "applies_to": {
                 "jurisdictions": [
@@ -191,12 +244,37 @@
             "grace_period_days": 0,
             "verification_status": "unverified",
             "is_active": true,
-            "description": "The companies income tax return is filed within six months of the fiscal year end. A newly incorporated company files its first return within 18 months of incorporation.",
+            "description": "The companies income tax return is filed within six months of the fiscal year end. The first return after incorporation is FIRS-CIT-FIRST.",
             "requirement_ref": "TAX",
             "due_rule": {
                 "type": "relative",
                 "anchor": "fiscal_year_end",
                 "offset_months": 6
+            },
+            "regulator_code": "FIRS",
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "Companies Income Tax Act",
+            "effective_from": "2020-08-07"
+        },
+        {
+            "obligation_ref": "FIRS-CIT-FIRST",
+            "title": "First companies income tax return after incorporation",
+            "obligation_type": "payment",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "A newly incorporated company files its first companies income tax return within 18 months of incorporation.",
+            "requirement_ref": "TAX",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "incorporation",
+                "offset_days": 548
             },
             "regulator_code": "FIRS",
             "applies_to": {
@@ -284,16 +362,16 @@
             "obligation_ref": "FIRS-WHT",
             "title": "Withholding tax remittance",
             "obligation_type": "payment",
-            "trigger_type": "calendar",
-            "frequency": "monthly",
+            "trigger_type": "event",
+            "frequency": "event_driven",
             "grace_period_days": 0,
             "verification_status": "unverified",
             "is_active": true,
-            "description": "Withholding tax is remitted within 30 days of deduction.",
+            "description": "Withholding tax is remitted within 30 days of deduction. The clock runs from the deduction, not from a month end, so this is an event-driven obligation.",
             "requirement_ref": "TAX",
             "due_rule": {
-                "type": "relative",
-                "anchor": "period_end",
+                "type": "event_relative",
+                "event": "wht_deducted",
                 "offset_days": 30
             },
             "regulator_code": "FIRS",
@@ -314,7 +392,7 @@
             "grace_period_days": 0,
             "verification_status": "unverified",
             "is_active": true,
-            "description": "A contribution of 1% of monthly payroll is remitted to the Nigeria Social Insurance Trust Fund.",
+            "description": "A contribution of 1% of monthly payroll is remitted to the Nigeria Social Insurance Trust Fund. The 1% is the contribution itself — a sum owed on time, not a sanction — so it is stated here rather than in the penalty fields, which model the cost of non-compliance. The due date below is a working assumption: the Act's remittance deadline is unconfirmed.",
             "requirement_ref": "PAY",
             "due_rule": {
                 "type": "relative",
@@ -327,11 +405,7 @@
                 ]
             },
             "legal_reference": "Employee Compensation Act",
-            "effective_from": "2020-08-07",
-            "penalty_description": "Contribution rate is 1% of monthly payroll; the rate is stored in basis points and needs payroll as the base.",
-            "penalty_amount_minor": 100,
-            "penalty_currency": "NGN",
-            "penalty_basis": "percentage"
+            "effective_from": "2020-08-07"
         },
         {
             "obligation_ref": "PENSION-REMITTANCE",
@@ -380,6 +454,84 @@
             },
             "legal_reference": "NDPA 2023",
             "effective_from": "2023-06-14"
+        },
+        {
+            "obligation_ref": "NIPC-REGISTRATION",
+            "title": "NIPC registration (foreign-owned company)",
+            "obligation_type": "registration",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "description": "A company with foreign shareholding registers with the Nigerian Investment Promotion Commission before commencing business. The statutory window is unconfirmed, so this ships as a draft shell anchored on incorporation.",
+            "requirement_ref": "REG",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "incorporation",
+                "offset_days": 0
+            },
+            "applies_to": {
+                "entity_types": [
+                    "foreign_owned_company"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "Nigerian Investment Promotion Commission Act",
+            "effective_from": "2020-08-07"
+        },
+        {
+            "obligation_ref": "NOTAP-REGISTRATION",
+            "title": "NOTAP registration of a technology transfer agreement",
+            "obligation_type": "registration",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "description": "A technology transfer agreement is registered with the National Office for Technology Acquisition and Promotion. The filing window after execution is unconfirmed, so this ships as a draft shell anchored on the agreement date.",
+            "requirement_ref": "REG",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "technology_transfer_agreement_executed",
+                "offset_days": 0
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "NOTAP Act",
+            "effective_from": "2020-08-07"
+        },
+        {
+            "obligation_ref": "SCUML-REGISTRATION",
+            "title": "SCUML registration (designated non-financial institution)",
+            "obligation_type": "registration",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "draft",
+            "is_active": true,
+            "description": "A designated non-financial institution registers with the Special Control Unit against Money Laundering at the EFCC. The statutory window is unconfirmed, so this ships as a draft shell anchored on incorporation.",
+            "requirement_ref": "REG",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "incorporation",
+                "offset_days": 0
+            },
+            "applies_to": {
+                "entity_types": [
+                    "designated_non_financial_institution"
+                ],
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "Money Laundering (Prevention and Prohibition) Act",
+            "effective_from": "2020-08-07"
         }
     ],
     "controls": [

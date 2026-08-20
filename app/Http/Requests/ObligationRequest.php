@@ -47,7 +47,10 @@ class ObligationRequest extends FormRequest
             'grace_period_days' => ['nullable', 'integer', 'between:0,365'],
             'penalty_description' => ['nullable', 'string'],
             // R7: money arrives as integer minor units, never a decimal.
-            'penalty_amount_minor' => ['nullable', 'integer', 'min:0'],
+            'penalty_amount_minor' => ['nullable', 'required_with:penalty_fixed_amount_minor', 'integer', 'min:0'],
+            // The fixed half of a two-part penalty (a sum on default plus a
+            // recurring sum): meaningless without the recurring element above.
+            'penalty_fixed_amount_minor' => ['nullable', 'integer', 'min:0'],
             'penalty_currency' => ['nullable', 'required_with:penalty_amount_minor', Rule::in(Money::SUPPORTED)],
             'penalty_basis' => ['nullable', 'required_with:penalty_amount_minor', Rule::in(RegulatoryObligation::PENALTY_BASES)],
             'legal_reference' => ['nullable', 'string', 'max:500'],

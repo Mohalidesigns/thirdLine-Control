@@ -233,6 +233,30 @@
             },
             "legal_reference": "NDPC GAID 2025, Article 28",
             "effective_from": "2025-09-19"
+        },
+        {
+            "obligation_ref": "NDPA-DPIA-PRE-EXISTING",
+            "title": "DPIA for high-risk processing already under way when GAID took effect",
+            "obligation_type": "assessment",
+            "trigger_type": "event",
+            "frequency": "event_driven",
+            "grace_period_days": 0,
+            "verification_status": "unverified",
+            "is_active": true,
+            "description": "High-risk processing that was already running when GAID took effect requires a DPIA within six months. The clock runs from 19 September 2025, so the anchoring event is the date GAID became effective.",
+            "requirement_ref": "DPIA",
+            "due_rule": {
+                "type": "event_relative",
+                "event": "gaid_effective_date",
+                "offset_days": 183
+            },
+            "applies_to": {
+                "jurisdictions": [
+                    "NG"
+                ]
+            },
+            "legal_reference": "NDPC GAID 2025, Article 28",
+            "effective_from": "2025-09-19"
         }
     ],
     "controls": [

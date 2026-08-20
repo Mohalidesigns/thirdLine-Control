@@ -132,8 +132,9 @@
                 "anchor": "fiscal_year_end",
                 "offset_days": 180
             },
-            "penalty_description": "₦3,000,000 plus ₦300,000 for each day of default. The daily element is modelled here; the fixed ₦3,000,000 element is stated in this description.",
+            "penalty_description": "₦3,000,000 plus ₦300,000 for each day of default. Both elements are modelled: ₦300,000 a day as the recurring amount and ₦3,000,000 as the fixed amount on default.",
             "penalty_amount_minor": 30000000,
+            "penalty_fixed_amount_minor": 300000000,
             "penalty_currency": "NGN",
             "penalty_basis": "per_day",
             "applies_to": {
@@ -158,17 +159,13 @@
             "grace_period_days": 0,
             "verification_status": "unverified",
             "is_active": true,
-            "description": "The Annual Operating Levy of 1% of net revenue is paid within 30 days of submitting the audited accounts.",
+            "description": "The Annual Operating Levy of 1% of net revenue is paid within 30 days of submitting the audited accounts. The 1% is the levy itself — a sum owed on time, not a sanction — so it is stated here rather than in the penalty fields, which model the cost of non-compliance. No penalty for late payment of the levy is recorded in the research.",
             "requirement_ref": "LEVY",
             "due_rule": {
                 "type": "event_relative",
                 "event": "audited_accounts_submitted",
                 "offset_days": 30
             },
-            "penalty_description": "The levy itself is 1% of net revenue; the rate is stored in basis points and needs the entity’s net revenue as the base.",
-            "penalty_amount_minor": 100,
-            "penalty_currency": "NGN",
-            "penalty_basis": "percentage",
             "applies_to": {
                 "entity_types": [
                     "telecommunications_operator",

@@ -72,7 +72,8 @@
             "requirement_type": "principle",
             "is_testable": true,
             "suggested_frequency": "Annual",
-            "verification_status": "draft"
+            "verification_status": "draft",
+            "guidance": "The prudential guideline sits on top of the Proceeds of Crime and Anti-Money Laundering Act, which is seeded separately as the KE-POCAMLA pack because it binds reporting institutions beyond the banks the CBK supervises."
         },
         {
             "ref_code": "ST",
