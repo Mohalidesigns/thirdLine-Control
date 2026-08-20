@@ -39,6 +39,17 @@ class User extends Authenticatable
         'mfa_recovery_codes',
     ];
 
+    /**
+     * Secrets the Auditable trait must never copy into the audit trail —
+     * even hashed or encrypted, they have no business in a second table.
+     *
+     * @return array<int, string>
+     */
+    public function auditRedacts(): array
+    {
+        return ['password', 'remember_token', 'mfa_secret', 'mfa_recovery_codes'];
+    }
+
     protected function casts(): array
     {
         return [
@@ -50,7 +61,28 @@ class User extends Authenticatable
             'mfa_secret' => 'encrypted',
             'mfa_confirmed_at' => 'datetime',
             'mfa_recovery_codes' => 'encrypted:array',
+            'invited_at' => 'datetime',
+            'invite_accepted_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'must_change_password' => 'boolean',
         ];
+    }
+
+    /**
+     * Lifecycle status for the admin Users area. Suspension wins — a
+     * suspended user stays suspended even with an unaccepted invite.
+     */
+    public function status(): string
+    {
+        if (! $this->is_active) {
+            return 'Suspended';
+        }
+
+        if ($this->invited_at !== null && $this->invite_accepted_at === null) {
+            return 'Invited';
+        }
+
+        return 'Active';
     }
 
     public function routeNotificationForWhatsapp(): ?string

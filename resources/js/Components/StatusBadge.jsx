@@ -82,6 +82,9 @@ const STATUS_CLASSES = {
     Referred: 'badge-high',
     Notified: 'badge-status-completed',
     'Not Required': 'badge-status-draft',
+    // User lifecycle (admin Users area)
+    Invited: 'badge-status-pending',
+    Suspended: 'badge-status-overdue',
 };
 
 export default function StatusBadge({ status, className = '' }) {
