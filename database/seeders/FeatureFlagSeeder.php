@@ -46,7 +46,7 @@ class FeatureFlagSeeder extends Seeder
         'incidents' => 'Incident management with Basel loss capture, control-failure linkage and regulatory notification',
         'complaints' => 'CBN consumer-protection complaint handling with SLA clocks, penalty exposure and CPD returns',
         'cases' => 'Investigation and case management with allowlist confidentiality and privileged notes',
-        'whistleblowing' => 'Public whistleblowing intake with genuine anonymity and a one-way reporter token',
+        'whistleblowing' => 'Public Speak Up intake: confidential route with disclosed reporter-metadata capture, optional genuinely anonymous route, one-way reporter token',
         // Phase 12 — continuous controls monitoring & connectors
         'data-sources' => 'Connector framework and data source registration with encrypted credentials and a circuit breaker',
         'continuous-monitoring' => 'Rule engine, scheduled runs, findings review and the CCM dashboard',

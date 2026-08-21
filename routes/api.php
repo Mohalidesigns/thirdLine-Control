@@ -21,6 +21,13 @@ Route::prefix('v1')->middleware(['throttle:integration-api', 'integration.auth']
     // out, reliance decisions and audit findings write in; a finding
     // arriving here becomes a control exception in the ordinary register
     // with the ordinary lifecycle, not a parallel one.
+    // CR — the Speak Up Metadata Access Log, read out to ThirdLine so
+    // internal audit can inspect every break-glass reveal independently.
+    // The payload names people, reasons and fields — never a metadata
+    // value: the integration key carries no reveal-level scope, so Tier 2
+    // stays inside the platform.
+    Route::get('speak-up/metadata-access-log', [IntegrationApiController::class, 'speakUpMetadataAccessLog']);
+
     Route::get('assurance/coverage', [AssuranceApiController::class, 'coverage']);
     Route::get('assurance/gaps', [AssuranceApiController::class, 'gaps']);
     Route::post('assurance/activities', [AssuranceApiController::class, 'upsertActivity']);

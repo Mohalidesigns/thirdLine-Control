@@ -81,6 +81,9 @@ class DatabaseSeeder extends Seeder
             // Runs after the demo data so it can attach the demo controls
             // to branch activities and name a co-owner stakeholder.
             ControlStructureSeeder::class,
+            // CR3: Activity Log demo rows across every event class. Runs
+            // last so it can reference the demo controls and exceptions.
+            ActivityLogSeeder::class,
         ]);
     }
 }

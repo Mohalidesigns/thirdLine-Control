@@ -21,8 +21,11 @@
         <!-- Rendering a full board pack through dompdf is genuinely memory
              hungry, and the report suite renders every shipped report in
              every format it publishes in one process. Production runs these
-             on a worker sized the same way. -->
-        <ini name="memory_limit" value="512M"/>
+             on a worker sized the same way. Raised from 512M with CR3 (the
+             Activity Log doubled the audit write volume per test and the
+             868-test suite crossed the old ceiling near the end of the
+             alphabet); size any matching prod worker accordingly. -->
+        <ini name="memory_limit" value="1024M"/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>

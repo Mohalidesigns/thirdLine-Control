@@ -159,6 +159,10 @@ const NAVIGATION = [
             { label: 'Improvements', to: 'improvements.index', match: '/improvements', icon: Hammer, feature: 'improvements' },
             { label: 'Complaints', to: 'complaints.index', match: '/complaints', icon: MessageSquare, feature: 'complaints' },
             { label: 'Cases', to: 'cases.index', match: '/cases', icon: Briefcase, feature: 'cases' },
+            // CR — the reveal approver's queue; visible only to holders of
+            // the approve permission, including standalone approvers who
+            // hold no case permission at all.
+            { label: 'Reveal Approvals', to: 'speak-up.reveal-requests', match: '/speak-up/reveal-requests', icon: KeyRound, feature: 'cases', permission: 'speak_up.metadata.approve_reveal' },
         ],
     },
     {
@@ -218,10 +222,11 @@ const NAVIGATION = [
             { label: 'Entities', to: 'entities.index', match: '/entities', icon: Building, feature: 'entities', allowedRoles: LEADERSHIP },
             { label: 'Single Sign-On', to: 'admin.sso', match: '/admin/sso', icon: Fingerprint, feature: 'sso', allowedRoles: ['System Administrator'] },
             { label: 'Security Policy', to: 'admin.security', match: '/admin/security', icon: Lock, allowedRoles: ['System Administrator'] },
+            { label: 'Speak Up', to: 'admin.speak-up', match: '/admin/speak-up', icon: Megaphone, feature: 'whistleblowing', allowedRoles: ['System Administrator'] },
             { label: 'Branding', to: 'admin.branding', match: '/admin/branding', icon: Palette, feature: 'branding', allowedRoles: ['System Administrator'] },
             { label: 'Feature Flags', to: 'admin.feature-flags', match: '/admin/feature-flags', icon: Flag, allowedRoles: ['System Administrator'] },
             { label: 'Messaging', to: 'admin.messaging', match: '/admin/messaging', icon: MessageCircle, allowedRoles: ADMINS },
-            { label: 'Audit Log', to: 'admin.audit-log', match: '/admin/audit-log', icon: History, feature: 'audit-log-ui', allowedRoles: ADMINS },
+            { label: 'Activity Log', to: 'settings.activity-log', match: '/settings/activity-log', icon: History, feature: 'audit-log-ui', permission: 'view audit log' },
         ],
     },
 ];

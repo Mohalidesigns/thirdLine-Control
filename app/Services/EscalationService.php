@@ -485,6 +485,25 @@ class EscalationService
             'payload_summary' => str($summary)->limit(490),
         ]);
 
+        // Activity Log (CR3): the escalation firing is evidence in its own
+        // right — bound to the record being escalated, naming tier and
+        // recipient, whatever the delivery outcome turns out to be.
+        $escalated = $departmentalEscalation ?? $exception ?? $testInstance ?? $risk ?? $metric ?? $treatment ?? $campaign;
+        if ($escalated) {
+            app(AuditTrailService::class)->record(
+                'escalation_fired',
+                $escalated,
+                null,
+                [
+                    'tier_no' => $rule->tier_no,
+                    'channel' => $rule->channel,
+                    'recipient' => $recipient?->name,
+                    'summary' => (string) str($summary)->limit(490),
+                ],
+                'Escalation fired: '.str($summary)->limit(200),
+            );
+        }
+
         if (! $recipient) {
             $event->update(['delivery_status' => 'Failed']);
 

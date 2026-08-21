@@ -74,6 +74,11 @@ Schedule::command('atheris:roll-up-objectives')->dailyAt('04:00');
 // walked by the ladder the same morning, not tomorrow.
 Schedule::command('exceptions:chase')->dailyAt('06:30');
 
+// CR — Speak Up reporter metadata retention. Runs in the early-morning
+// housekeeping window; deletes only rows whose case has closed and whose
+// retention has lapsed, and never touches a case under legal hold.
+Schedule::command('speak-up:purge-metadata')->dailyAt('02:15');
+
 // CR2-A — the nightly backstop for branch auto-provisioning. The
 // OrganisationUnit observer provisions a new branch the moment it is
 // created; this sweep also carries NEW template activities to branches

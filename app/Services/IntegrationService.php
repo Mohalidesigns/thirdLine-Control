@@ -236,6 +236,22 @@ class IntegrationService
             ]);
         }
 
+        // Activity Log (CR3): a push to ThirdLine is a user-visible event,
+        // not just a sync-table row — recorded with the correlation id so
+        // an examiner can walk from the activity log into the sync log.
+        $log->refresh();
+        app(AuditTrailService::class)->recordEvent(
+            'published-to-integration',
+            $entityType,
+            "Pushed {$entityType} to ThirdLine — ".strtolower($log->status),
+            [
+                'correlation_id' => $log->idempotency_key,
+                'sync_log_id' => $log->id,
+                'result' => $log->status,
+            ],
+            ['tenant_id' => $config->tenant_id, 'entity_id' => $localId ?? 0],
+        );
+
         return $log;
     }
 

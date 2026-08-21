@@ -36,6 +36,7 @@ use App\Policies\ExceptionPolicy;
 use App\Policies\ExceptionResponsePolicy;
 use App\Policies\SsoConfigurationPolicy;
 use App\Policies\TestInstancePolicy;
+use App\Services\ActivityContext;
 use App\Services\Ai\KnowledgeIndexer;
 use App\Services\FeatureService;
 use App\Services\ResidencyGuard;
@@ -59,6 +60,10 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(FeatureService::class);
+
+        // Per-request activity state (batch id + fallback dedup flag, CR3):
+        // scoped, so it resets between requests and queued jobs.
+        $this->app->scoped(ActivityContext::class);
     }
 
     /**

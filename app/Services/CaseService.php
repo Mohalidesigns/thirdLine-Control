@@ -43,7 +43,10 @@ class CaseService
     public function open(array $data, ?User $reporter, int $tenantId, bool $anonymous = false): array
     {
         return DB::transaction(function () use ($data, $reporter, $tenantId, $anonymous) {
-            $token = $anonymous ? InvestigationCase::generateToken() : null;
+            // A token is the reporter's only channel back when they have no
+            // account on the case: every anonymous report, and a
+            // confidential (CR) report from a guest with no session.
+            $token = ($anonymous || $reporter === null) ? InvestigationCase::generateToken() : null;
 
             $case = new InvestigationCase([
                 ...collect($data)->except(['reporter_id', 'access_user_ids'])->all(),
@@ -349,6 +352,10 @@ class CaseService
     {
         $this->transition($case, 'Closed', ['closed_by' => $user->id, 'closed_at' => now()]);
         $case->auditAction('closed', null, ['note' => $note, 'by' => $user->id]);
+
+        // Reporter-metadata retention runs from closure (CR §6), so the
+        // purge date stamped at capture is recomputed now.
+        app(SpeakUpMetadataService::class)->restampPurgeDate($case->fresh());
 
         return $case->fresh();
     }

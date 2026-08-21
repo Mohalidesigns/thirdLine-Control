@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AiGovernanceController;
 use App\Http\Controllers\Admin\MessagingController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\SpeakUpSettingsController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AiAssistController;
 use App\Http\Controllers\AssuranceController;
@@ -79,6 +80,7 @@ use App\Http\Controllers\SavedViewController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SoaController;
 use App\Http\Controllers\SodController;
+use App\Http\Controllers\SpeakUpMetadataController;
 use App\Http\Controllers\SpotCheckController;
 use App\Http\Controllers\SsoConfigurationController;
 use App\Http\Controllers\StrategyController;
@@ -209,6 +211,17 @@ Route::middleware('auth')->group(function () {
     Route::middleware('feature:notification-preferences')->group(function () {
         Route::get('settings/notifications', [NotificationPreferenceController::class, 'edit'])->name('settings.notifications');
         Route::put('settings/notifications', [NotificationPreferenceController::class, 'update'])->name('settings.notifications.update');
+    });
+
+    // ── Settings → Activity Log (CR3) ────────────────────────────────
+    // A discrete permission, not implied by admin; exports carry their own
+    // permission and are themselves logged.
+    Route::middleware(['permission:view audit log', 'feature:audit-log-ui'])->group(function () {
+        Route::get('settings/activity-log', [AuditLogController::class, 'index'])->name('settings.activity-log');
+        Route::get('settings/activity-log/export', [AuditLogController::class, 'export'])
+            ->middleware('permission:export audit log')->name('settings.activity-log.export');
+        Route::get('settings/activity-log/export-pdf', [AuditLogController::class, 'exportPdf'])
+            ->middleware('permission:export audit log')->name('settings.activity-log.export-pdf');
     });
 
     // ── Internal control structure (CR2-A) ───────────────────────────
@@ -877,6 +890,38 @@ Route::middleware('auth')->group(function () {
         Route::post('cases/{case}/notes', [CaseController::class, 'storeNote'])->name('cases.notes.store');
         Route::post('cases/{case}/access', [CaseController::class, 'grantAccess'])->name('cases.access.grant');
         Route::delete('cases/{case}/access', [CaseController::class, 'revokeAccess'])->name('cases.access.revoke');
+
+        // ── Reporter technical metadata (CR) ─────────────────────────
+        // The permission middleware here is the coarse gate; the
+        // controller re-checks case membership, the tier permissions and
+        // — for Tier 2 — the approved break-glass reveal, and every
+        // reveal render writes the immutable Metadata Access Log.
+        Route::middleware('permission:speak_up.metadata.view_basic')
+            ->get('cases/{case}/metadata', [SpeakUpMetadataController::class, 'show'])
+            ->name('cases.metadata.show');
+        Route::middleware('permission:speak_up.metadata.request_reveal')
+            ->post('cases/{case}/metadata/reveal-requests', [SpeakUpMetadataController::class, 'requestReveal'])
+            ->name('cases.metadata.reveal.request');
+        Route::middleware('permission:speak_up.metadata.approve_reveal')->group(function () {
+            Route::post('cases/{case}/legal-hold', [SpeakUpMetadataController::class, 'setLegalHold'])
+                ->name('cases.legal-hold.set');
+            Route::delete('cases/{case}/legal-hold', [SpeakUpMetadataController::class, 'liftLegalHold'])
+                ->name('cases.legal-hold.lift');
+        });
+    });
+
+    // ── Speak Up reveal approvals (CR) ───────────────────────────────
+    // Outside the 'view cases' gate on purpose: deciding a reveal is an
+    // authority over the metadata vault, not a seat on the investigation,
+    // so a standalone Reveal Approver (a DPO, legal counsel) works from
+    // this queue without holding any case permission. Routes key on the
+    // reveal request, whose tenant scope — not the case allowlist —
+    // resolves the binding.
+    Route::middleware(['feature:cases', 'permission:speak_up.metadata.approve_reveal'])->group(function () {
+        Route::get('speak-up/reveal-requests', [SpeakUpMetadataController::class, 'revealQueue'])
+            ->name('speak-up.reveal-requests');
+        Route::post('speak-up/reveal-requests/{revealRequest}/decide', [SpeakUpMetadataController::class, 'decideReveal'])
+            ->name('speak-up.reveal-requests.decide');
     });
 
     // ── Continuous controls monitoring (Phase 12.3–12.6) ─────────────
@@ -1033,6 +1078,11 @@ Route::middleware('auth')->group(function () {
             Route::get('security', [TenantSecurityController::class, 'edit'])->name('admin.security');
             Route::put('security', [TenantSecurityController::class, 'update'])->name('admin.security.update');
 
+            // CR — Speak Up: metadata capture, anonymous route, retention,
+            // reveal reason codes and the versioned NDPA notice.
+            Route::get('speak-up', [SpeakUpSettingsController::class, 'edit'])->name('admin.speak-up');
+            Route::put('speak-up', [SpeakUpSettingsController::class, 'update'])->name('admin.speak-up.update');
+
             Route::middleware('feature:branding')->group(function () {
                 Route::get('branding', [TenantBrandingController::class, 'edit'])->name('admin.branding');
                 Route::post('branding', [TenantBrandingController::class, 'update'])->name('admin.branding.update');
@@ -1048,11 +1098,9 @@ Route::middleware('auth')->group(function () {
             Route::post('sso/{sso_configuration}/test', [SsoConfigurationController::class, 'test'])->name('admin.sso.test');
         });
 
-        Route::middleware(['permission:view audit log', 'feature:audit-log-ui'])->group(function () {
-            Route::get('audit-log', [AuditLogController::class, 'index'])->name('admin.audit-log');
-            Route::get('audit-log/export', [AuditLogController::class, 'export'])
-                ->middleware('permission:export audit log')->name('admin.audit-log.export');
-        });
+        // CR3 — the Activity Log now lives at Settings → Activity Log; the
+        // old admin URL redirects so bookmarks and muscle memory survive.
+        Route::redirect('audit-log', '/settings/activity-log')->name('admin.audit-log');
 
         // Regulatory content packs (Phase 8) — installation is a platform
         // operation, gated on its own permission inside the admin area.

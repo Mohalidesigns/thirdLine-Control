@@ -37,14 +37,14 @@ class AuditLogUiTest extends TestCase
         $this->owner->assignRole('Control Owner');
     }
 
-    public function test_the_audit_log_requires_the_view_permission(): void
+    public function test_the_activity_log_requires_the_view_permission(): void
     {
         $this->actingAs($this->owner)
-            ->get(route('admin.audit-log'))
+            ->get(route('settings.activity-log'))
             ->assertForbidden();
     }
 
-    public function test_the_audit_log_lists_and_filters_entries(): void
+    public function test_the_activity_log_lists_and_filters_entries(): void
     {
         AuditTrail::create([
             'tenant_id' => $this->tenant->id, 'user_id' => $this->admin->id,
@@ -56,23 +56,23 @@ class AuditLogUiTest extends TestCase
         ]);
 
         $this->actingAs($this->admin)
-            ->get(route('admin.audit-log', ['action' => 'approved']))
+            ->get(route('settings.activity-log', ['event' => 'approved']))
             ->assertOk()
             ->assertInertia(fn ($page) => $page
-                ->component('Admin/AuditLog')
+                ->component('Settings/ActivityLog/Index')
                 ->has('entries.data', 1)
-                ->where('entries.data.0.action', 'approved'));
+                ->where('entries.data.0.event', 'approved'));
     }
 
     public function test_export_requires_the_export_permission_and_is_itself_audited(): void
     {
         // Control Owner lacks 'export audit log'.
         $this->actingAs($this->owner)
-            ->get(route('admin.audit-log.export'))
+            ->get(route('settings.activity-log.export'))
             ->assertForbidden();
 
         $this->actingAs($this->admin)
-            ->get(route('admin.audit-log.export'))
+            ->get(route('settings.activity-log.export'))
             ->assertOk()
             ->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
 

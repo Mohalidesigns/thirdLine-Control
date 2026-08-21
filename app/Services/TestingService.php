@@ -109,6 +109,10 @@ class TestingService
             'started_at' => $instance->started_at ?? now(),
         ]);
 
+        // CR3: workflow transitions carry their own event, not just the
+        // status diff the Auditable trait records.
+        $instance->auditAction('test_started', null, ['tester' => $tester->name]);
+
         return $instance;
     }
 
@@ -162,6 +166,14 @@ class TestingService
             foreach ($instance->checkResults->where('result', 'Fail') as $failed) {
                 $this->exceptionService->raiseFromCheckResult($instance, $failed);
             }
+
+            // CR3: the submission is its own event, with the outcome shape
+            // an examiner wants at a glance.
+            $instance->auditAction('test_submitted', null, [
+                'tester' => $tester->name,
+                'failed_checks' => $instance->checkResults->where('result', 'Fail')->count(),
+                'total_checks' => $instance->checkResults->count(),
+            ]);
 
             return $instance;
         });

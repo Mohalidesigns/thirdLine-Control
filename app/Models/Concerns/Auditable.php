@@ -31,6 +31,12 @@ trait Auditable
         static::deleted(function ($model) {
             app(AuditTrailService::class)->record('deleted', $model, $model->getOriginal(), null);
         });
+
+        if (method_exists(static::class, 'restored')) {
+            static::restored(function ($model) {
+                app(AuditTrailService::class)->record('restored', $model, null, $model->getAttributes());
+            });
+        }
     }
 
     /**
