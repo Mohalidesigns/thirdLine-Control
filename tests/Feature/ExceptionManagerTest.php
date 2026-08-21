@@ -387,6 +387,12 @@ class ExceptionManagerTest extends TestCase
     {
         Notification::fake();
 
+        // Anchor to a Monday: issuing on a Friday and rejecting two days
+        // later (Sunday) makes both rounds' business-day due dates roll to
+        // the same weekday, so the strictly-greater assertion below flaked
+        // on real Fridays.
+        Carbon::setTestNow(Carbon::parse('2026-08-17 09:00:00', 'Africa/Lagos'));
+
         $exception = $this->makeException();
         [$escalation] = $this->issueTo($exception, [$this->unitTarget($this->ops)]);
         $firstDue = $escalation->response_due_at;
