@@ -334,7 +334,14 @@ class ExceptionService
         ]);
 
         $exception->logActivity('Verification', 'Remediated', 'Verified-Closed', $verification['verification_method']);
-        $exception->auditAction('closed', null, $verification);
+
+        // Closure is restricted to the control function, so every closure
+        // event is high-value evidence: name the verifier in the record
+        // itself, not only in the row diff (CR3).
+        $exception->auditAction('closed', null, array_merge($verification, [
+            'verified_by' => $verifier->id,
+            'verified_by_name' => $verifier->name,
+        ]));
 
         app(IntegrationService::class)->publishException($exception);
 

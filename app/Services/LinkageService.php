@@ -72,7 +72,7 @@ class LinkageService
             ]);
         }
 
-        return EntityLink::firstOrCreate(
+        $link = EntityLink::firstOrCreate(
             [
                 'source_type' => $sourceType,
                 'source_id' => $sourceId,
@@ -87,6 +87,18 @@ class LinkageService
                 'created_by' => auth()->id(),
             ],
         );
+
+        // CR3: a control mapped to a risk (or any edge in the linkage
+        // graph) is a workflow event — mirror of the 'unlinked' record.
+        if ($link->wasRecentlyCreated) {
+            $link->auditAction('linked', null, [
+                'source' => "{$sourceType}#{$sourceId}",
+                'target' => "{$targetType}#{$targetId}",
+                'relationship' => $relationship,
+            ]);
+        }
+
+        return $link;
     }
 
     /**

@@ -226,7 +226,7 @@ const NAVIGATION = [
             { label: 'Branding', to: 'admin.branding', match: '/admin/branding', icon: Palette, feature: 'branding', allowedRoles: ['System Administrator'] },
             { label: 'Feature Flags', to: 'admin.feature-flags', match: '/admin/feature-flags', icon: Flag, allowedRoles: ['System Administrator'] },
             { label: 'Messaging', to: 'admin.messaging', match: '/admin/messaging', icon: MessageCircle, allowedRoles: ADMINS },
-            { label: 'Audit Log', to: 'admin.audit-log', match: '/admin/audit-log', icon: History, feature: 'audit-log-ui', allowedRoles: ADMINS },
+            { label: 'Activity Log', to: 'settings.activity-log', match: '/settings/activity-log', icon: History, feature: 'audit-log-ui', permission: 'view audit log' },
         ],
     },
 ];

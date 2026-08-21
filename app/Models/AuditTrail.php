@@ -16,13 +16,26 @@ class AuditTrail extends Model
     protected $fillable = [
         'tenant_id',
         'user_id',
+        'actor_name',
+        'actor_email',
         'entity_type',
         'entity_id',
         'action',
+        'event_label',
+        'subject_label',
+        'description',
         'before',
         'after',
         'ip_address',
         'user_agent',
+        'method',
+        'url',
+        'route_name',
+        'status_code',
+        'device_name',
+        'batch_id',
+        'previous_hash',
+        'row_hash',
     ];
 
     protected $casts = [

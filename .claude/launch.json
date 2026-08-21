@@ -8,6 +8,12 @@
             "port": 8090
         },
         {
+            "name": "secondline-alt",
+            "runtimeExecutable": "php",
+            "runtimeArgs": ["artisan", "serve", "--port=8091"],
+            "port": 8091
+        },
+        {
             "name": "secondline-e2e",
             "runtimeExecutable": "sh",
             "runtimeArgs": [

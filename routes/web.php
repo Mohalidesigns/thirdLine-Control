@@ -213,6 +213,17 @@ Route::middleware('auth')->group(function () {
         Route::put('settings/notifications', [NotificationPreferenceController::class, 'update'])->name('settings.notifications.update');
     });
 
+    // ── Settings → Activity Log (CR3) ────────────────────────────────
+    // A discrete permission, not implied by admin; exports carry their own
+    // permission and are themselves logged.
+    Route::middleware(['permission:view audit log', 'feature:audit-log-ui'])->group(function () {
+        Route::get('settings/activity-log', [AuditLogController::class, 'index'])->name('settings.activity-log');
+        Route::get('settings/activity-log/export', [AuditLogController::class, 'export'])
+            ->middleware('permission:export audit log')->name('settings.activity-log.export');
+        Route::get('settings/activity-log/export-pdf', [AuditLogController::class, 'exportPdf'])
+            ->middleware('permission:export audit log')->name('settings.activity-log.export-pdf');
+    });
+
     // ── Internal control structure (CR2-A) ───────────────────────────
     // The three sub-units and the control universe under them. Structure
     // admin ('manage control-structure') and control assignment ('attach
@@ -1087,11 +1098,9 @@ Route::middleware('auth')->group(function () {
             Route::post('sso/{sso_configuration}/test', [SsoConfigurationController::class, 'test'])->name('admin.sso.test');
         });
 
-        Route::middleware(['permission:view audit log', 'feature:audit-log-ui'])->group(function () {
-            Route::get('audit-log', [AuditLogController::class, 'index'])->name('admin.audit-log');
-            Route::get('audit-log/export', [AuditLogController::class, 'export'])
-                ->middleware('permission:export audit log')->name('admin.audit-log.export');
-        });
+        // CR3 — the Activity Log now lives at Settings → Activity Log; the
+        // old admin URL redirects so bookmarks and muscle memory survive.
+        Route::redirect('audit-log', '/settings/activity-log')->name('admin.audit-log');
 
         // Regulatory content packs (Phase 8) — installation is a platform
         // operation, gated on its own permission inside the admin area.

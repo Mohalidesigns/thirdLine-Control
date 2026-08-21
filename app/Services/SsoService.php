@@ -166,7 +166,16 @@ class SsoService
             ]);
         }
 
-        $user->auditAction('break_glass_login', null, ['used_today' => $usedToday + 1, 'cap' => $cap]);
+        // Written synchronously (queued: false): the cap check above counts
+        // these very rows, so a deferred write would let a burst of logins
+        // slip past the cap before the queue catches up (CR3).
+        app(AuditTrailService::class)->record(
+            'break_glass_login',
+            $user,
+            null,
+            ['used_today' => $usedToday + 1, 'cap' => $cap],
+            queued: false,
+        );
 
         $admins = User::withoutGlobalScope('tenant')
             ->where('tenant_id', $user->tenant_id)

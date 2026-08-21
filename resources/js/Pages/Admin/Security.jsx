@@ -12,6 +12,7 @@ export default function Security({ policy, roles }) {
         mfa_grace_period_days: policy.mfa_grace_period_days ?? 7,
         mfa_sms_opt_in: !!policy.mfa_sms_opt_in,
         break_glass_daily_cap: policy.break_glass_daily_cap ?? 3,
+        audit_retention_months: policy.audit_retention_months ?? '',
     });
 
     const toggleRole = (role) => {
@@ -117,6 +118,32 @@ export default function Security({ policy, roles }) {
                                 Daily cap on password logins by break-glass accounts once SSO is enforced. Every use is audited.
                             </p>
                             <InputError message={errors.break_glass_daily_cap} className="mt-1" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="card">
+                    <div className="card-header">
+                        <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Activity log retention</h3>
+                    </div>
+                    <div className="card-body">
+                        <div className="max-w-[200px]">
+                            <InputLabel htmlFor="audit_retention" value="Retention window (months)" />
+                            <TextInput
+                                id="audit_retention"
+                                type="number"
+                                min="12"
+                                max="600"
+                                placeholder={String(policy.audit_retention_default ?? 120)}
+                                value={data.audit_retention_months}
+                                onChange={(e) => setData('audit_retention_months', e.target.value === '' ? '' : Number(e.target.value))}
+                            />
+                            <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
+                                How long activity-log rows stay in the live table before archival to cold
+                                storage. Leave blank for the platform default ({policy.audit_retention_default ?? 120} months).
+                                A tenant window may extend the default, never shorten it.
+                            </p>
+                            <InputError message={errors.audit_retention_months} className="mt-1" />
                         </div>
                     </div>
                 </div>

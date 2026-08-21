@@ -7,6 +7,7 @@ use App\Http\Middleware\EnforceMfa;
 use App\Http\Middleware\EnsureFeatureEnabled;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\LogRequestActivity;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Http\Middleware\SecurityHeaders;
 use App\Services\DenialAuditor;
@@ -41,6 +42,9 @@ return Application::configure(basePath: dirname(__DIR__))
             EnforceMfa::class,
             RequirePasswordChange::class,
             SecurityHeaders::class,
+            // Terminate-time activity-log fallback for state-changing
+            // requests the domain/CRUD/auth layers didn't record (CR3).
+            LogRequestActivity::class,
         ]);
 
         // SAML IdPs POST assertions cross-origin — the assertion itself is
