@@ -291,6 +291,15 @@ class NotificationEventSeeder extends Seeder
             'default_channels' => ['in_app', 'email'],
             'is_user_configurable' => false,
         ],
+        // CR-03 — departmental control function checklists.
+        [
+            'key' => 'control.task.unassigned',
+            'label' => 'Control task generated with no officer',
+            'description' => 'A scheduled control function task could not be assigned — the desk or branch has no control officer and the function has no owner. Not muteable: an unowned task is an unperformed control.',
+            'category' => 'control-functions',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => false,
+        ],
     ];
 
     public function run(): void

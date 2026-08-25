@@ -10,6 +10,7 @@ import {
     BookOpen,
     Briefcase,
     Building,
+    CalendarClock,
     CalendarDays,
     ClipboardList,
     Compass,
@@ -113,6 +114,12 @@ const NAVIGATION = [
         icon: Network,
         children: [
             { label: 'Control Structure', to: 'control-structure.index', match: '/control-structure', icon: Network, feature: 'control-structure', permission: 'view control-structure' },
+            // CR-03: the departmental checklists and the frequency engine
+            // sit alongside the structure they hang off, not under the
+            // flat Controls library.
+            { label: 'Control Functions', to: 'control-functions.index', match: '/control-functions', icon: ClipboardList, feature: 'control-functions', permission: 'view control-functions' },
+            { label: 'Frequency Compliance', to: 'control-functions.compliance', match: '/control-functions/compliance', icon: CalendarClock, feature: 'control-functions', permission: 'view control-functions' },
+            { label: 'Checklist Import', to: 'control-functions.import.index', match: '/control-function-imports', icon: Upload, feature: 'control-functions', permission: 'import control-functions' },
         ],
     },
     {

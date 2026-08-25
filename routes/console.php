@@ -79,6 +79,14 @@ Schedule::command('exceptions:chase')->dailyAt('06:30');
 // retention has lapsed, and never touches a case under legal hold.
 Schedule::command('speak-up:purge-metadata')->dailyAt('02:15');
 
+// CR-03 — departmental control function checklists. 00:45 deliberately
+// precedes the 01:00 legacy test-instance job and the 01:15 ageing
+// refresh, so a daily task that fell due overnight is in an officer's
+// queue before the 07:00 escalation sweep walks it. The observation roll
+// runs on the first of the month, right after it.
+Schedule::command('atheris:generate-control-tasks')->dailyAt('00:45')->withoutOverlapping();
+Schedule::command('atheris:roll-continuous-tasks')->monthlyOn(1, '00:50')->withoutOverlapping();
+
 // CR2-A — the nightly backstop for branch auto-provisioning. The
 // OrganisationUnit observer provisions a new branch the moment it is
 // created; this sweep also carries NEW template activities to branches

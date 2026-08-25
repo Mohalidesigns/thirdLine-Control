@@ -17,12 +17,19 @@ class TestingService
     public function __construct(
         private ExceptionService $exceptionService,
         private ResidualRiskService $residualRiskService,
+        private FrequencyResolver $frequencies,
     ) {}
 
     /**
      * Generate scheduled test instances from each active control's frequency
-     * (FR-3.4). Idempotent: the (control_id, period_label) unique key means
-     * re-running never duplicates an instance.
+     * (FR-3.4). Idempotent: the (control_id, scope_key, period_label,
+     * frequency_id) unique key means re-running never duplicates an instance.
+     *
+     * CR-03: departmental control functions are EXCLUDED here and handled
+     * by ControlTaskService instead — they generate per desk and per
+     * branch and per rhythm, which this loop cannot express. Without the
+     * exclusion both jobs would manufacture an instance for the same
+     * control on the same night, one global and one scoped.
      */
     public function generateScheduledInstances(?CarbonImmutable $asOf = null): int
     {
@@ -32,6 +39,7 @@ class TestingService
         Control::withoutGlobalScopes()
             ->where('status', 'Active')
             ->where('is_template', false)
+            ->where('is_control_function', false)
             ->where('frequency', '!=', 'Event-driven')
             ->with('testScripts')
             ->chunkById(100, function ($controls) use ($asOf, &$created) {
@@ -51,7 +59,9 @@ class TestingService
 
         $exists = TestInstance::withoutGlobalScopes()
             ->where('control_id', $control->id)
+            ->where('scope_key', 'global')
             ->where('period_label', $label)
+            ->whereNull('frequency_id')
             ->exists();
 
         if ($exists) {
@@ -78,21 +88,17 @@ class TestingService
     }
 
     /**
+     * CR-03 §E.1: delegated to FrequencyResolver, which owns cycle
+     * boundaries for the whole platform now. The signature and the labels
+     * it returns are unchanged — existing instances are keyed on them.
+     *
      * @return array{0: string, 1: CarbonImmutable, 2: CarbonImmutable}
      */
     public function periodFor(string $frequency, CarbonImmutable $asOf): array
     {
-        return match ($frequency) {
-            'Daily' => [$asOf->format('Y-m-d'), $asOf->startOfDay(), $asOf->endOfDay()],
-            'Weekly' => ['W'.$asOf->format('W-Y'), $asOf->startOfWeek(), $asOf->endOfWeek()],
-            'Monthly' => [$asOf->format('M-Y'), $asOf->startOfMonth(), $asOf->endOfMonth()],
-            'Quarterly' => ['Q'.$asOf->quarter.'-'.$asOf->year, $asOf->startOfQuarter(), $asOf->endOfQuarter()],
-            'Semi-annual' => [($asOf->month <= 6 ? 'H1' : 'H2').'-'.$asOf->year,
-                $asOf->month <= 6 ? $asOf->startOfYear() : $asOf->setMonth(7)->startOfMonth(),
-                $asOf->month <= 6 ? $asOf->setMonth(6)->endOfMonth() : $asOf->endOfYear()],
-            'Annual' => [(string) $asOf->year, $asOf->startOfYear(), $asOf->endOfYear()],
-            default => [$asOf->format('M-Y'), $asOf->startOfMonth(), $asOf->endOfMonth()],
-        };
+        $cycle = FrequencyResolver::LEGACY_MAP[$frequency] ?? 'monthly';
+
+        return $this->frequencies->boundaries($cycle, $asOf);
     }
 
     public function start(TestInstance $instance, User $tester): TestInstance

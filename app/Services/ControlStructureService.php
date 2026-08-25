@@ -30,7 +30,10 @@ use Illuminate\Validation\ValidationException;
  */
 class ControlStructureService
 {
-    public function __construct(private NotificationDispatcher $dispatcher) {}
+    public function __construct(
+        private NotificationDispatcher $dispatcher,
+        private ControlTaskService $controlTasks,
+    ) {}
 
     // ── Units ────────────────────────────────────────────────────────
 
@@ -313,7 +316,12 @@ class ControlStructureService
      * branch. A second run creates nothing; deleting or editing a
      * template never touches instantiated rows (R-C).
      *
-     * @return array{branches: int, activities: int}
+     * CR-03 §D.2: a newly provisioned branch also inherits the branch
+     * function set — 73 checklists on the day it opens, attached through
+     * the pivot rather than copied, so a checklist edit still has exactly
+     * one place to happen.
+     *
+     * @return array{branches: int, activities: int, functions: int}
      */
     public function syncBranches(int $tenantId): array
     {
@@ -325,7 +333,7 @@ class ControlStructureService
             ->first();
 
         if (! $branchUnit) {
-            return ['branches' => 0, 'activities' => 0];
+            return ['branches' => 0, 'activities' => 0, 'functions' => 0];
         }
 
         $branchOrgUnits = OrganisationUnit::withoutGlobalScope('tenant')
@@ -343,11 +351,12 @@ class ControlStructureService
             ->orderBy('sequence')
             ->get();
 
-        $created = ['branches' => 0, 'activities' => 0];
+        $created = ['branches' => 0, 'activities' => 0, 'functions' => 0];
 
         foreach ($branchOrgUnits as $orgUnit) {
             $branchEntity = $this->ensureBranchEntity($branchUnit, $orgUnit, $created);
             $this->ensureBranchActivities($branchEntity, $templates, $created);
+            $created['functions'] += $this->controlTasks->attachBranchFunctions($branchEntity);
         }
 
         return $created;
@@ -371,7 +380,7 @@ class ControlStructureService
             return null;
         }
 
-        $created = ['branches' => 0, 'activities' => 0];
+        $created = ['branches' => 0, 'activities' => 0, 'functions' => 0];
         $branchEntity = $this->ensureBranchEntity($branchUnit, $orgUnit, $created);
 
         $templates = ControlEntity::withoutGlobalScope('tenant')
@@ -384,6 +393,7 @@ class ControlStructureService
             ->get();
 
         $this->ensureBranchActivities($branchEntity, $templates, $created);
+        $this->controlTasks->attachBranchFunctions($branchEntity);
 
         return $branchEntity;
     }

@@ -194,6 +194,77 @@ class ReportDefinitionSeeder extends Seeder
                 ['key' => 'period', 'label' => 'Period', 'type' => 'period', 'default' => 'current_quarter'],
             ],
         ],
+        // CR-03 §E.4 — the departmental checklist reports. The first two
+        // are the ones that matter most: one tells the head of control
+        // whether yesterday's work was done, and the other proves to an
+        // examiner that a Daily control was actually performed daily.
+        [
+            'code' => 'CONTROL-TASK-COMPLETION',
+            'name' => 'Daily control task completion',
+            'description' => 'Departmental checklist completion by sub-unit and officer, with overdue counts and exceptions raised.',
+            'report_type' => 'operational',
+            'confidentiality' => 'Internal',
+            'output_formats' => ['pdf', 'xlsx', 'csv'],
+            'sections' => [
+                ['type' => 'cover', 'title' => 'Daily Control Task Completion', 'subtitle' => '{{ period }}'],
+                [
+                    'type' => 'kpi_row',
+                    'title' => 'Position at {{ generated_at }}',
+                    'items' => [
+                        ['source' => 'control_tasks_due_today', 'label' => 'Due today'],
+                        ['source' => 'control_tasks_overdue', 'label' => 'Overdue'],
+                    ],
+                ],
+                ['type' => 'chart', 'title' => 'Completion by sub-unit', 'source' => 'control_task_completion_by_unit', 'chart_type' => 'bar'],
+                ['type' => 'chart', 'title' => 'Overdue by sub-unit', 'source' => 'control_tasks_overdue_by_unit', 'chart_type' => 'horizontal_bar'],
+                ['type' => 'table', 'title' => 'Branch scorecard', 'source' => 'branch_control_scorecard'],
+            ],
+            'parameters' => [
+                ['key' => 'period', 'label' => 'Period', 'type' => 'period', 'default' => 'last_month'],
+            ],
+        ],
+        [
+            'code' => 'FREQUENCY-COMPLIANCE',
+            'name' => 'Frequency compliance',
+            'description' => 'Expected against actual occurrences for every control function — the evidence that a control was performed at its stated frequency.',
+            'report_type' => 'regulatory',
+            'confidentiality' => 'Internal',
+            'output_formats' => ['pdf', 'xlsx', 'csv'],
+            'sections' => [
+                ['type' => 'cover', 'title' => 'Frequency Compliance', 'subtitle' => '{{ period }} · {{ entity }}'],
+                [
+                    'type' => 'narrative',
+                    'title' => 'Basis of preparation',
+                    'body' => 'Expected occurrences are computed from each function\'s stated Frequency of Activity '
+                        ."across every desk or branch that executes it.\n\n"
+                        .'Event-driven and observation functions carry no expected count: an occurrence of "As per '
+                        .'sales by CBN" is caused by the CBN, not by a calendar.',
+                ],
+                ['type' => 'chart', 'title' => 'Control functions by frequency', 'source' => 'control_functions_by_frequency', 'chart_type' => 'bar'],
+                ['type' => 'chart', 'title' => 'Completion by sub-unit', 'source' => 'control_task_completion_by_unit', 'chart_type' => 'bar'],
+            ],
+            'parameters' => [
+                ['key' => 'period', 'label' => 'Period', 'type' => 'period', 'default' => 'last_quarter'],
+                ['key' => 'entity_id', 'label' => 'Entity', 'type' => 'entity'],
+            ],
+        ],
+        [
+            'code' => 'BRANCH-CONTROL-SCORECARD',
+            'name' => 'Branch control scorecard',
+            'description' => 'Checklist completion rate per branch, ranked, with the overdue position by sub-unit.',
+            'report_type' => 'operational',
+            'confidentiality' => 'Internal',
+            'output_formats' => ['pdf', 'xlsx', 'csv'],
+            'sections' => [
+                ['type' => 'cover', 'title' => 'Branch Control Scorecard', 'subtitle' => '{{ period }}'],
+                ['type' => 'chart', 'title' => 'Completion rate by branch', 'source' => 'branch_control_scorecard', 'chart_type' => 'horizontal_bar'],
+                ['type' => 'chart', 'title' => 'Overdue by sub-unit', 'source' => 'control_tasks_overdue_by_unit', 'chart_type' => 'horizontal_bar'],
+                ['type' => 'table', 'title' => 'Branches by open exceptions', 'source' => 'structure_branch_heat'],
+            ],
+            'parameters' => [
+                ['key' => 'period', 'label' => 'Period', 'type' => 'period', 'default' => 'last_month'],
+            ],
+        ],
     ];
 
     public function run(): void

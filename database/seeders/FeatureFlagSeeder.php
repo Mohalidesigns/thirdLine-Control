@@ -79,6 +79,9 @@ class FeatureFlagSeeder extends Seeder
 
         // CR-02 — Internal control structure
         'control-structure' => 'The Internal Control sub-units and control universe: control entities, branch auto-provisioning, control attachment and cross-functional stakeholders',
+
+        // CR-03 — Departmental control function checklists
+        'control-functions' => 'Departmental control function checklists and the frequency engine: the function catalogue, per-line frequencies, the workbook importer and per-desk / per-branch task generation',
     ];
 
     /**

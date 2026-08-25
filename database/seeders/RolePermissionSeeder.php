@@ -137,6 +137,16 @@ class RolePermissionSeeder extends Seeder
             // a branch runs.
             'view control-structure', 'manage control-structure',
             'attach control-entities', 'manage control-stakeholders',
+            // Departmental control functions (CR-03). Four hands again:
+            // reading the catalogue, editing a function, IMPORTING the
+            // bank's workbook (a platform act — it rewrites 167 controls
+            // and 1,517 checklist lines in one transaction, so it stays
+            // with the administrator), and performing or reviewing the
+            // tasks the frequency engine manufactures. Execution and
+            // review are separate because the officer who ticked a
+            // checklist can never sign it off (R2).
+            'view control-functions', 'manage control-functions', 'import control-functions',
+            'execute control-tasks', 'review control-tasks',
             // Speak Up reporter metadata (CR). Dotted names on purpose —
             // they mirror the CR's specification and read as one family.
             // Tier 1 ('view_basic') is device/geo-coarse signals only;
@@ -167,6 +177,11 @@ class RolePermissionSeeder extends Seeder
             'review exception-responses', 'withdraw exceptions',
             // CR2-A: structure admin, yes; control assignment, no.
             'attach control-entities', 'manage control-stakeholders',
+            // CR-03: the administrator installs the bank's workbook but
+            // takes no seat in the checklist loop it creates — holding the
+            // platform keys must never put anyone inside a segregation-of-
+            // duties chain (R2).
+            'execute control-tasks', 'review control-tasks',
             // CR (Speak Up metadata): holding the platform keys never opens
             // a reporter's identity. The administrator keeps sight of the
             // access log — oversight is sight — but takes no part in the
@@ -187,6 +202,10 @@ class RolePermissionSeeder extends Seeder
         // title (R1).
         Role::findOrCreate('Control Function Head', 'web')->syncPermissions(array_diff($all, [
             'manage users', 'manage settings', 'manage sso', 'install content-packs',
+            // CR-03: importing the workbook rewrites the whole function
+            // register in one transaction and sits with the administrator,
+            // alongside the other platform-level permissions.
+            'import control-functions',
             // Case oversight stays with the System Administrator; the head
             // of control reaches a case the same way everyone else does —
             // by being named on it (11.4).
@@ -280,6 +299,12 @@ class RolePermissionSeeder extends Seeder
             // CR2-A: the second line runs the control universe end to end.
             'view control-structure', 'manage control-structure',
             'attach control-entities', 'manage control-stakeholders',
+            // CR-03: the control officer is the person the frequency
+            // engine generates work for. They read and maintain the
+            // function catalogue and perform the tasks; signing one off is
+            // the unit head's act, and importing the workbook is the
+            // administrator's.
+            'view control-functions', 'manage control-functions', 'execute control-tasks',
         ]);
 
         Role::findOrCreate('Control Owner', 'web')->syncPermissions([
@@ -322,6 +347,9 @@ class RolePermissionSeeder extends Seeder
             // CR2-A: first line sees where its controls sit in the
             // structure; it never reshapes the universe.
             'view control-structure',
+            // CR-03: first line reads the checklists the second line runs
+            // over its department. It performs none of them.
+            'view control-functions',
         ]);
 
         Role::findOrCreate('Line Manager', 'web')->syncPermissions([
@@ -347,6 +375,7 @@ class RolePermissionSeeder extends Seeder
             // CR2-A: a line manager reads the structure their department
             // appears in.
             'view control-structure',
+            'view control-functions',
         ]);
 
         Role::findOrCreate('Executive Viewer', 'web')->syncPermissions([
@@ -391,6 +420,10 @@ class RolePermissionSeeder extends Seeder
             // — but authors nothing and never runs due diligence.
             'view objectives', 'approve objectives',
             'view vendors', 'view sustainability', 'view assurance',
+            // CR-03: the board tier reads the function register and the
+            // frequency-compliance position — "prove this control was
+            // performed at its stated frequency" is a board question.
+            'view control-functions',
         ]);
 
         // CR (Speak Up metadata): a standalone reveal-approver role, so a
