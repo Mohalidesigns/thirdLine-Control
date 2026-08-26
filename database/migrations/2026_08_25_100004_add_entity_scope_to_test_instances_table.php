@@ -23,17 +23,14 @@ return new class extends Migration
      * 'global' with a null frequency_id, which is exactly what the old
      * unique index meant. Nothing that is not entity-scoped changes.
      *
-     * Order matters. The old unique index is dropped BEFORE due_date is
-     * made nullable, because SQLite implements a column change as a table
-     * rebuild and an index dropped afterwards may no longer be there to
-     * drop.
+     * Order matters, and it is dictated by MySQL: the NEW unique index is
+     * created before the old one is dropped. Both lead with control_id,
+     * and MySQL refuses to drop an index that is the only one covering a
+     * foreign key — dropping first would fail on the real deployment
+     * while passing happily on SQLite, which has no such rule.
      */
     public function up(): void
     {
-        Schema::table('test_instances', function (Blueprint $table) {
-            $table->dropUnique(['control_id', 'period_label']);
-        });
-
         Schema::table('test_instances', function (Blueprint $table) {
             $table->foreignId('control_entity_id')->nullable()->after('control_id')
                 ->constrained('control_entities')->nullOnDelete();
@@ -67,15 +64,57 @@ return new class extends Migration
             }),
         ]);
 
+        // Add the new unique index BEFORE dropping the old one. Both lead
+        // with control_id, and MySQL refuses to drop an index that is the
+        // only one covering a foreign key — leaving no window where
+        // test_instances_control_id_foreign is uncovered is what makes
+        // this migration survive on the real deployment.
         Schema::table('test_instances', function (Blueprint $table) {
             $table->unique(['control_id', 'scope_key', 'period_label', 'frequency_id'], 'test_instances_scope_period_unique');
+        });
+
+        Schema::table('test_instances', function (Blueprint $table) {
+            $table->dropUnique(['control_id', 'period_label']);
             $table->index(['tenant_id', 'control_entity_id', 'status']);
             $table->index(['tenant_id', 'period_year']);
         });
     }
 
+    /**
+     * The down migration is exercised, but it is not unconditional: once
+     * entity-scoped tasks exist, restoring UNIQUE(control_id,
+     * period_label) is IMPOSSIBLE by definition — two branches holding
+     * the same daily function on the same day is precisely what this
+     * migration made legal.
+     *
+     * So refuse, with the count and the query to see them, rather than
+     * failing on a raw duplicate-key error or — far worse — silently
+     * deleting task records to make the index fit.
+     */
     public function down(): void
     {
+        $scoped = DB::table('test_instances')
+            ->where(fn ($q) => $q->where('scope_key', '!=', 'global')->orWhereNotNull('frequency_id'))
+            ->count();
+
+        if ($scoped > 0) {
+            throw new RuntimeException(sprintf(
+                'Cannot roll back: %d entity-scoped or rhythm-scoped control task(s) exist, and the old '
+                ."UNIQUE(control_id, period_label) index cannot hold them.\n"
+                ."Inspect them with:\n"
+                .'  select id, reference, control_id, scope_key, period_label from test_instances '
+                ."where scope_key <> 'global' or frequency_id is not null;\n"
+                .'Archive or delete those rows deliberately before rolling this migration back.',
+                $scoped,
+            ));
+        }
+
+        // Mirror of up(): put the old index back before removing the new
+        // one, so the control_id foreign key is never left uncovered.
+        Schema::table('test_instances', function (Blueprint $table) {
+            $table->unique(['control_id', 'period_label']);
+        });
+
         Schema::table('test_instances', function (Blueprint $table) {
             $table->dropIndex(['tenant_id', 'period_year']);
             $table->dropIndex(['tenant_id', 'control_entity_id', 'status']);
@@ -83,10 +122,6 @@ return new class extends Migration
             $table->dropColumn(['trigger_context', 'trigger_event', 'period_year', 'scope_key']);
             $table->dropConstrainedForeignId('frequency_id');
             $table->dropConstrainedForeignId('control_entity_id');
-        });
-
-        Schema::table('test_instances', function (Blueprint $table) {
-            $table->unique(['control_id', 'period_label']);
         });
     }
 };

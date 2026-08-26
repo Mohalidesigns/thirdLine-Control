@@ -65,7 +65,9 @@ return new class extends Migration
             $table->foreignId('check_item_id')->nullable()->constrained('check_items')->nullOnDelete();
             $table->timestamps();
 
-            $table->index(['control_function_import_id', 'resolution']);
+            // Explicitly named: the derived name would be 72 characters
+            // and MySQL caps an identifier at 64.
+            $table->index(['control_function_import_id', 'resolution'], 'cfi_rows_import_resolution_index');
         });
     }
 
