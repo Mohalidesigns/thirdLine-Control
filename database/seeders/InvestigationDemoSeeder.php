@@ -6,6 +6,8 @@ use App\Models\ConsequenceAction;
 use App\Models\Control;
 use App\Models\ControlEntity;
 use App\Models\ControlException;
+use App\Models\Evidence;
+use App\Models\ImprovementAction;
 use App\Models\Investigation;
 use App\Models\InvestigationActivity;
 use App\Models\InvestigationFinding;
@@ -14,7 +16,12 @@ use App\Models\InvestigationTeamMember;
 use App\Models\SpeakUpCase;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\EvidenceService;
+use App\Services\InvestigationReportBuilder;
+use App\Services\LinkageService;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * CR-04 demo pack.
@@ -22,9 +29,19 @@ use Illuminate\Database\Seeder;
  * Four investigations, chosen to show the four things the module exists to
  * do rather than four variations of the same one:
  *
- *   1. A completed fraud case, raised from a control exception, with a
- *      named subject, a culpable outcome, a finding against the control
- *      that failed, a dismissal and a partial recovery.
+ *   1. A COMPLETE completed fraud case, raised from a control exception.
+ *      Two named subjects with recorded outcomes and rationales, a
+ *      Critical finding against the control that failed, three exhibits in
+ *      the shared evidence repository with chain of custody, a dismissal
+ *      and a partial recovery, both recommendations tracked as improvement
+ *      actions, the provenance edge into the graph — and the draft report,
+ *      generated through the real builder and the shared report pipeline
+ *      so it carries a genuine checksum and thirteen sections built from
+ *      those records.
+ *
+ *      That last part is the point. A completed investigation with no
+ *      exhibits, no tracked remediation and no report is not a completed
+ *      investigation; it is a status column that says so.
  *   2. A live conflict-of-interest case raised from a Speak Up report:
  *      confidential, LOCKED, its team taken from the case allowlist, and
  *      no reporter anywhere in it.
@@ -40,11 +57,32 @@ use Illuminate\Database\Seeder;
  */
 class InvestigationDemoSeeder extends Seeder
 {
+    /**
+     * The pack's own fingerprint. Its presence means this seeder has run
+     * here before; its absence means it has not, whatever else the register
+     * holds.
+     */
+    private const MARKER_TITLE = 'Suppressed cash lodgements at the counter';
+
     public function run(): void
     {
         $tenant = Tenant::first();
 
-        if (! $tenant || Investigation::withoutGlobalScopes()->where('tenant_id', $tenant->id)->exists()) {
+        if (! $tenant) {
+            return;
+        }
+
+        // Guard on THIS PACK, not on "has anyone used the module yet".
+        // The first version refused to run whenever a single investigation
+        // existed, which meant the demo pack could never be added to an
+        // install where someone had already opened a real case — exactly
+        // when you most want it, and exactly what happened.
+        $alreadySeeded = Investigation::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('title', self::MARKER_TITLE)
+            ->exists();
+
+        if ($alreadySeeded) {
             return;
         }
 
@@ -67,7 +105,7 @@ class InvestigationDemoSeeder extends Seeder
 
         // ── 1. The completed fraud case ─────────────────────────────
         $fraud = $this->make($tid, [
-            'title' => 'Suppressed cash lodgements at the counter',
+            'title' => self::MARKER_TITLE,
             'category' => 'fraud',
             'source' => 'control_exception',
             'priority' => 'Critical',
@@ -123,7 +161,7 @@ class InvestigationDemoSeeder extends Seeder
         $finding = InvestigationFinding::create([
             'tenant_id' => $tid,
             'investigation_id' => $fraud->id,
-            'reference' => 'INVF-'.now()->year.'-001',
+            'reference' => InvestigationFinding::nextReference('INVF'),
             'title' => 'The daily till reconciliation did not operate for five weeks',
             'severity' => 'Critical',
             'description' => 'The control was signed off as performed on the checklist but no reconciliation was produced.',
@@ -141,7 +179,7 @@ class InvestigationDemoSeeder extends Seeder
             'tenant_id' => $tid,
             'investigation_id' => $fraud->id,
             'investigation_subject_id' => $teller->id,
-            'reference' => 'CON-'.now()->year.'-001',
+            'reference' => ConsequenceAction::nextReference('CON'),
             'action_type' => 'dismissal',
             'description' => 'Summary dismissal for gross misconduct.',
             'status' => 'implemented',
@@ -158,7 +196,7 @@ class InvestigationDemoSeeder extends Seeder
             'tenant_id' => $tid,
             'investigation_id' => $fraud->id,
             'investigation_subject_id' => $teller->id,
-            'reference' => 'CON-'.now()->year.'-002',
+            'reference' => ConsequenceAction::nextReference('CON'),
             'action_type' => 'restitution_recovery',
             'description' => 'Recovery from terminal benefits and a signed repayment undertaking.',
             'status' => 'implemented',
@@ -171,10 +209,10 @@ class InvestigationDemoSeeder extends Seeder
             'amount_recovered' => 1420000,
         ]);
 
-        ConsequenceAction::create([
+        $processChange = ConsequenceAction::create([
             'tenant_id' => $tid,
             'investigation_id' => $fraud->id,
-            'reference' => 'CON-'.now()->year.'-003',
+            'reference' => ConsequenceAction::nextReference('CON'),
             'action_type' => 'process_change',
             'description' => 'Evidence must be attached before a reconciliation checklist line can be signed off.',
             'status' => 'approved',
@@ -198,6 +236,18 @@ class InvestigationDemoSeeder extends Seeder
             ['action_recommended', 'Dismissal and recovery recommended.', 32],
             ['case_completed', 'Investigation completed and rated Critical.', 30],
         ]);
+
+        // ── What makes case 1 a COMPLETE one ────────────────────────
+        // A completed investigation with no exhibits, no tracked
+        // remediation and no report is not a completed investigation —
+        // it is a status column that says so. The rest of this block is
+        // the difference, and it runs through the real services rather
+        // than writing rows, so the demo exercises the same code an
+        // officer does.
+        $this->attachExhibits($fraud, $officer);
+        $this->closeTheRemediationLoop($fraud, $finding, $processChange, $head);
+        $this->linkToOrigin($fraud, $exception);
+        $this->issueReport($fraud, $officer);
 
         // ── 2. The Speak Up case: confidential and locked ────────────
         if ($speakUp) {
@@ -296,6 +346,168 @@ class InvestigationDemoSeeder extends Seeder
             ['report_issued', 'Police report lodged at the divisional headquarters.', 120],
             ['status_changed', 'Status changed from under_investigation to suspended.', 118],
         ]);
+    }
+
+    /**
+     * Exhibits, with the chain of custody CR-04 §C.7 added to the shared
+     * repository: who COLLECTED it and where it came from, which is the
+     * question a disciplinary panel asks and the uploader column cannot
+     * answer.
+     *
+     * Real files on the evidence disk, so the download route and the
+     * checksum in the report's evidence register are the genuine article
+     * rather than dangling paths.
+     */
+    private function attachExhibits(Investigation $investigation, User $officer): void
+    {
+        $exhibits = [
+            [
+                'file_name' => 'cbs-gl-extract-apr-may.csv',
+                'source' => 'Core banking extract, Ubahorep option 13:13',
+                'pii' => true,
+                'categories' => ['Account numbers', 'Transaction data'],
+                'body' => "posting_date,teller_id,account,amount,narration\n"
+                    ."2026-04-14,STF-40118,0123456789,180000,Cash lodgement\n"
+                    ."2026-04-21,STF-40118,0123456789,240000,Cash lodgement\n"
+                    ."2026-05-06,STF-40118,0123456789,315000,Cash lodgement\n",
+                'days' => 68,
+            ],
+            [
+                'file_name' => 'till-reconciliation-register.csv',
+                'source' => 'Branch 042 register, photographed at the counter',
+                'pii' => false,
+                'categories' => null,
+                'body' => "date,performed_by,evidence_attached\n"
+                    ."2026-04-14,,no\n2026-04-15,,no\n2026-04-16,,no\n",
+                'days' => 65,
+            ],
+            [
+                'file_name' => 'interview-note-teller.txt',
+                'source' => 'Interview under caution, Branch 042, witnessed by the unit head',
+                'pii' => true,
+                'categories' => ['Names & addresses'],
+                'body' => "Interview under caution — 2026-06-25\n\n"
+                    .'The subject accepted that eleven lodgements were taken at the counter and not posted, '
+                    ."and that the daily till reconciliation had not been performed for the period.\n",
+                'days' => 62,
+            ],
+        ];
+
+        foreach ($exhibits as $exhibit) {
+            $path = 'evidence/'.now()->subDays($exhibit['days'])->format('Y/m').'/'.$exhibit['file_name'];
+
+            Storage::disk(EvidenceService::DISK)->put($path, $exhibit['body']);
+
+            Evidence::withoutGlobalScopes()->create([
+                'tenant_id' => $investigation->tenant_id,
+                'linked_type' => Investigation::class,
+                'linked_id' => $investigation->id,
+                'file_name' => $exhibit['file_name'],
+                'storage_path' => $path,
+                'mime_type' => str_ends_with($exhibit['file_name'], '.csv') ? 'text/csv' : 'text/plain',
+                'file_size' => strlen($exhibit['body']),
+                'checksum' => hash('sha256', $exhibit['body']),
+                'contains_personal_data' => $exhibit['pii'],
+                'personal_data_categories' => $exhibit['categories'],
+                'classification' => 'Confidential',
+                'uploaded_by' => $officer->id,
+                'uploaded_at' => now()->subDays($exhibit['days']),
+                'collected_by' => $officer->id,
+                'collected_on' => now()->subDays($exhibit['days'])->toDateString(),
+                'collection_source' => $exhibit['source'],
+                'description' => 'Exhibit in '.$investigation->reference.'.',
+            ]);
+        }
+    }
+
+    /**
+     * §F.1, both directions. The finding's recommendation becomes tracked
+     * work, and the approved process change becomes its own. Without this
+     * the report's Recommendations column reads "Not yet raised" on a case
+     * that is finished, which is the exact gap the section exists to close.
+     */
+    private function closeTheRemediationLoop(
+        Investigation $investigation,
+        InvestigationFinding $finding,
+        ConsequenceAction $processChange,
+        User $owner,
+    ): void {
+        $remediation = ImprovementAction::withoutGlobalScopes()->create([
+            'tenant_id' => $investigation->tenant_id,
+            'reference' => ImprovementAction::nextReference('IMP'),
+            'source_type' => 'investigation',
+            'source_id' => $finding->id,
+            'title' => 'Attach the reconciliation output before a checklist line can be signed off',
+            'description' => $finding->recommendation,
+            'priority' => 'Critical',
+            'owner_id' => $owner->id,
+            'due_at' => now()->addWeeks(3)->toDateString(),
+            'status' => 'In Progress',
+            'control_id' => $finding->control_id,
+        ]);
+
+        $finding->update(['improvement_action_id' => $remediation->id]);
+
+        $processChange->update([
+            'improvement_action_id' => ImprovementAction::withoutGlobalScopes()->create([
+                'tenant_id' => $investigation->tenant_id,
+                'reference' => ImprovementAction::nextReference('IMP'),
+                'source_type' => 'investigation',
+                'source_id' => $investigation->id,
+                'title' => 'Process change: second signature on charge waivers',
+                'description' => $processChange->description,
+                'priority' => 'High',
+                'owner_id' => $owner->id,
+                'due_at' => $processChange->due_date,
+                'status' => 'Approved',
+            ])->id,
+        ]);
+    }
+
+    /**
+     * §D.2. The morph is the source of truth and the edge is the view; the
+     * service writes both in one transaction, so a seeder that writes rows
+     * directly has to put the edge back or the Atlas graph shows an
+     * investigation with no provenance.
+     */
+    private function linkToOrigin(Investigation $investigation, ?ControlException $exception): void
+    {
+        if (! $exception) {
+            return;
+        }
+
+        app(LinkageService::class)->link(
+            'investigation', $investigation->id,
+            'exception', $exception->id,
+            'relates_to',
+        );
+    }
+
+    /**
+     * The draft report, generated through the real builder and the shared
+     * report pipeline — so the demo carries a genuine ReportRun with a
+     * checksum, an expiring download token and thirteen sections built from
+     * the records above, not a row that claims one exists.
+     *
+     * Authenticated deliberately: ReportRun is tenant-stamped from the
+     * acting user, and the investigation's visibility scope has to admit
+     * the actor for the builder to read its own children.
+     */
+    private function issueReport(Investigation $investigation, User $officer): void
+    {
+        $previous = Auth::user();
+        Auth::login($officer);
+
+        try {
+            app(InvestigationReportBuilder::class)->generate($investigation->refresh(), $officer);
+        } catch (\Throwable $e) {
+            // A demo pack must never be the reason a seed run fails. The
+            // investigation is complete either way; the report is a
+            // re-runnable artefact.
+            $this->command?->warn('Investigation report could not be generated: '.$e->getMessage());
+        } finally {
+            $previous ? Auth::login($previous) : Auth::logout();
+        }
     }
 
     /** @param array<string, mixed> $attributes */
