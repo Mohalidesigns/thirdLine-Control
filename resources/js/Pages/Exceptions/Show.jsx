@@ -5,6 +5,7 @@ import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
 import AiAssistButton from '@/Components/AiAssistButton';
 import PageHeader from '@/Components/PageHeader';
+import RaiseInvestigationButton from '@/Components/RaiseInvestigationButton';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
@@ -130,6 +131,16 @@ export default function Show({ exception, evidence = [], users = [], units = [],
                             <SecondaryButton onClick={() => setModal('decide')}>Decide extension</SecondaryButton>
                         )}
                         {can.acceptRisk && <SecondaryButton onClick={() => setModal('risk')}>Accept risk</SecondaryButton>}
+                        {/* CR-04 §D.2: a control failure that looks deliberate
+                            stops being an exception to remediate and becomes a
+                            matter to investigate. The origin is carried across,
+                            so the investigation's first finding already names
+                            the control that failed. */}
+                        <RaiseInvestigationButton
+                            originType="exception"
+                            originId={exception.id}
+                            label="Escalate to investigation"
+                        />
                         {can.escalate && !['Verified-Closed', 'Risk Accepted'].includes(exception.status) && (
                             <PrimaryButton onClick={() => setModal('escalate')}>Escalate to department</PrimaryButton>
                         )}

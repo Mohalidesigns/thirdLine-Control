@@ -43,6 +43,11 @@ class LinkageService
         // "objective ← risk ← control ← KRI" one traversal (17.1).
         'objective' => ['ref' => 'code', 'title' => 'title', 'route' => 'objectives.show'],
         'vendor' => ['ref' => 'reference', 'title' => 'legal_name', 'route' => 'vendors.show'],
+        // CR-04. Resolves through the tenant scope like everything else;
+        // an investigation the viewer may not open renders as
+        // "(removed record)" with no route, which is what makes it safe
+        // to link a confidential matter into a graph other people see.
+        'investigation' => ['ref' => 'reference', 'title' => 'title', 'route' => 'investigations.show'],
     ];
 
     /** Hard cap on the nodes any single graph response may carry. */

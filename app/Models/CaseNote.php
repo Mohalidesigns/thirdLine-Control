@@ -27,9 +27,9 @@ class CaseNote extends Model
         'is_reporter_visible' => 'boolean',
     ];
 
-    public function investigationCase(): BelongsTo
+    public function speakUpCase(): BelongsTo
     {
-        return $this->belongsTo(InvestigationCase::class, 'case_id');
+        return $this->belongsTo(SpeakUpCase::class, 'case_id');
     }
 
     public function author(): BelongsTo

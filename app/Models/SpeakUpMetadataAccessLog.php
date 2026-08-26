@@ -36,7 +36,7 @@ class SpeakUpMetadataAccessLog extends Model
 
     public function report(): BelongsTo
     {
-        return $this->belongsTo(InvestigationCase::class, 'report_id');
+        return $this->belongsTo(SpeakUpCase::class, 'report_id');
     }
 
     public function requester(): BelongsTo

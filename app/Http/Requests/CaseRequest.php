@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Models\InvestigationCase;
+use App\Models\SpeakUpCase;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -10,17 +10,17 @@ class CaseRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', InvestigationCase::class);
+        return $this->user()->can('create', SpeakUpCase::class);
     }
 
     public function rules(): array
     {
         return [
-            'case_type' => ['required', Rule::in(InvestigationCase::TYPES)],
+            'case_type' => ['required', Rule::in(SpeakUpCase::TYPES)],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:8000'],
-            'confidentiality' => ['required', Rule::in(InvestigationCase::CONFIDENTIALITY_LEVELS)],
-            'severity' => ['required', Rule::in(InvestigationCase::SEVERITIES)],
+            'confidentiality' => ['required', Rule::in(SpeakUpCase::CONFIDENTIALITY_LEVELS)],
+            'severity' => ['required', Rule::in(SpeakUpCase::SEVERITIES)],
             'is_anonymous' => ['nullable', 'boolean'],
             'channel' => ['nullable', 'string', 'max:40'],
             'entity_id' => ['nullable', 'exists:organisation_units,id'],

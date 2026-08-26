@@ -15,10 +15,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 /**
- * Investigation / whistleblowing / disciplinary case (11.4).
+ * Speak Up intake case (11.4): whistleblowing, disciplinary and
+ * regulatory-enquiry reports.
  *
- * The class is named InvestigationCase because `Case` is a PHP reserved
- * word; the table is `cases` as specified.
+ * The table is `cases`; the class cannot be `Case` because that is a PHP
+ * reserved word. It was called InvestigationCase until CR-04, which needed
+ * that name for the casework aggregate on `investigations`. The two are
+ * deliberately separate: this is INTAKE — allowlist-gated, anonymity-
+ * preserving, with no subjects, consequences or financials — and
+ * App\Models\Investigation is the investigation that may follow it.
  *
  * Two rules make this model different from every other one in the product:
  *
@@ -35,7 +40,7 @@ use Illuminate\Support\Str;
  *      auditsAnonymously() keeps user, IP and agent out of the audit trail
  *      while still recording that the event happened (R3).
  */
-class InvestigationCase extends Model
+class SpeakUpCase extends Model
 {
     use Auditable, BelongsToTenant, GeneratesReference, HasFactory, SoftDeletes;
 

@@ -1,6 +1,7 @@
 import Countdown from '@/Components/Countdown';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
+import RaiseInvestigationButton from '@/Components/RaiseInvestigationButton';
 import RelationshipsPanel from '@/Components/RelationshipsPanel';
 import SeverityBadge from '@/Components/SeverityBadge';
 import StatusBadge from '@/Components/StatusBadge';
@@ -76,6 +77,16 @@ export default function Show({ incident, links = [], users = [], controls = [], 
                                 Open investigation
                             </button>
                         )}
+                        {/* CR-04 §D.2. Distinct from the button above, which
+                            moves THIS incident to Under Investigation: this
+                            opens a separate investigation case with subjects,
+                            consequences and a report, carrying the incident as
+                            its origin and its loss figure as the estimate. */}
+                        <RaiseInvestigationButton
+                            originType="incident"
+                            originId={incident.id}
+                            label="Open investigation case"
+                        />
                         {can.close && (
                             <button
                                 className="btn-primary"

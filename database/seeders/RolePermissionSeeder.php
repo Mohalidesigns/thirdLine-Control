@@ -147,6 +147,23 @@ class RolePermissionSeeder extends Seeder
             // checklist can never sign it off (R2).
             'view control-functions', 'manage control-functions', 'import control-functions',
             'execute control-tasks', 'review control-tasks',
+            // Investigations & consequence management (CR-04). Eleven, not
+            // the ten the change request listed: 'view all investigations'
+            // is oversight of ORDINARY cases only, and the confidential
+            // regime needed an authority of its own rather than a role
+            // name in a query. Naming it means a tenant that separates
+            // these duties — a DPO, a head of HR — can move it without a
+            // deploy, which is the same reason 'view all cases' exists
+            // next door (R1).
+            //
+            // 'view investigation-dashboard' sits apart from the register
+            // deliberately: the Executive Viewer reads the shape of the
+            // caseload and never opens a case file.
+            'view investigations', 'create investigations', 'edit investigations',
+            'delete investigations', 'assign investigations', 'complete investigations',
+            'archive investigations', 'view all investigations',
+            'view confidential-investigations',
+            'manage investigation-consequences', 'view investigation-dashboard',
             // Speak Up reporter metadata (CR). Dotted names on purpose —
             // they mirror the CR's specification and read as one family.
             // Tier 1 ('view_basic') is device/geo-coarse signals only;
@@ -188,6 +205,13 @@ class RolePermissionSeeder extends Seeder
             // reveal loop and sees no metadata tier.
             'speak_up.metadata.view_basic', 'speak_up.metadata.request_reveal',
             'speak_up.metadata.approve_reveal',
+            // CR-04: the administrator holds the oversight permissions —
+            // 'view all investigations' and the confidential authority —
+            // but takes no seat in the casework. Recommending or approving
+            // a consequence against a named member of staff is a
+            // disciplinary act, and holding the platform keys must never
+            // put anyone inside that chain (R2).
+            'manage investigation-consequences',
         ]));
 
         // Installing regulatory content packs changes platform-wide data, so
@@ -305,6 +329,21 @@ class RolePermissionSeeder extends Seeder
             // the unit head's act, and importing the workbook is the
             // administrator's.
             'view control-functions', 'manage control-functions', 'execute control-tasks',
+            // CR-04: the second line runs investigations end to end —
+            // opening, assembling a team, naming subjects, recording
+            // findings and completing with a rating. Three things stay
+            // above it: archiving (which removes a case from every count),
+            // deleting a draft, and blanket sight of the register. An
+            // officer reaches an investigation by being on it.
+            //
+            // 'manage investigation-consequences' is held here because
+            // recommending a consequence is second-line work; the service
+            // refuses a self-approval whatever roles the actor holds, so
+            // holding both halves of the permission never becomes both
+            // halves of the decision (§D.4-2).
+            'view investigations', 'create investigations', 'edit investigations',
+            'assign investigations', 'complete investigations',
+            'manage investigation-consequences', 'view investigation-dashboard',
         ]);
 
         Role::findOrCreate('Control Owner', 'web')->syncPermissions([
@@ -350,6 +389,10 @@ class RolePermissionSeeder extends Seeder
             // CR-03: first line reads the checklists the second line runs
             // over its department. It performs none of them.
             'view control-functions',
+            // CR-04: a control owner sees an investigation by being named
+            // on its team — no 'view all investigations' here, because
+            // first line has no business reading the register at large.
+            'view investigations', 'view investigation-dashboard',
         ]);
 
         Role::findOrCreate('Line Manager', 'web')->syncPermissions([
@@ -376,6 +419,10 @@ class RolePermissionSeeder extends Seeder
             // appears in.
             'view control-structure',
             'view control-functions',
+            // CR-04: team-scoped sight only. A line manager who is named
+            // on an investigation can read it; the register itself is not
+            // theirs to browse, and the dashboard is not either.
+            'view investigations',
         ]);
 
         Role::findOrCreate('Executive Viewer', 'web')->syncPermissions([
@@ -424,6 +471,13 @@ class RolePermissionSeeder extends Seeder
             // frequency-compliance position — "prove this control was
             // performed at its stated frequency" is a board question.
             'view control-functions',
+            // CR-04: the dashboard and NOTHING else. "How much fraud, in
+            // which branches, recovered how well" is a board question;
+            // who was dismissed is not the board's file to open. Note the
+            // deliberate absence of 'view investigations' — without it the
+            // register route is closed to this role at the middleware,
+            // before any policy runs.
+            'view investigation-dashboard',
         ]);
 
         // CR (Speak Up metadata): a standalone reveal-approver role, so a

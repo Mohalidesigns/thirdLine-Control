@@ -21,11 +21,30 @@
         <!-- Rendering a full board pack through dompdf is genuinely memory
              hungry, and the report suite renders every shipped report in
              every format it publishes in one process. Production runs these
-             on a worker sized the same way. Raised from 512M with CR3 (the
-             Activity Log doubled the audit write volume per test and the
-             868-test suite crossed the old ceiling near the end of the
-             alphabet); size any matching prod worker accordingly. -->
-        <ini name="memory_limit" value="1024M"/>
+             on a worker sized the same way; size any matching prod worker
+             accordingly.
+
+             History, because this ceiling has now moved twice for the same
+             reason and the next person deserves numbers rather than
+             folklore:
+
+               · 512M → 1024M with CR3. The Activity Log doubled the audit
+                 write volume per test and the 868-test suite crossed the
+                 old ceiling near the end of the alphabet.
+               · 1024M → 2048M with CR-04, which added INV-REPORT to the
+                 shipped catalogue — so ReportDesignerTest, which renders
+                 EVERY system report in EVERY format it declares, gained two
+                 more documents — plus a suite of its own that renders an
+                 investigation report as both PDF and DOCX.
+
+             Measured peak on a macOS/Herd PHP 8.4 build at the 1,001-test
+             mark: 551 MB. The GitHub runner's build used enough more than
+             that to die at 1024M — deterministically, twice, on the first
+             test alphabetically after ReportDesignerTest — which is why the
+             headroom is now roughly 4× the measured local peak rather than
+             2×. If it moves again, measure first:
+             `php -d auto_prepend_file=<script printing memory_get_peak_usage(true)> vendor/bin/phpunit`. -->
+        <ini name="memory_limit" value="2048M"/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>

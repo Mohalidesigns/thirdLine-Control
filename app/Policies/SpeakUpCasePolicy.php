@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Models\InvestigationCase;
+use App\Models\SpeakUpCase;
 use App\Models\User;
 
 /**
@@ -18,14 +18,14 @@ use App\Models\User;
  * privileged notes — still requires membership. CaseConfidentialityTest
  * asserts both halves: the oversight sight and its read-only ceiling.
  */
-class InvestigationCasePolicy
+class SpeakUpCasePolicy
 {
     public function viewAny(User $user): bool
     {
         return $user->can('view cases');
     }
 
-    public function view(User $user, InvestigationCase $case): bool
+    public function view(User $user, SpeakUpCase $case): bool
     {
         return $case->grantsAccessTo($user) || $user->can('view all cases');
     }
@@ -35,19 +35,19 @@ class InvestigationCasePolicy
         return $user->can('create cases');
     }
 
-    public function update(User $user, InvestigationCase $case): bool
+    public function update(User $user, SpeakUpCase $case): bool
     {
         return $case->grantsAccessTo($user)
             && $user->can('investigate cases')
             && $case->status !== 'Closed';
     }
 
-    public function assess(User $user, InvestigationCase $case): bool
+    public function assess(User $user, SpeakUpCase $case): bool
     {
         return $this->update($user, $case) && in_array($case->status, ['Received', 'Assessed'], true);
     }
 
-    public function investigate(User $user, InvestigationCase $case): bool
+    public function investigate(User $user, SpeakUpCase $case): bool
     {
         return $case->grantsAccessTo($user)
             && ($case->lead_investigator_id === $user->id || $user->can('investigate cases'))
@@ -55,7 +55,7 @@ class InvestigationCasePolicy
     }
 
     /** The reporter of a case never decides its outcome (R2). */
-    public function conclude(User $user, InvestigationCase $case): bool
+    public function conclude(User $user, SpeakUpCase $case): bool
     {
         return $case->grantsAccessTo($user)
             && $user->can('investigate cases')
@@ -63,20 +63,20 @@ class InvestigationCasePolicy
             && $case->reporter_id !== $user->id;
     }
 
-    public function close(User $user, InvestigationCase $case): bool
+    public function close(User $user, SpeakUpCase $case): bool
     {
         return $case->grantsAccessTo($user)
             && $user->can('close cases')
             && in_array($case->status, ['Substantiated', 'Unsubstantiated', 'Referred', 'Assessed', 'Received'], true);
     }
 
-    public function manageAccess(User $user, InvestigationCase $case): bool
+    public function manageAccess(User $user, SpeakUpCase $case): bool
     {
         return $case->grantsAccessTo($user);
     }
 
     /** Privileged notes stay with the lead investigator and legal counsel. */
-    public function viewPrivileged(User $user, InvestigationCase $case): bool
+    public function viewPrivileged(User $user, SpeakUpCase $case): bool
     {
         return $case->grantsAccessTo($user)
             && ($case->lead_investigator_id === $user->id || $user->can('view privileged-notes'));

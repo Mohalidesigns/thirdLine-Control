@@ -1,5 +1,6 @@
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
+import RaiseInvestigationButton from '@/Components/RaiseInvestigationButton';
 import ReporterSignals from '@/Components/ReporterSignals';
 import RelationshipsPanel from '@/Components/RelationshipsPanel';
 import SeverityBadge from '@/Components/SeverityBadge';
@@ -73,6 +74,10 @@ export default function Show({
                                 Close
                             </button>
                         )}
+                        {/* CR-04 §D.3. The investigation raised from a Speak Up
+                            report inherits its confidentiality — LOCKED — and
+                            its allowlist, and never learns who reported it. */}
+                        <RaiseInvestigationButton originType="case" originId={investigationCase.id} />
                     </>
                 }
             />

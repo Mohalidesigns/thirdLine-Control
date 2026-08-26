@@ -92,3 +92,9 @@ Schedule::command('atheris:roll-continuous-tasks')->monthlyOn(1, '00:50')->witho
 // created; this sweep also carries NEW template activities to branches
 // that already exist (add-only, idempotent).
 Schedule::command('control-structure:sync-branches')->dailyAt('01:45');
+
+// CR-04 — the investigation chase. 06:20 deliberately precedes the CR-01
+// exception chase at 06:30 and the escalation sweep at 07:00, so a lead
+// who is behind on a case and behind on an exception gets one morning's
+// worth of chasing rather than two.
+Schedule::command('investigations:chase')->dailyAt('06:20');

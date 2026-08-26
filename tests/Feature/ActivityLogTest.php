@@ -6,7 +6,7 @@ use App\Console\Commands\InstallAuditTriggers;
 use App\Models\AuditTrail;
 use App\Models\Control;
 use App\Models\ControlException;
-use App\Models\InvestigationCase;
+use App\Models\SpeakUpCase;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\ExceptionService;
@@ -312,7 +312,7 @@ class ActivityLogTest extends TestCase
     {
         $this->actingAs($this->admin);
 
-        $case = InvestigationCase::withoutGlobalScopes()->create([
+        $case = SpeakUpCase::withoutGlobalScopes()->create([
             'tenant_id' => $this->tenant->id,
             'case_ref' => 'CASE-2026-0001',
             'title' => 'Anonymous report',
@@ -323,7 +323,7 @@ class ActivityLogTest extends TestCase
             'status' => 'New',
         ]);
 
-        $row = AuditTrail::where('entity_type', InvestigationCase::class)
+        $row = AuditTrail::where('entity_type', SpeakUpCase::class)
             ->where('entity_id', $case->id)->first();
 
         $this->assertNotNull($row);

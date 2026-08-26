@@ -49,6 +49,7 @@ export default function Show({
     recentTests = [],
     openExceptions = [],
     improvements = [],
+    investigationFindings = [],
     ratings = [],
     assessments = [],
     designRatings = [],
@@ -353,6 +354,42 @@ export default function Show({
                             roles={stakeholderRoles}
                             canManage={can.manageStakeholders}
                         />
+
+                        {investigationFindings.length > 0 && (
+                            <div className="card">
+                                <div className="card-header">
+                                    <h3 className="text-sm font-semibold">Implicated in investigations</h3>
+                                </div>
+                                <div className="card-body">
+                                    <p className="mb-3 text-xs text-[var(--color-text-secondary)]">
+                                        Findings of fact that name this control as having failed. A fraud investigation
+                                        often implicates a control the testing programme never reached, which is why this
+                                        panel is not the exception register.
+                                    </p>
+                                    <ul className="space-y-3">
+                                        {investigationFindings.map((finding) => (
+                                            <li key={finding.id} className="text-sm">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <Link
+                                                        href={route('investigations.show', finding.investigation?.id)}
+                                                        className="truncate font-mono text-xs text-[var(--color-primary)] hover:underline"
+                                                    >
+                                                        {finding.investigation?.reference}
+                                                    </Link>
+                                                    <SeverityBadge severity={finding.severity} />
+                                                </div>
+                                                <p className="mt-0.5 truncate text-[var(--color-text-primary)]">{finding.title}</p>
+                                                <p className="mt-0.5 text-xs text-gray-400">
+                                                    {finding.improvement_action
+                                                        ? `Remediation ${finding.improvement_action.reference} — ${finding.improvement_action.status}`
+                                                        : 'No remediation raised yet'}
+                                                </p>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+                        )}
 
                         {improvements.length > 0 && (
                             <div className="card">

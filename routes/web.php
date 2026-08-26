@@ -49,6 +49,13 @@ use App\Http\Controllers\ImprovementActionController;
 use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\InitiativeController;
 use App\Http\Controllers\IntegrationController;
+use App\Http\Controllers\InvestigationConsequenceController;
+use App\Http\Controllers\InvestigationController;
+use App\Http\Controllers\InvestigationDashboardController;
+use App\Http\Controllers\InvestigationEvidenceController;
+use App\Http\Controllers\InvestigationFindingController;
+use App\Http\Controllers\InvestigationReportController;
+use App\Http\Controllers\InvestigationSubjectController;
 use App\Http\Controllers\LinkageController;
 use App\Http\Controllers\MetricController;
 use App\Http\Controllers\MobileTaskController;
@@ -905,7 +912,7 @@ Route::middleware('auth')->group(function () {
 
     // ── Cases & investigations (Phase 11.4) ──────────────────────────
     // Route middleware is the coarse gate only: every case is additionally
-    // filtered by the allowlist scope and InvestigationCasePolicy, with no
+    // filtered by the allowlist scope and SpeakUpCasePolicy, with no
     // administrator bypass.
     Route::middleware(['feature:cases', 'permission:view cases'])->group(function () {
         Route::get('cases/board-extract', [CaseController::class, 'boardExtract'])->name('cases.board-extract');
@@ -936,6 +943,57 @@ Route::middleware('auth')->group(function () {
                 ->name('cases.legal-hold.set');
             Route::delete('cases/{case}/legal-hold', [SpeakUpMetadataController::class, 'liftLegalHold'])
                 ->name('cases.legal-hold.lift');
+        });
+    });
+
+    // ── Investigations & consequence management (CR-04) ──────────────
+    // Route middleware is the coarse gate only. Every investigation is
+    // additionally filtered by Investigation::scopeVisibleTo() and
+    // InvestigationPolicy: a confidential case is invisible to the
+    // 'view all investigations' oversight permission, and acting on any
+    // case requires being on its team.
+    // The dashboard sits on its own permission and OUTSIDE the register's
+    // gate: the Executive Viewer holds 'view investigation-dashboard' and
+    // nothing else in this module, so it reads the shape of the caseload
+    // and never opens a case file. Declared before the resource so
+    // 'dashboard' is not swallowed as {investigation}.
+    Route::middleware(['feature:investigations', 'permission:view investigation-dashboard'])->group(function () {
+        Route::get('investigations/dashboard', [InvestigationDashboardController::class, 'index'])
+            ->name('investigations.dashboard');
+        Route::get('investigations/dashboard/export', [InvestigationDashboardController::class, 'export'])
+            ->name('investigations.dashboard.export');
+    });
+
+    Route::middleware(['feature:investigations', 'permission:view investigations'])->group(function () {
+        Route::resource('investigations', InvestigationController::class);
+
+        Route::prefix('investigations/{investigation}')->name('investigations.')->group(function () {
+            Route::post('status', [InvestigationController::class, 'updateStatus'])->name('status');
+            Route::post('complete', [InvestigationController::class, 'complete'])->name('complete');
+
+            Route::post('subjects', [InvestigationSubjectController::class, 'store'])->name('subjects.store');
+            Route::put('subjects/{subject}', [InvestigationSubjectController::class, 'update'])->name('subjects.update');
+
+            Route::post('findings', [InvestigationFindingController::class, 'store'])->name('findings.store');
+            Route::put('findings/{finding}', [InvestigationFindingController::class, 'update'])->name('findings.update');
+            Route::post('findings/{finding}/improvement', [InvestigationFindingController::class, 'raiseImprovement'])
+                ->name('findings.improvement');
+
+            Route::middleware('permission:manage investigation-consequences')->group(function () {
+                Route::post('consequences', [InvestigationConsequenceController::class, 'store'])->name('consequences.store');
+                Route::put('consequences/{action}', [InvestigationConsequenceController::class, 'update'])->name('consequences.update');
+            });
+
+            Route::post('activities', [InvestigationController::class, 'storeActivity'])->name('activities.store');
+            Route::post('evidence', [InvestigationEvidenceController::class, 'store'])->name('evidence.store');
+            Route::post('report', [InvestigationReportController::class, 'generate'])->name('report.generate');
+
+            Route::middleware('permission:assign investigations')->group(function () {
+                Route::post('team', [InvestigationController::class, 'storeTeamMember'])->name('team.store');
+                Route::delete('team/{member}', [InvestigationController::class, 'removeTeamMember'])->name('team.destroy');
+                Route::post('archive', [InvestigationController::class, 'archive'])->name('archive');
+                Route::post('unarchive', [InvestigationController::class, 'unarchive'])->name('unarchive');
+            });
         });
     });
 

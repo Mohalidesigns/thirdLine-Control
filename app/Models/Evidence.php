@@ -29,6 +29,10 @@ class Evidence extends Model
         'retention_expiry_date', 'legal_hold', 'legal_hold_reason',
         'uploaded_by', 'uploaded_at', 'disposal_requested_by',
         'disposal_requested_at', 'disposal_approved_by', 'disposed_at',
+        // CR-04 §C.7 — chain of custody. Who UPLOADED a file and who
+        // COLLECTED it are different questions, and only the second one
+        // matters at a disciplinary panel.
+        'collected_by', 'collected_on', 'collection_source', 'description',
     ];
 
     protected $casts = [
@@ -40,6 +44,7 @@ class Evidence extends Model
         'disposal_requested_at' => 'datetime',
         'disposed_at' => 'datetime',
         'file_size' => 'integer',
+        'collected_on' => 'date',
     ];
 
     /**
@@ -68,6 +73,12 @@ class Evidence extends Model
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    /** Who took custody of the exhibit — not necessarily who filed it (CR-04 §C.7). */
+    public function collector(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'collected_by');
     }
 
     public function accessLogs(): HasMany

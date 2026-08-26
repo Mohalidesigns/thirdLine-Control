@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\InvestigationCase;
+use App\Models\SpeakUpCase;
 use App\Models\SpeakUpMetadataAccessLog;
 use App\Models\SpeakUpRevealRequest;
 use App\Services\SpeakUpMetadataService;
@@ -33,7 +33,7 @@ class SpeakUpMetadataController extends Controller
 {
     public function __construct(private SpeakUpMetadataService $metadata) {}
 
-    public function show(Request $request, InvestigationCase $case): Response
+    public function show(Request $request, SpeakUpCase $case): Response
     {
         $this->authorize('view', $case);
         abort_unless($request->user()->can('speak_up.metadata.view_basic'), 403);
@@ -79,7 +79,7 @@ class SpeakUpMetadataController extends Controller
         ]);
     }
 
-    public function requestReveal(Request $request, InvestigationCase $case): RedirectResponse
+    public function requestReveal(Request $request, SpeakUpCase $case): RedirectResponse
     {
         $this->authorize('view', $case);
         abort_unless($request->user()->can('speak_up.metadata.request_reveal'), 403);
@@ -139,7 +139,7 @@ class SpeakUpMetadataController extends Controller
         return back()->with('success', $validated['approve'] ? 'Reveal approved and logged.' : 'Reveal denied and logged.');
     }
 
-    public function setLegalHold(Request $request, InvestigationCase $case): RedirectResponse
+    public function setLegalHold(Request $request, SpeakUpCase $case): RedirectResponse
     {
         $this->authorize('view', $case);
         abort_unless($request->user()->can('speak_up.metadata.approve_reveal'), 403);
@@ -151,7 +151,7 @@ class SpeakUpMetadataController extends Controller
         return back()->with('success', 'Legal hold set — metadata purge is suspended for this case.');
     }
 
-    public function liftLegalHold(Request $request, InvestigationCase $case): RedirectResponse
+    public function liftLegalHold(Request $request, SpeakUpCase $case): RedirectResponse
     {
         $this->authorize('view', $case);
         abort_unless($request->user()->can('speak_up.metadata.approve_reveal'), 403);

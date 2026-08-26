@@ -8,6 +8,8 @@ use App\Models\Control;
 use App\Models\ControlCategory;
 use App\Models\ControlStakeholder;
 use App\Models\ImprovementAction;
+use App\Models\Investigation;
+use App\Models\InvestigationFinding;
 use App\Models\OrganisationUnit;
 use App\Models\User;
 use App\Services\ControlService;
@@ -148,6 +150,22 @@ class ControlController extends Controller
             'stakeholderUnits' => OrganisationUnit::orderBy('name')->get(['id', 'name']),
             'stakeholderUsers' => User::where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'stakeholderRoles' => array_values(array_diff(ControlStakeholder::ROLES, ['owner'])),
+            // CR-04 §F.2: "has this control ever been implicated in an
+            // investigation?" — a question the exception register alone
+            // cannot answer, because a fraud investigation often reveals a
+            // control that was never tested. The findings resolve through
+            // the investigation's own visibility scope, so a confidential
+            // matter contributes nothing to a control page its reader
+            // could not open.
+            'investigationFindings' => auth()->user()->can('view investigations')
+                ? InvestigationFinding::query()
+                    ->whereIn('investigation_id', Investigation::query()->select('id'))
+                    ->where('control_id', $control->id)
+                    ->with(['investigation:id,reference,title,status,risk_rating,is_confidential', 'improvementAction:id,reference,status'])
+                    ->latest('established_on')
+                    ->limit(10)
+                    ->get()
+                : [],
             'can' => [
                 'update' => auth()->user()->can('update', $control),
                 'approve' => auth()->user()->can('approve', $control),

@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\AuditTrail;
-use App\Models\InvestigationCase;
+use App\Models\SpeakUpCase;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\CaseService;
@@ -58,7 +58,7 @@ class CaseConfidentialityTest extends TestCase
         return $user;
     }
 
-    /** @return array{case: InvestigationCase, token: ?string} */
+    /** @return array{case: SpeakUpCase, token: ?string} */
     private function openCase(bool $anonymous = false, ?User $reporter = null, array $overrides = []): array
     {
         return app(CaseService::class)->open([
@@ -90,7 +90,7 @@ class CaseConfidentialityTest extends TestCase
             ->assertOk();
 
         $this->assertTrue(
-            AuditTrail::where('entity_type', (new InvestigationCase)->getMorphClass())
+            AuditTrail::where('entity_type', (new SpeakUpCase)->getMorphClass())
                 ->where('entity_id', $case->id)
                 ->where('action', 'viewed')
                 ->exists(),
@@ -106,14 +106,14 @@ class CaseConfidentialityTest extends TestCase
         ]);
 
         $this->actingAs($this->admin);
-        $this->assertSame(1, InvestigationCase::count(),
+        $this->assertSame(1, SpeakUpCase::count(),
             'The oversight permission opens the query layer.');
 
         // The Control Function Head holds every case permission except
         // oversight — the role name alone must widen nothing.
         $this->actingAs($this->cfh);
         $this->assertFalse($this->cfh->can('view all cases'));
-        $this->assertSame(0, InvestigationCase::count(),
+        $this->assertSame(0, SpeakUpCase::count(),
             'Without the oversight permission the allowlist scope still holds.');
     }
 
@@ -160,10 +160,10 @@ class CaseConfidentialityTest extends TestCase
         ]);
 
         $this->actingAs($this->officer);
-        $this->assertSame(1, InvestigationCase::count());
+        $this->assertSame(1, SpeakUpCase::count());
 
         $this->actingAs($this->cfh);
-        $this->assertSame(2, InvestigationCase::count());
+        $this->assertSame(2, SpeakUpCase::count());
     }
 
     public function test_access_can_only_be_granted_by_someone_already_on_the_case(): void
@@ -185,7 +185,7 @@ class CaseConfidentialityTest extends TestCase
 
         $this->assertTrue($case->fresh()->grantsAccessTo($this->outsider));
 
-        $row = AuditTrail::where('entity_type', (new InvestigationCase)->getMorphClass())
+        $row = AuditTrail::where('entity_type', (new SpeakUpCase)->getMorphClass())
             ->where('entity_id', $case->id)
             ->where('action', 'access-granted')
             ->first();
@@ -202,7 +202,7 @@ class CaseConfidentialityTest extends TestCase
         $this->actingAs($this->officer)->get(route('cases.show', $case))->assertOk();
 
         $this->assertTrue(
-            AuditTrail::where('entity_type', (new InvestigationCase)->getMorphClass())
+            AuditTrail::where('entity_type', (new SpeakUpCase)->getMorphClass())
                 ->where('entity_id', $case->id)
                 ->where('action', 'viewed')
                 ->exists(),
@@ -250,7 +250,7 @@ class CaseConfidentialityTest extends TestCase
 
         $result = $this->openCase(anonymous: true, reporter: $this->officer);
 
-        $rows = AuditTrail::where('entity_type', (new InvestigationCase)->getMorphClass())
+        $rows = AuditTrail::where('entity_type', (new SpeakUpCase)->getMorphClass())
             ->where('entity_id', $result['case']->id)
             ->get();
 
@@ -392,7 +392,7 @@ class CaseConfidentialityTest extends TestCase
 
         // ...and it is genuinely reachable through the scope, not just stored.
         $this->actingAs($this->cfh);
-        $this->assertSame(1, InvestigationCase::where('id', $row->id)->count());
+        $this->assertSame(1, SpeakUpCase::where('id', $row->id)->count());
 
         $this->actingAs($this->cfh)
             ->get(route('cases.show', $row->id))

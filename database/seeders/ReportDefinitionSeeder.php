@@ -265,6 +265,46 @@ class ReportDefinitionSeeder extends Seeder
                 ['key' => 'period', 'label' => 'Period', 'type' => 'period', 'default' => 'last_month'],
             ],
         ],
+        [
+            // CR-04. Unlike every other definition here, this one's real
+            // sections are assembled per investigation by
+            // InvestigationReportBuilder — thirteen of them, nine generated
+            // from the case's own child records. The definition exists so
+            // the report appears in the library and can be distributed and
+            // retained like any other, and its stored sections say exactly
+            // that rather than pretending to be a recipe the designer could
+            // run on its own.
+            'code' => 'INV-REPORT',
+            'name' => 'Investigation report',
+            'description' => 'Parties, chronology, findings of fact, financial implication, consequence management and the evidence register for one investigation.',
+            'report_type' => 'operational',
+            'confidentiality' => 'Confidential',
+            'output_formats' => ['pdf', 'docx'],
+            'sections' => [
+                ['type' => 'cover', 'title' => 'Investigation Report', 'subtitle' => '{{ period }} · {{ entity }}'],
+                [
+                    'type' => 'narrative',
+                    'title' => 'About this report',
+                    'body' => 'An investigation report is generated from a single investigation and carries thirteen '
+                        .'sections: background, scope, objectives, methodology, parties involved, chronology, findings '
+                        .'of fact, financial implication, root cause and control failure, consequence management, '
+                        ."recommendations, conclusion and the evidence register.\n\n"
+                        .'Nine of those are built from the investigation\'s own records rather than typed, which is '
+                        .'what keeps the report and the case file in step. Generate one from the Report tab of the '
+                        .'investigation itself; every report is issued as a draft for review.',
+                ],
+                [
+                    'type' => 'signature_block',
+                    'title' => 'Sign-off',
+                    'signatories' => [
+                        ['role' => 'Lead investigator'],
+                        ['role' => 'Reviewer'],
+                        ['role' => 'Control Function Head'],
+                    ],
+                ],
+            ],
+            'parameters' => [],
+        ],
     ];
 
     public function run(): void

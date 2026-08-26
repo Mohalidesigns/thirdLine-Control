@@ -82,6 +82,9 @@ class FeatureFlagSeeder extends Seeder
 
         // CR-03 — Departmental control function checklists
         'control-functions' => 'Departmental control function checklists and the frequency engine: the function catalogue, per-line frequencies, the workbook importer and per-desk / per-branch task generation',
+
+        // CR-04 — Investigation & consequence management
+        'investigations' => 'Investigation casework: subjects with per-person outcomes, findings against the control that failed, consequence management with maker-checker approval, the investigation report and the caseload dashboard',
     ];
 
     /**

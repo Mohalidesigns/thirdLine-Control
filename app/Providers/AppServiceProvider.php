@@ -15,8 +15,8 @@ use App\Models\Entity;
 use App\Models\ExceptionAction;
 use App\Models\ExceptionEscalation;
 use App\Models\ExceptionResponse;
-use App\Models\InvestigationCase;
 use App\Models\OrganisationUnit;
+use App\Models\SpeakUpCase;
 use App\Models\SsoConfiguration;
 use App\Models\TenantBranding;
 use App\Models\TestInstance;
@@ -139,7 +139,7 @@ class AppServiceProvider extends ServiceProvider
         // denies a non-member, giving an explicit 403 rather than a 404 that
         // could be mistaken for a deleted record. Tenant scoping still
         // applies, so another tenant's case remains simply not found.
-        Route::bind('case', fn ($value) => InvestigationCase::withoutGlobalScope('allowlist')
+        Route::bind('case', fn ($value) => SpeakUpCase::withoutGlobalScope('allowlist')
             ->where('id', $value)
             ->firstOrFail());
 
