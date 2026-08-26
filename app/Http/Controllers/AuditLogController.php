@@ -148,7 +148,7 @@ class AuditLogController extends Controller
         return response()->json([
             'entries' => AuditTrail::query()
                 ->where('tenant_id', $request->user()->tenant_id)
-                ->where('entity_type', $class)
+                ->whereIn('entity_type', AuditTrail::storedTypesFor($class))
                 ->where('entity_id', $id)
                 ->with('user:id,name')
                 ->orderByDesc('id')
@@ -194,7 +194,10 @@ class AuditLogController extends Controller
             return null;
         }
 
-        return class_basename($type);
+        // A row written before a class was renamed is shown under the name
+        // the class has now. The stored value is untouched — audit rows are
+        // immutable — so this is presentation, not revision.
+        return class_basename(AuditTrail::canonicalType($type));
     }
 
     private function filterOptions(Request $request): array
@@ -209,10 +212,16 @@ class AuditLogController extends Controller
                 ->values(),
             'users' => User::tenantPicker()->get(['id', 'name', 'email'])
                 ->map(fn ($u) => ['id' => $u->id, 'name' => $u->name, 'email' => $u->email]),
+            // Renamed classes collapse to one option. Offering "Case" twice
+            // — once per historical spelling, each finding half the rows —
+            // is worse than not offering the filter at all.
             'entity_types' => AuditTrail::query()
                 ->where('tenant_id', $tenantId)
                 ->whereNotNull('entity_type')
-                ->select('entity_type')->distinct()->orderBy('entity_type')->pluck('entity_type')
+                ->select('entity_type')->distinct()->pluck('entity_type')
+                ->map(fn ($t) => AuditTrail::canonicalType($t))
+                ->unique()
+                ->sort()
                 ->map(fn ($t) => ['value' => $t, 'label' => class_basename($t)])
                 ->values(),
         ];
@@ -226,7 +235,10 @@ class AuditLogController extends Controller
             ->when($request->date('to'), fn ($q, $to) => $q->where('created_at', '<=', $to->endOfDay()))
             ->when($request->input('user_id'), fn ($q, $userId) => $q->where('user_id', $userId))
             ->when($request->input('event'), fn ($q, $event) => $q->where('action', $event))
-            ->when($request->input('entity_type'), fn ($q, $type) => $q->where('entity_type', $type))
+            ->when(
+                $request->input('entity_type'),
+                fn ($q, $type) => $q->whereIn('entity_type', AuditTrail::storedTypesFor($type)),
+            )
             ->when($request->input('entity_id'), fn ($q, $id) => $q->where('entity_id', $id))
             ->when($request->input('ip'), fn ($q, $ip) => $q->where('ip_address', $ip))
             ->when($request->input('search'), fn ($q, $search) => $q->where(function ($w) use ($search) {

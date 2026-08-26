@@ -49,6 +49,88 @@ class ActivityLogTest extends TestCase
         $this->owner->assignRole('Control Owner');
     }
 
+    // ── A rename does not get to edit history ────────────────────────
+
+    /**
+     * CR-04 §B.1b renamed InvestigationCase to SpeakUpCase. The first
+     * attempt at that migration UPDATEd audit_trails so the stored class
+     * name matched — and the database refused, because audit_trails carries
+     * BEFORE UPDATE / BEFORE DELETE triggers for exactly this reason.
+     *
+     * The trigger was right. Rewriting history so a class name reads more
+     * tidily is the act an immutable audit trail exists to make impossible.
+     * So rows keep the name they were written with, and the reconciliation
+     * happens on the way out.
+     */
+    public function test_a_row_written_before_a_rename_keeps_the_name_it_was_written_with(): void
+    {
+        $this->legacyCaseEntry();
+
+        $this->assertSame(
+            'App\Models\InvestigationCase',
+            AuditTrail::query()->latest('id')->value('entity_type'),
+            'History says what it said on the day. Nothing rewrites it.',
+        );
+    }
+
+    public function test_the_log_presents_a_renamed_class_under_its_current_name(): void
+    {
+        $this->legacyCaseEntry();
+
+        $this->actingAs($this->admin)
+            ->get(route('settings.activity-log'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->where(
+                'entries.data.0.subject_type',
+                'SpeakUpCase',
+            ));
+    }
+
+    public function test_filtering_by_the_current_name_finds_rows_stored_under_the_old_one(): void
+    {
+        $this->legacyCaseEntry();
+
+        $this->actingAs($this->admin)
+            ->get(route('settings.activity-log', ['entity_type' => 'App\Models\SpeakUpCase']))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->has('entries.data', 1));
+    }
+
+    public function test_a_renamed_class_offers_one_filter_option_not_two(): void
+    {
+        $this->legacyCaseEntry();
+        $this->legacyCaseEntry('App\Models\SpeakUpCase');
+
+        $this->actingAs($this->admin)
+            ->get(route('settings.activity-log'))
+            ->assertOk()
+            ->assertInertia(function ($page) {
+                $types = collect($page->toArray()['props']['options']['entity_types'])
+                    ->pluck('value')
+                    ->filter(fn ($v) => str_contains($v, 'Case'));
+
+                $this->assertSame(
+                    ['App\Models\SpeakUpCase'],
+                    $types->values()->all(),
+                    'One subject, one option — offering "Case" twice would give each half the rows.',
+                );
+            });
+    }
+
+    /** An audit row as it was written before the rename. Insert only. */
+    private function legacyCaseEntry(string $type = 'App\Models\InvestigationCase'): AuditTrail
+    {
+        return AuditTrail::create([
+            'tenant_id' => $this->tenant->id,
+            'user_id' => $this->admin->id,
+            'entity_type' => $type,
+            'entity_id' => 1,
+            'action' => 'viewed',
+            'subject_label' => 'CASE-2026-001',
+            'description' => 'Case file opened.',
+        ]);
+    }
+
     // ── Auth capture: exactly once, never the password ───────────────
 
     public function test_a_login_is_logged_exactly_once(): void
