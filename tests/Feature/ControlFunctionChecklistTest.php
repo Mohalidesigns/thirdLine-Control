@@ -881,6 +881,45 @@ class ControlFunctionChecklistTest extends TestCase
         $this->assertSame('Trade Control', $daily['control_entity']['name']);
     }
 
+    /**
+     * A regression guard with a nasty history. MyWorkService eager-loaded
+     * `testScript:id,name`, and test_scripts has no `name` column — so
+     * /my-tasks was a 500 on MySQL from the moment CR-03's import started
+     * attaching scripts to tasks.
+     *
+     * It passed every test for weeks because SQLite, by default, treats a
+     * double-quoted identifier that resolves to no column as a STRING
+     * LITERAL rather than an error. `select "id", "name"` therefore
+     * succeeded, handed back the word 'name', and left `title` unloaded.
+     *
+     * So asserting a 200, or asserting the feed has tasks, catches nothing
+     * here. Asserting the real title does: under the old code it is null,
+     * because the column was never selected.
+     */
+    public function test_the_task_feed_names_the_checklist_version_it_is_running(): void
+    {
+        $this->importSample();
+
+        $formM = $this->control('REVIEW OF FORM M');
+        $formM->homeEntity->forceFill(['default_officer_id' => $this->officer->id])->save();
+
+        app(ControlTaskService::class)->generateForTenant($this->tenant->id, CarbonImmutable::parse('2026-05-14'));
+
+        $task = collect(app(MyWorkService::class)->feed($this->officer->fresh())['test_instances'])
+            ->firstWhere('control.title', 'REVIEW OF FORM M');
+
+        $this->assertNotNull($task['test_script'] ?? null, 'The task must carry the checklist it is running.');
+
+        $expected = TestScript::withoutGlobalScopes()->findOrFail($task['test_script']['id']);
+
+        $this->assertSame(
+            $expected->title,
+            $task['test_script']['title'],
+            'A constrained eager load must select a column that exists — SQLite will not tell you when it does not.',
+        );
+        $this->assertNotSame('name', $task['test_script']['title']);
+    }
+
     public function test_the_register_round_trips_back_into_the_clients_own_layout(): void
     {
         $this->importSample();

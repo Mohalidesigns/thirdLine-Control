@@ -44,7 +44,14 @@ class MyWorkService
                 'control.controlUnit:id,code,name',
                 'controlEntity:id,name,entity_kind,control_unit_id',
                 'frequency:id,code,label,cycle,generation_mode',
-                'testScript:id,name',
+                // `title`, not `name` — test_scripts has no `name`. It read
+                // `name` from Phase 15 until CR-03's import started
+                // attaching scripts to tasks and /my-tasks began 500ing on
+                // MySQL. It never failed a test because SQLite turns an
+                // unresolvable "quoted" identifier into a string literal
+                // rather than an error, so the column came back as the word
+                // 'name' and `title` silently went unloaded.
+                'testScript:id,title',
                 'testScript.checkItems:id,test_script_id,sequence,question,guidance,is_mandatory,frequency_id',
                 'checkResults:id,test_instance_id,check_item_id,result,comment',
             ])
@@ -73,6 +80,12 @@ class MyWorkService
                 // without the second.
                 'control_unit' => $t->control?->controlUnit?->only(['id', 'code', 'name']),
                 'control_entity' => $t->controlEntity?->only(['id', 'name', 'entity_kind']),
+                // Which checklist version this task is running. CR-03
+                // versions a changed checklist as Draft v2 while v1 keeps
+                // executing, so "which one am I answering" is a real
+                // question — and carrying it here is what lets a test catch
+                // the eager-load column going wrong again.
+                'test_script' => $t->testScript?->only(['id', 'title']),
                 'frequency' => $t->frequency?->only(['code', 'label', 'cycle', 'generation_mode']),
                 // Only the lines this rhythm is asking about (§C.2).
                 'check_items' => $this->linesFor($t)->map(fn ($c) => [
