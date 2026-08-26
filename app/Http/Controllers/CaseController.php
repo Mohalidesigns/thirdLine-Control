@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CaseRequest;
-use App\Models\SpeakUpCase;
 use App\Models\OrganisationUnit;
+use App\Models\SpeakUpCase;
 use App\Models\User;
 use App\Services\CaseService;
 use App\Services\LinkageService;

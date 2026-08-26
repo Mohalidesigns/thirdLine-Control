@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\SpeakUpCase;
 use App\Models\MessageLog;
+use App\Models\SpeakUpCase;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\WhatsappSession;
