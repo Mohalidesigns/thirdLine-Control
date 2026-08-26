@@ -31,6 +31,10 @@ const LINKABLE_TYPES = [
     // makes the strategy map answer "is the cover holding".
     ['objective', 'Objective'],
     ['vendor', 'Third Party'],
+    // CR-04. Like a case, an investigation only resolves for someone its
+    // visibility rules admit — to anyone else it is an unavailable node
+    // with no route.
+    ['investigation', 'Investigation'],
 ];
 
 /**

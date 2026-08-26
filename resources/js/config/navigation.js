@@ -18,6 +18,7 @@ import {
     FileDiff,
     FileText,
     FileWarning,
+    Gavel,
     Fingerprint,
     Flag,
     FlaskConical,
@@ -166,6 +167,13 @@ const NAVIGATION = [
             { label: 'Improvements', to: 'improvements.index', match: '/improvements', icon: Hammer, feature: 'improvements' },
             { label: 'Complaints', to: 'complaints.index', match: '/complaints', icon: MessageSquare, feature: 'complaints' },
             { label: 'Cases', to: 'cases.index', match: '/cases', icon: Briefcase, feature: 'cases' },
+            // CR-04 — Investigations sit beside Cases, not beside
+            // Incidents: this is where someone goes looking for a matter
+            // under investigation. The register and the dashboard are two
+            // entries because they are two permissions — the Executive
+            // Viewer sees the second and never the first.
+            { label: 'Investigations', to: 'investigations.index', match: '/investigations', icon: Gavel, feature: 'investigations', permission: 'view investigations' },
+            { label: 'Investigation Dashboard', to: 'investigations.dashboard', match: '/investigations/dashboard', icon: BarChart3, feature: 'investigations', permission: 'view investigation-dashboard' },
             // CR — the reveal approver's queue; visible only to holders of
             // the approve permission, including standalone approvers who
             // hold no case permission at all.

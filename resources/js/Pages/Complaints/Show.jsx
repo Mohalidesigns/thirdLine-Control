@@ -1,6 +1,7 @@
 import Countdown from '@/Components/Countdown';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
+import RaiseInvestigationButton from '@/Components/RaiseInvestigationButton';
 import RelationshipsPanel from '@/Components/RelationshipsPanel';
 import StatusBadge from '@/Components/StatusBadge';
 import VerificationBadge from '@/Components/VerificationBadge';
@@ -69,6 +70,9 @@ export default function Show({
                                 Resolve
                             </button>
                         )}
+                        {/* CR-04 §D.2: a complaint that turns out to be staff
+                            conduct rather than service failure. */}
+                        <RaiseInvestigationButton originType="complaint" originId={complaint.id} />
                         {can.close && complaint.status === 'Resolved' && (
                             <button
                                 className="btn-secondary"

@@ -44,6 +44,9 @@ class EntityLink extends Model
         // Phase 17 — strategy and third-party nodes.
         'objective' => Objective::class,
         'vendor' => Vendor::class,
+        // CR-04 — the investigation. Note this is the casework aggregate
+        // on `investigations`, not the Speak Up intake register above.
+        'investigation' => Investigation::class,
     ];
 
     /** Human labels and the route each node type links to in the UI. */
@@ -64,6 +67,7 @@ class EntityLink extends Model
         'case' => 'Case',
         'objective' => 'Objective',
         'vendor' => 'Third Party',
+        'investigation' => 'Investigation',
     ];
 
     protected $fillable = [

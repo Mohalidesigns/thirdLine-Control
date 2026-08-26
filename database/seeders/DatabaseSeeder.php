@@ -90,6 +90,14 @@ class DatabaseSeeder extends Seeder
             // the head office desks and Branch Control must exist to hang
             // 167 functions and 1,517 checklist lines on.
             ControlFunctionChecklistSeeder::class,
+            // CR-04: four investigations exercising the whole module —
+            // a completed fraud case with a dismissal and a recovery, a
+            // locked Speak-Up-origin case, one with no human subject yet,
+            // and one suspended pending a police report. Runs after the
+            // control structure and the Phase 11 demo pack because it
+            // hangs off a branch, a control exception and a Speak Up
+            // report seeded by those.
+            InvestigationDemoSeeder::class,
             // CR3: Activity Log demo rows across every event class. Runs
             // last so it can reference the demo controls and exceptions.
             ActivityLogSeeder::class,

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Evidence;
+use App\Models\Investigation;
 use App\Models\RetentionPolicy;
 use App\Services\EvidenceService;
 use Illuminate\Http\RedirectResponse;
@@ -70,6 +71,17 @@ class EvidenceController extends Controller
         abort_unless(auth()->user()->hasAnyRole([
             'System Administrator', 'Control Function Head', 'Control Officer',
         ]) || $evidence->uploaded_by === auth()->id(), 403);
+
+        // CR-04 §D.3. An exhibit is only as confidential as the record it
+        // hangs on. Without this, a role check alone would hand any
+        // control officer the CCTV still from a whistleblowing matter they
+        // are not named on — the one thing the investigation's own
+        // visibility rules exist to prevent.
+        if ($evidence->linked_type === Investigation::class) {
+            $investigation = Investigation::find($evidence->linked_id);
+
+            abort_unless($investigation && auth()->user()->can('view', $investigation), 403);
+        }
 
         return $this->evidenceService->download($evidence);
     }

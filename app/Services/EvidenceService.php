@@ -6,6 +6,7 @@ use App\Models\ControlException;
 use App\Models\Evidence;
 use App\Models\ExceptionEscalation;
 use App\Models\Finding;
+use App\Models\Investigation;
 use App\Models\ObligationInstance;
 use App\Models\RetentionPolicy;
 use App\Models\TestInstance;
@@ -41,6 +42,11 @@ class EvidenceService
         // CR-01: departmental response attachments are evidence rows with
         // linked_type/linked_id — never a file column on the response.
         'exception-escalation' => ExceptionEscalation::class,
+        // CR-04: investigation exhibits. There is no second evidence
+        // table — an exhibit inherits this repository's retention policy,
+        // legal hold and access log, which is the whole reason CR-04
+        // reuses it rather than porting one.
+        'investigation' => Investigation::class,
     ];
 
     /**
@@ -55,6 +61,10 @@ class EvidenceService
         'finding' => ['execute tests', 'review tests'],
         'obligation_instance' => ['submit obligations'],
         'exception-escalation' => ['respond exceptions', 'review exception-responses'],
+        // CR-04: filing an exhibit is casework, so it takes the same
+        // permission as editing the investigation. Membership is enforced
+        // separately by InvestigationPolicy::update() at the controller.
+        'investigation' => ['edit investigations', 'create investigations'],
     ];
 
     /**

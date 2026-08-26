@@ -300,6 +300,39 @@ class NotificationEventSeeder extends Seeder
             'default_channels' => ['in_app', 'email'],
             'is_user_configurable' => false,
         ],
+        // CR-04 — investigations and consequence management.
+        [
+            'key' => 'investigation.assigned',
+            'label' => 'Assigned to an investigation',
+            'description' => 'You have been named on an investigation team. Being on the team is also what gives you sight of the case file.',
+            'category' => 'investigations',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => true,
+        ],
+        [
+            'key' => 'investigation.overdue',
+            'label' => 'Investigation past its target date',
+            'description' => 'An investigation you lead has passed its target completion date.',
+            'category' => 'investigations',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => true,
+        ],
+        [
+            'key' => 'investigation.consequence-due',
+            'label' => 'Consequence action falling due',
+            'description' => 'An approved consequence — a query, a warning letter, a recovery — is due and not yet implemented.',
+            'category' => 'investigations',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => true,
+        ],
+        [
+            'key' => 'investigation.completed',
+            'label' => 'Investigation completed',
+            'description' => 'An investigation you are on has been completed and rated, and its draft report generated. Not muteable: a completed investigation carries outcomes recorded against named people, and everyone on the team is answerable for them.',
+            'category' => 'investigations',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => false,
+        ],
     ];
 
     public function run(): void
