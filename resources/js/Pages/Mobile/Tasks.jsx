@@ -11,10 +11,30 @@ import { Head } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
 /**
- * The mobile task view (15.2): what do I owe, by when — one card per
- * item, one tap to act, everything ≥44px and thumb-reachable. Actions
- * queue through the offline outbox, so the page behaves identically on
- * and offline; approvals are deliberately absent (server-only, 15.1).
+ * The task view (15.2): what do I owe, by when — one card per item, one
+ * tap to act, everything ≥44px and thumb-reachable. Actions queue through
+ * the offline outbox, so the page behaves identically on and offline;
+ * approvals are deliberately absent (server-only, 15.1).
+ *
+ * Built mobile-first and it stays that way: every layout rule below the
+ * `md:` prefix is the phone, and the phone is unchanged. What the wider
+ * breakpoints add is the use of a screen the officer may well be sitting
+ * at — a branch control officer works the same checklist from a desk in
+ * the afternoon and a phone on the banking floor in the morning.
+ *
+ * Three things widen, and only these:
+ *   · the column, to a readable measure rather than a 32rem ribbon
+ *     stranded in the middle of a 24-inch monitor;
+ *   · the card list, which tiles two-up once there is room — except for
+ *     the card you are actually working in, which takes the full width so
+ *     its checklist has somewhere to go;
+ *   · the checklist itself, two columns of checks instead of one long
+ *     scroll.
+ *
+ * What does NOT widen is any control you press. A Pass button stretched
+ * to 400px is not easier to hit, it is just further to travel and harder
+ * to read as one of three. They keep a thumb-sized measure at every
+ * breakpoint.
  */
 export default function Tasks({ work, pushPublicKey }) {
     const [feed, setFeed] = useState(work);
@@ -65,7 +85,7 @@ export default function Tasks({ work, pushPublicKey }) {
         <AuthenticatedLayout header="My tasks">
             <Head title="My tasks" />
 
-            <div className="mx-auto max-w-lg pb-24">
+            <div className="mx-auto w-full max-w-lg pb-24 md:max-w-3xl xl:max-w-6xl">
                 <div className="mb-4">
                     <h1 className="text-lg font-bold text-gray-900">My tasks</h1>
                     <p className="text-sm text-gray-500">
@@ -87,21 +107,26 @@ export default function Tasks({ work, pushPublicKey }) {
                     </button>
                 )}
 
-                {feed.attestations.filter((a) => !isDone('att', a.campaign_id)).map((attestation) => (
-                    <AttestationCard
-                        key={attestation.campaign_id}
-                        attestation={attestation}
-                        onDone={() => mark('att', attestation.campaign_id)}
-                    />
-                ))}
+                {/* One column until there is genuinely room for two. Cards
+                    are self-sizing, so `items-start` stops a short card
+                    stretching to match a tall neighbour. */}
+                <div className="grid grid-cols-1 gap-3 xl:grid-cols-2 xl:items-start">
+                    {feed.attestations.filter((a) => !isDone('att', a.campaign_id)).map((attestation) => (
+                        <AttestationCard
+                            key={attestation.campaign_id}
+                            attestation={attestation}
+                            onDone={() => mark('att', attestation.campaign_id)}
+                        />
+                    ))}
 
-                {feed.test_instances.map((instance) => (
-                    <TestInstanceCard key={instance.id} instance={instance} />
-                ))}
+                    {feed.test_instances.map((instance) => (
+                        <TestInstanceCard key={instance.id} instance={instance} />
+                    ))}
 
-                {feed.csa_responses.map((response) => (
-                    <CsaCard key={response.id} response={response} />
-                ))}
+                    {feed.csa_responses.map((response) => (
+                        <CsaCard key={response.id} response={response} />
+                    ))}
+                </div>
 
                 {feed.controls.length > 0 && (
                     <details className="card mt-4">
@@ -146,7 +171,7 @@ function AttestationCard({ attestation, onDone }) {
     }
 
     return (
-        <div className="card mb-3">
+        <div className="card">
             <div className="flex items-start justify-between gap-2">
                 <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-accent)]">Attestation</p>
@@ -163,7 +188,7 @@ function AttestationCard({ attestation, onDone }) {
                 </div>
             )}
 
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex gap-2 sm:max-w-sm">
                 <button type="button" className="btn-secondary min-h-[44px] flex-1" onClick={() => setExpanded(!expanded)}>
                     {expanded ? 'Hide text' : 'Read text'}
                 </button>
@@ -206,7 +231,9 @@ function TestInstanceCard({ instance }) {
     }
 
     return (
-        <div className="card mb-3">
+        // The card you have open takes the whole row: a checklist reads
+        // badly in a half-width column, and only one is ever open at a time.
+        <div className={`card ${open ? 'xl:col-span-2' : ''}`}>
             <div className="flex items-start justify-between gap-2">
                 <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-accent)]">Control test</p>
@@ -219,12 +246,16 @@ function TestInstanceCard({ instance }) {
                 <StatusBadge status={instance.status} />
             </div>
 
-            <button type="button" className="btn-secondary mt-3 min-h-[44px] w-full" onClick={() => setOpen(!open)}>
+            <button
+                type="button"
+                className="btn-secondary mt-3 min-h-[44px] w-full sm:w-auto sm:px-8"
+                onClick={() => setOpen(!open)}
+            >
                 {open ? 'Hide checks' : `Record checks (${instance.check_items.length})`}
             </button>
 
             {open && (
-                <div className="mt-3 space-y-4">
+                <div className="mt-3 grid gap-4 xl:grid-cols-2 xl:items-start">
                     {instance.check_items.map((item) => {
                         const current = recorded[item.id] ?? item.result?.result ?? null;
 
@@ -235,7 +266,9 @@ function TestInstanceCard({ instance }) {
                                 </p>
                                 {item.guidance && <p className="mt-0.5 text-xs text-gray-500">{item.guidance}</p>}
 
-                                <div className="mt-2 flex gap-2">
+                                {/* Capped, not stretched: three choices a
+                                    thumb can tell apart, at any width. */}
+                                <div className="mt-2 flex gap-2 sm:max-w-sm">
                                     {['Pass', 'Fail', 'NA'].map((result) => (
                                         <button
                                             key={result}
@@ -265,10 +298,18 @@ function TestInstanceCard({ instance }) {
                         );
                     })}
 
-                    <CameraCapture onCapture={captureEvidence} label="Attach photo evidence" />
-                    <p className="text-xs text-gray-400">
-                        Submitting the completed test for review needs a live connection.
-                    </p>
+                    {/* Full-bleed on a phone, a button-sized button on a
+                        desktop card — CameraCapture is w-full by design for
+                        the thumb, so the measure is capped here rather than
+                        in the shared component. */}
+                    <div className="xl:col-span-2">
+                        <div className="sm:max-w-sm">
+                            <CameraCapture onCapture={captureEvidence} label="Attach photo evidence" />
+                        </div>
+                        <p className="mt-2 text-xs text-gray-400">
+                            Submitting the completed test for review needs a live connection.
+                        </p>
+                    </div>
                 </div>
             )}
         </div>
@@ -306,7 +347,7 @@ function CsaCard({ response }) {
     }
 
     return (
-        <div className="card mb-3">
+        <div className={`card ${open ? 'xl:col-span-2' : ''}`}>
             <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-accent)]">Self-assessment</p>
                 <p className="font-semibold text-gray-900">{response.campaign?.name}</p>
@@ -315,12 +356,16 @@ function CsaCard({ response }) {
                 </p>
             </div>
 
-            <button type="button" className="btn-secondary mt-3 min-h-[44px] w-full" onClick={() => setOpen(!open)}>
+            <button
+                type="button"
+                className="btn-secondary mt-3 min-h-[44px] w-full sm:w-auto sm:px-8"
+                onClick={() => setOpen(!open)}
+            >
                 {open ? 'Hide questionnaire' : `Answer (${response.questions.length} questions)`}
             </button>
 
             {open && (
-                <div className="mt-3 space-y-4">
+                <div className="mt-3 grid gap-4 xl:grid-cols-2 xl:items-start">
                     {response.questions.map((question) => (
                         <div key={question.id}>
                             <label className="text-sm font-medium text-gray-800">
@@ -336,15 +381,17 @@ function CsaCard({ response }) {
                         </div>
                     ))}
 
-                    <div className="flex gap-2">
-                        <button type="button" className="btn-secondary min-h-[44px] flex-1" onClick={() => save(false)}>
-                            {queued ? 'Draft queued ✓' : 'Save draft'}
-                        </button>
-                        <button type="button" className="btn-primary min-h-[44px] flex-1" onClick={() => save(true)}>
-                            Submit
-                        </button>
+                    <div className="xl:col-span-2">
+                        <div className="flex gap-2 sm:max-w-sm">
+                            <button type="button" className="btn-secondary min-h-[44px] flex-1" onClick={() => save(false)}>
+                                {queued ? 'Draft queued ✓' : 'Save draft'}
+                            </button>
+                            <button type="button" className="btn-primary min-h-[44px] flex-1" onClick={() => save(true)}>
+                                Submit
+                            </button>
+                        </div>
+                        <p className="mt-2 text-xs text-gray-400">Answers autosave on this device as you type.</p>
                     </div>
-                    <p className="text-xs text-gray-400">Answers autosave on this device as you type.</p>
                 </div>
             )}
         </div>
@@ -356,7 +403,7 @@ function QuestionInput({ question, value, onChange }) {
 
     if (question.response_type === 'yes_no' || question.response_type === 'boolean') {
         return (
-            <div className="mt-1 flex gap-2">
+            <div className="mt-1 flex gap-2 sm:max-w-xs">
                 {['Yes', 'No'].map((option) => (
                     <button
                         key={option}
@@ -378,7 +425,7 @@ function QuestionInput({ question, value, onChange }) {
     if (options.length > 0) {
         return (
             <select
-                className="mt-1 w-full rounded-lg border-gray-200 text-sm"
+                className="mt-1 w-full rounded-lg border-gray-200 text-sm sm:max-w-md"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
             >
