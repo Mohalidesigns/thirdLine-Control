@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CaseRequest;
-use App\Models\InvestigationCase;
+use App\Models\SpeakUpCase;
 use App\Models\OrganisationUnit;
 use App\Models\User;
 use App\Services\CaseService;
@@ -30,9 +30,9 @@ class CaseController extends Controller
 
     public function index(Request $request): Response
     {
-        $this->authorize('viewAny', InvestigationCase::class);
+        $this->authorize('viewAny', SpeakUpCase::class);
 
-        $query = InvestigationCase::query()
+        $query = SpeakUpCase::query()
             ->with(['leadInvestigator:id,name', 'entity:id,name'])
             ->withCount('notes')
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
@@ -46,24 +46,24 @@ class CaseController extends Controller
         return Inertia::render('Cases/Index', [
             'cases' => $query->orderByDesc('received_at')->paginate(15)->withQueryString(),
             'filters' => $request->only(['status', 'case_type', 'severity', 'open_only', 'search']),
-            'statuses' => InvestigationCase::STATUSES,
-            'types' => InvestigationCase::TYPES,
-            'severities' => InvestigationCase::SEVERITIES,
-            'confidentialityLevels' => InvestigationCase::CONFIDENTIALITY_LEVELS,
+            'statuses' => SpeakUpCase::STATUSES,
+            'types' => SpeakUpCase::TYPES,
+            'severities' => SpeakUpCase::SEVERITIES,
+            'confidentialityLevels' => SpeakUpCase::CONFIDENTIALITY_LEVELS,
             'entities' => OrganisationUnit::orderBy('name')->get(['id', 'name']),
             'investigators' => User::tenantPicker()->get(['id', 'name']),
             // Counts are of cases the viewer may see — never of the register.
             'stats' => [
-                'open' => InvestigationCase::open()->count(),
-                'anonymous' => InvestigationCase::where('is_anonymous', true)->count(),
-                'under_investigation' => InvestigationCase::where('status', 'Under Investigation')->count(),
+                'open' => SpeakUpCase::open()->count(),
+                'anonymous' => SpeakUpCase::where('is_anonymous', true)->count(),
+                'under_investigation' => SpeakUpCase::where('status', 'Under Investigation')->count(),
             ],
         ]);
     }
 
     public function store(CaseRequest $request): RedirectResponse
     {
-        $this->authorize('create', InvestigationCase::class);
+        $this->authorize('create', SpeakUpCase::class);
 
         $result = $this->cases->open(
             $request->validated(),
@@ -77,7 +77,7 @@ class CaseController extends Controller
             ->with('success', "Case {$result['case']->case_ref} opened.");
     }
 
-    public function show(Request $request, InvestigationCase $case): Response
+    public function show(Request $request, SpeakUpCase $case): Response
     {
         $this->authorize('view', $case);
 
@@ -122,13 +122,13 @@ class CaseController extends Controller
         ]);
     }
 
-    public function assess(Request $request, InvestigationCase $case): RedirectResponse
+    public function assess(Request $request, SpeakUpCase $case): RedirectResponse
     {
         $this->authorize('assess', $case);
 
         $validated = $request->validate([
-            'severity' => ['required', 'in:'.implode(',', InvestigationCase::SEVERITIES)],
-            'confidentiality' => ['required', 'in:'.implode(',', InvestigationCase::CONFIDENTIALITY_LEVELS)],
+            'severity' => ['required', 'in:'.implode(',', SpeakUpCase::SEVERITIES)],
+            'confidentiality' => ['required', 'in:'.implode(',', SpeakUpCase::CONFIDENTIALITY_LEVELS)],
             'lead_investigator_id' => ['nullable', 'tenant_user'],
             'entity_id' => ['nullable', 'exists:organisation_units,id'],
             'subject_persons' => ['nullable', 'array', 'max:20'],
@@ -141,7 +141,7 @@ class CaseController extends Controller
         return back()->with('success', 'Case assessed.');
     }
 
-    public function investigate(Request $request, InvestigationCase $case): RedirectResponse
+    public function investigate(Request $request, SpeakUpCase $case): RedirectResponse
     {
         $this->authorize('investigate', $case);
 
@@ -152,7 +152,7 @@ class CaseController extends Controller
         return back()->with('success', 'Investigation opened.');
     }
 
-    public function conclude(Request $request, InvestigationCase $case): RedirectResponse
+    public function conclude(Request $request, SpeakUpCase $case): RedirectResponse
     {
         $this->authorize('conclude', $case);
 
@@ -169,7 +169,7 @@ class CaseController extends Controller
         return back()->with('success', 'Case concluded.');
     }
 
-    public function close(Request $request, InvestigationCase $case): RedirectResponse
+    public function close(Request $request, SpeakUpCase $case): RedirectResponse
     {
         $this->authorize('close', $case);
 
@@ -180,7 +180,7 @@ class CaseController extends Controller
         return back()->with('success', 'Case closed.');
     }
 
-    public function storeNote(Request $request, InvestigationCase $case): RedirectResponse
+    public function storeNote(Request $request, SpeakUpCase $case): RedirectResponse
     {
         $this->authorize('investigate', $case);
 
@@ -201,7 +201,7 @@ class CaseController extends Controller
         return back()->with('success', 'Note added.');
     }
 
-    public function grantAccess(Request $request, InvestigationCase $case): RedirectResponse
+    public function grantAccess(Request $request, SpeakUpCase $case): RedirectResponse
     {
         $this->authorize('manageAccess', $case);
 
@@ -212,7 +212,7 @@ class CaseController extends Controller
         return back()->with('success', 'Access granted and logged.');
     }
 
-    public function revokeAccess(Request $request, InvestigationCase $case): RedirectResponse
+    public function revokeAccess(Request $request, SpeakUpCase $case): RedirectResponse
     {
         $this->authorize('manageAccess', $case);
 
@@ -226,7 +226,7 @@ class CaseController extends Controller
     /** Aggregate-only board extract — no titles, no subjects, no notes. */
     public function boardExtract(Request $request): Response
     {
-        $this->authorize('viewAny', InvestigationCase::class);
+        $this->authorize('viewAny', SpeakUpCase::class);
         abort_unless($request->user()->can('report cases'), 403);
 
         return Inertia::render('Cases/BoardExtract', [

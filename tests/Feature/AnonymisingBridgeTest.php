@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\InvestigationCase;
+use App\Models\SpeakUpCase;
 use App\Models\MessageLog;
 use App\Models\Tenant;
 use App\Models\User;
@@ -78,7 +78,7 @@ class AnonymisingBridgeTest extends TestCase
     {
         $this->signedPost($this->inboundPayload('REPORT Cash suppression at the Ikeja branch'))->assertOk();
 
-        $case = InvestigationCase::withoutGlobalScopes()->firstOrFail();
+        $case = SpeakUpCase::withoutGlobalScopes()->firstOrFail();
 
         $this->assertTrue($case->is_anonymous);
         $this->assertTrue($case->was_anonymised);
@@ -106,7 +106,7 @@ class AnonymisingBridgeTest extends TestCase
 
         $this->signedPost($this->inboundPayload('SPEAKUP Procurement kickbacks'))->assertOk();
 
-        $this->assertSame(1, InvestigationCase::withoutGlobalScopes()->count());
+        $this->assertSame(1, SpeakUpCase::withoutGlobalScopes()->count());
     }
 
     // ── Signature verification ───────────────────────────────────────
@@ -120,7 +120,7 @@ class AnonymisingBridgeTest extends TestCase
             'CONTENT_TYPE' => 'application/json',
         ], $body)->assertForbidden();
 
-        $this->assertSame(0, InvestigationCase::withoutGlobalScopes()->count());
+        $this->assertSame(0, SpeakUpCase::withoutGlobalScopes()->count());
         $this->assertSame(0, MessageLog::withoutGlobalScope('tenant')->count());
     }
 
@@ -143,7 +143,7 @@ class AnonymisingBridgeTest extends TestCase
     {
         $this->signedPost($this->inboundPayload('Thanks, received.'))->assertOk();
 
-        $this->assertSame(0, InvestigationCase::withoutGlobalScopes()->count());
+        $this->assertSame(0, SpeakUpCase::withoutGlobalScopes()->count());
 
         $session = WhatsappSession::withoutGlobalScope('tenant')->firstOrFail();
         $this->assertSame(WhatsappSession::hashPhone(self::REPORTER_PHONE), $session->phone_hash);

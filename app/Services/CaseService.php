@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\CaseNote;
-use App\Models\InvestigationCase;
+use App\Models\SpeakUpCase;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Notifications\GovernanceClockNotification;
@@ -38,7 +38,7 @@ class CaseService
      * entirely — the caller cannot accidentally attribute an anonymous
      * report by passing the authenticated user along.
      *
-     * @return array{case: InvestigationCase, token: ?string}
+     * @return array{case: SpeakUpCase, token: ?string}
      */
     public function open(array $data, ?User $reporter, int $tenantId, bool $anonymous = false): array
     {
@@ -46,16 +46,16 @@ class CaseService
             // A token is the reporter's only channel back when they have no
             // account on the case: every anonymous report, and a
             // confidential (CR) report from a guest with no session.
-            $token = ($anonymous || $reporter === null) ? InvestigationCase::generateToken() : null;
+            $token = ($anonymous || $reporter === null) ? SpeakUpCase::generateToken() : null;
 
-            $case = new InvestigationCase([
+            $case = new SpeakUpCase([
                 ...collect($data)->except(['reporter_id', 'access_user_ids'])->all(),
                 'case_ref' => $this->nextReference($tenantId),
                 'received_at' => $data['received_at'] ?? now(),
                 'status' => 'Received',
                 'is_anonymous' => $anonymous,
                 'reporter_id' => $anonymous ? null : $reporter?->id,
-                'reporter_token_hash' => $token ? InvestigationCase::hashToken($token) : null,
+                'reporter_token_hash' => $token ? SpeakUpCase::hashToken($token) : null,
                 'access_user_ids' => $this->initialAllowlist($data, $reporter, $anonymous, $tenantId),
             ]);
 
@@ -83,7 +83,7 @@ class CaseService
      * the case records that anonymisation happened so a later reader knows
      * the absence of a contact is deliberate, not a gap.
      *
-     * @return array{case: InvestigationCase, token: ?string}
+     * @return array{case: SpeakUpCase, token: ?string}
      */
     public function openFromAnonymisingBridge(array $data, int $tenantId, string $channel): array
     {
@@ -107,7 +107,7 @@ class CaseService
         $year = now()->year;
         $stem = "CASE-{$year}-";
 
-        $last = InvestigationCase::withoutGlobalScopes()
+        $last = SpeakUpCase::withoutGlobalScopes()
             ->where('tenant_id', $tenantId)
             ->where('case_ref', 'like', $stem.'%')
             ->orderByDesc('id')
@@ -202,7 +202,7 @@ class CaseService
      * at a reporter, and email is a less controlled channel than the case
      * file itself.
      */
-    private function notifyAllowlist(InvestigationCase $case): void
+    private function notifyAllowlist(SpeakUpCase $case): void
     {
         $recipients = User::withoutGlobalScopes()
             ->whereIn('id', $case->access_user_ids ?? [])
@@ -231,7 +231,7 @@ class CaseService
      * grant is audited with both names — an allowlist nobody can audit is
      * not a control.
      */
-    public function grantAccess(InvestigationCase $case, User $grantee, User $grantedBy): InvestigationCase
+    public function grantAccess(SpeakUpCase $case, User $grantee, User $grantedBy): SpeakUpCase
     {
         if (! $case->grantsAccessTo($grantedBy)) {
             throw ValidationException::withMessages([
@@ -250,7 +250,7 @@ class CaseService
         return $case;
     }
 
-    public function revokeAccess(InvestigationCase $case, User $user, User $revokedBy): InvestigationCase
+    public function revokeAccess(SpeakUpCase $case, User $user, User $revokedBy): SpeakUpCase
     {
         if (! $case->grantsAccessTo($revokedBy)) {
             throw ValidationException::withMessages([
@@ -276,14 +276,14 @@ class CaseService
     }
 
     /** Every open of a case file is a logged event, not just every change. */
-    public function recordAccess(InvestigationCase $case, User $user): void
+    public function recordAccess(SpeakUpCase $case, User $user): void
     {
         $case->auditAction('viewed', null, ['user_id' => $user->id]);
     }
 
     // ── Investigation lifecycle ──────────────────────────────────────────
 
-    public function assess(InvestigationCase $case, User $user, array $data): InvestigationCase
+    public function assess(SpeakUpCase $case, User $user, array $data): SpeakUpCase
     {
         $this->transition($case, 'Assessed', collect($data)->only([
             'severity', 'confidentiality', 'lead_investigator_id', 'entity_id', 'subject_persons',
@@ -303,7 +303,7 @@ class CaseService
         return $case->fresh();
     }
 
-    public function startInvestigation(InvestigationCase $case, User $user, string $plan): InvestigationCase
+    public function startInvestigation(SpeakUpCase $case, User $user, string $plan): SpeakUpCase
     {
         if (! $case->lead_investigator_id) {
             throw ValidationException::withMessages([
@@ -322,7 +322,7 @@ class CaseService
      * decides whether it is substantiated (R2) — the pattern the rest of
      * the platform uses for maker-checker, applied to investigation.
      */
-    public function conclude(InvestigationCase $case, User $user, string $outcome, array $data): InvestigationCase
+    public function conclude(SpeakUpCase $case, User $user, string $outcome, array $data): SpeakUpCase
     {
         if (! in_array($outcome, ['Substantiated', 'Unsubstantiated', 'Referred'], true)) {
             throw ValidationException::withMessages([
@@ -348,7 +348,7 @@ class CaseService
         return $case->fresh();
     }
 
-    public function close(InvestigationCase $case, User $user, ?string $note = null): InvestigationCase
+    public function close(SpeakUpCase $case, User $user, ?string $note = null): SpeakUpCase
     {
         $this->transition($case, 'Closed', ['closed_by' => $user->id, 'closed_at' => now()]);
         $case->auditAction('closed', null, ['note' => $note, 'by' => $user->id]);
@@ -360,7 +360,7 @@ class CaseService
         return $case->fresh();
     }
 
-    public function transition(InvestigationCase $case, string $to, array $extra = []): void
+    public function transition(SpeakUpCase $case, string $to, array $extra = []): void
     {
         if ($to === $case->status) {
             $case->update($extra);
@@ -368,7 +368,7 @@ class CaseService
             return;
         }
 
-        $allowed = InvestigationCase::TRANSITIONS[$case->status] ?? [];
+        $allowed = SpeakUpCase::TRANSITIONS[$case->status] ?? [];
 
         if (! in_array($to, $allowed, true)) {
             throw ValidationException::withMessages([
@@ -381,7 +381,7 @@ class CaseService
 
     // ── Notes ────────────────────────────────────────────────────────────
 
-    public function addNote(InvestigationCase $case, User $author, string $note, bool $privileged = false, bool $reporterVisible = false): CaseNote
+    public function addNote(SpeakUpCase $case, User $author, string $note, bool $privileged = false, bool $reporterVisible = false): CaseNote
     {
         if ($privileged && $reporterVisible) {
             throw ValidationException::withMessages([
@@ -409,8 +409,8 @@ class CaseService
      */
     public function statusForToken(string $token): ?array
     {
-        $case = InvestigationCase::withoutGlobalScopes()
-            ->where('reporter_token_hash', InvestigationCase::hashToken(trim($token)))
+        $case = SpeakUpCase::withoutGlobalScopes()
+            ->where('reporter_token_hash', SpeakUpCase::hashToken(trim($token)))
             ->first();
 
         if (! $case) {
@@ -442,8 +442,8 @@ class CaseService
      */
     public function replyWithToken(string $token, string $message): ?CaseNote
     {
-        $case = InvestigationCase::withoutGlobalScopes()
-            ->where('reporter_token_hash', InvestigationCase::hashToken(trim($token)))
+        $case = SpeakUpCase::withoutGlobalScopes()
+            ->where('reporter_token_hash', SpeakUpCase::hashToken(trim($token)))
             ->first();
 
         if (! $case) {
@@ -474,7 +474,7 @@ class CaseService
      */
     public function boardExtract(?int $tenantId = null, ?string $from = null, ?string $to = null): array
     {
-        $query = InvestigationCase::withoutGlobalScopes()
+        $query = SpeakUpCase::withoutGlobalScopes()
             ->when($tenantId, fn ($q, $t) => $q->where('tenant_id', $t))
             ->when($from, fn ($q, $f) => $q->where('received_at', '>=', $f))
             ->when($to, fn ($q, $t) => $q->where('received_at', '<=', $t));
@@ -484,7 +484,7 @@ class CaseService
         return [
             'total' => $cases->count(),
             'anonymous' => $cases->where('is_anonymous', true)->count(),
-            'open' => $cases->whereIn('status', InvestigationCase::OPEN_STATUSES)->count(),
+            'open' => $cases->whereIn('status', SpeakUpCase::OPEN_STATUSES)->count(),
             'by_type' => $cases->countBy('case_type')->all(),
             'by_status' => $cases->countBy('status')->all(),
             'by_severity' => $cases->countBy('severity')->all(),

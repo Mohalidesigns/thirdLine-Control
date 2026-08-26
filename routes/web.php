@@ -905,7 +905,7 @@ Route::middleware('auth')->group(function () {
 
     // ── Cases & investigations (Phase 11.4) ──────────────────────────
     // Route middleware is the coarse gate only: every case is additionally
-    // filtered by the allowlist scope and InvestigationCasePolicy, with no
+    // filtered by the allowlist scope and SpeakUpCasePolicy, with no
     // administrator bypass.
     Route::middleware(['feature:cases', 'permission:view cases'])->group(function () {
         Route::get('cases/board-extract', [CaseController::class, 'boardExtract'])->name('cases.board-extract');

@@ -145,7 +145,7 @@ class ActivityLogSeeder extends Seeder
         $rows[] = [
             'tenant_id' => $tenant->id, 'action' => 'created',
             'event_label' => AuditEventCatalog::label('created'),
-            'entity_type' => 'App\\Models\\InvestigationCase', 'entity_id' => 999,
+            'entity_type' => 'App\\Models\\SpeakUpCase', 'entity_id' => 999,
             'subject_label' => 'Speak Up submission',
             'description' => 'Investigation Case created',
             'batch_id' => (string) Str::uuid(),

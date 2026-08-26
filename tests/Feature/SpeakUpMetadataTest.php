@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\IntegrationConfig;
-use App\Models\InvestigationCase;
+use App\Models\SpeakUpCase;
 use App\Models\SpeakUpMetadataAccessLog;
 use App\Models\SpeakUpReportMetadata;
 use App\Models\SpeakUpRevealRequest;
@@ -100,9 +100,9 @@ class SpeakUpMetadataTest extends TestCase
         ]);
     }
 
-    private function latestCase(): InvestigationCase
+    private function latestCase(): SpeakUpCase
     {
-        return InvestigationCase::withoutGlobalScopes()->orderByDesc('id')->firstOrFail();
+        return SpeakUpCase::withoutGlobalScopes()->orderByDesc('id')->firstOrFail();
     }
 
     // ── Capture ──────────────────────────────────────────────────────────
@@ -172,7 +172,7 @@ class SpeakUpMetadataTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors('notice_acknowledged');
-        $this->assertSame(0, InvestigationCase::withoutGlobalScopes()->count());
+        $this->assertSame(0, SpeakUpCase::withoutGlobalScopes()->count());
     }
 
     public function test_an_authenticated_confidential_submission_records_the_staff_link(): void
@@ -381,7 +381,7 @@ class SpeakUpMetadataTest extends TestCase
             $this->submitConfidential(['title' => "Report {$suffix}"]);
         }
 
-        [$openCase, $heldCase, $closedCase] = InvestigationCase::withoutGlobalScopes()->orderBy('id')->get()->all();
+        [$openCase, $heldCase, $closedCase] = SpeakUpCase::withoutGlobalScopes()->orderBy('id')->get()->all();
 
         // All three past their provisional purge date.
         SpeakUpReportMetadata::withoutGlobalScopes()->update(['purge_after' => now()->subDay()]);
@@ -401,7 +401,7 @@ class SpeakUpMetadataTest extends TestCase
         $this->assertNotContains($closedCase->id, $remaining);
 
         // The report and its history survive their metadata; deletion logged.
-        $this->assertNotNull(InvestigationCase::withoutGlobalScopes()->find($closedCase->id));
+        $this->assertNotNull(SpeakUpCase::withoutGlobalScopes()->find($closedCase->id));
         $this->assertTrue(
             SpeakUpMetadataAccessLog::withoutGlobalScopes()
                 ->where('report_id', $closedCase->id)->where('action', 'purged')->exists(),
@@ -417,7 +417,7 @@ class SpeakUpMetadataTest extends TestCase
         $before = SpeakUpReportMetadata::withoutGlobalScopes()->firstOrFail()->purge_after;
 
         $this->travel(3)->months();
-        app(CaseService::class)->close(InvestigationCase::withoutGlobalScopes()->findOrFail($case->id), $this->cfh);
+        app(CaseService::class)->close(SpeakUpCase::withoutGlobalScopes()->findOrFail($case->id), $this->cfh);
 
         $after = SpeakUpReportMetadata::withoutGlobalScopes()->firstOrFail()->purge_after;
         $this->assertTrue($after->greaterThan($before));

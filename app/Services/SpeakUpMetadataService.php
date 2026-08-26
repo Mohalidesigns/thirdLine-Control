@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\InvestigationCase;
+use App\Models\SpeakUpCase;
 use App\Models\SpeakUpMetadataAccessLog;
 use App\Models\SpeakUpReportMetadata;
 use App\Models\SpeakUpRevealRequest;
@@ -73,7 +73,7 @@ class SpeakUpMetadataService
      * @param  array<string, mixed>  $clientMeta
      */
     public function capture(
-        InvestigationCase $case,
+        SpeakUpCase $case,
         Request $request,
         array $clientMeta,
         ?int $sessionDurationSeconds,
@@ -107,7 +107,7 @@ class SpeakUpMetadataService
     }
 
     private function persistCapture(
-        InvestigationCase $case,
+        SpeakUpCase $case,
         Request $request,
         array $clientMeta,
         ?int $sessionDurationSeconds,
@@ -264,7 +264,7 @@ class SpeakUpMetadataService
      *
      * @return array<string, mixed>|null
      */
-    public function signals(InvestigationCase $case): ?array
+    public function signals(SpeakUpCase $case): ?array
     {
         $metadata = SpeakUpReportMetadata::where('report_id', $case->id)->first();
 
@@ -275,7 +275,7 @@ class SpeakUpMetadataService
         $prior = null;
 
         if ($metadata->fingerprint_hash) {
-            $priorCases = InvestigationCase::withoutGlobalScopes()
+            $priorCases = SpeakUpCase::withoutGlobalScopes()
                 ->join('speak_up_report_metadata as m', 'm.report_id', '=', 'cases.id')
                 ->where('m.tenant_id', $case->tenant_id)
                 ->where('m.fingerprint_hash', $metadata->fingerprint_hash)
@@ -321,7 +321,7 @@ class SpeakUpMetadataService
 
     // ── Break-glass reveal (Tier 2) ──────────────────────────────────────
 
-    public function requestReveal(InvestigationCase $case, User $user, string $reasonCode, string $justification): SpeakUpRevealRequest
+    public function requestReveal(SpeakUpCase $case, User $user, string $reasonCode, string $justification): SpeakUpRevealRequest
     {
         $settings = $this->settings($case->tenant_id);
 
@@ -379,7 +379,7 @@ class SpeakUpMetadataService
 
         // The approver may hold no case permission at all, so the case is
         // fetched past the allowlist scope purely to stamp the log row.
-        $case = InvestigationCase::withoutGlobalScopes()->findOrFail($request->report_id);
+        $case = SpeakUpCase::withoutGlobalScopes()->findOrFail($request->report_id);
 
         $this->log($case, $approve ? 'approved' : 'denied', $request,
             requestedBy: $request->requested_by, approvedBy: $approver->id);
@@ -394,7 +394,7 @@ class SpeakUpMetadataService
      *
      * @return array<string, mixed>|null
      */
-    public function reveal(InvestigationCase $case, User $user): ?array
+    public function reveal(SpeakUpCase $case, User $user): ?array
     {
         $grant = $this->usableReveal($case, $user);
 
@@ -423,7 +423,7 @@ class SpeakUpMetadataService
         return $tier2;
     }
 
-    public function usableReveal(InvestigationCase $case, User $user): ?SpeakUpRevealRequest
+    public function usableReveal(SpeakUpCase $case, User $user): ?SpeakUpRevealRequest
     {
         return SpeakUpRevealRequest::where('report_id', $case->id)
             ->where('requested_by', $user->id)
@@ -447,7 +447,7 @@ class SpeakUpMetadataService
 
     // ── Legal hold ───────────────────────────────────────────────────────
 
-    public function setLegalHold(InvestigationCase $case, User $user, string $reason): void
+    public function setLegalHold(SpeakUpCase $case, User $user, string $reason): void
     {
         $case->update([
             'legal_hold' => true,
@@ -459,7 +459,7 @@ class SpeakUpMetadataService
         $case->auditAction('legal-hold-set', null, ['by' => $user->id, 'reason' => $reason]);
     }
 
-    public function liftLegalHold(InvestigationCase $case, User $user): void
+    public function liftLegalHold(SpeakUpCase $case, User $user): void
     {
         $case->update([
             'legal_hold' => false,
@@ -474,7 +474,7 @@ class SpeakUpMetadataService
     // ── Retention ────────────────────────────────────────────────────────
 
     /** Case closure restarts the clock: retention runs from closure (CR §6). */
-    public function restampPurgeDate(InvestigationCase $case): void
+    public function restampPurgeDate(SpeakUpCase $case): void
     {
         $metadata = SpeakUpReportMetadata::where('report_id', $case->id)->first();
 
@@ -499,7 +499,7 @@ class SpeakUpMetadataService
         $purged = 0;
 
         foreach ($expired as $metadata) {
-            $case = InvestigationCase::withoutGlobalScopes()->find($metadata->report_id);
+            $case = SpeakUpCase::withoutGlobalScopes()->find($metadata->report_id);
 
             // Retention runs from closure — an open case keeps its metadata,
             // and a held case keeps it regardless.
@@ -520,7 +520,7 @@ class SpeakUpMetadataService
     // ── The immutable access log ─────────────────────────────────────────
 
     private function log(
-        InvestigationCase $case,
+        SpeakUpCase $case,
         string $action,
         ?SpeakUpRevealRequest $request,
         ?int $requestedBy = null,

@@ -6,7 +6,7 @@ use App\Models\AiConfiguration;
 use App\Models\AiKnowledgeChunk;
 use App\Models\Control;
 use App\Models\Document;
-use App\Models\InvestigationCase;
+use App\Models\SpeakUpCase;
 use App\Models\Policy;
 use App\Models\Risk;
 use App\Models\Tenant;
@@ -345,7 +345,7 @@ class AiRetrievalTest extends TestCase
     {
         $this->assertArrayNotHasKey('case', KnowledgeIndexer::sourceMap());
         $this->assertArrayNotHasKey('case', (array) config('ai.retrieval.sources'));
-        $this->assertNull(KnowledgeIndexer::sourceTypeFor(new InvestigationCase));
+        $this->assertNull(KnowledgeIndexer::sourceTypeFor(new SpeakUpCase));
     }
 
     // ── Index maintenance ───────────────────────────────────────────────

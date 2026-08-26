@@ -40,7 +40,7 @@ class EntityLink extends Model
         'policy' => Policy::class,
         'incident' => Incident::class,
         'complaint' => Complaint::class,
-        'case' => InvestigationCase::class,
+        'case' => SpeakUpCase::class,
         // Phase 17 — strategy and third-party nodes.
         'objective' => Objective::class,
         'vendor' => Vendor::class,
