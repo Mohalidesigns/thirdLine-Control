@@ -129,6 +129,32 @@ class Control extends Model
         return $this->belongsTo(ControlEntity::class, 'control_entity_id');
     }
 
+    /**
+     * CR-03 §C.4: who actually performs this function, resolved the same
+     * way ControlTaskService::resolveAssignment() resolves it — the
+     * desk's or branch's control officer first, the control's own owner
+     * only as a fallback.
+     *
+     * controls.owner_id is a point-in-time snapshot taken at import. Read
+     * on its own it goes stale the moment a desk names a new officer, and
+     * shows "Unassigned" for every function imported before anybody was
+     * named. The entity is the authority; this accessor says so.
+     *
+     * Returns null for a branch template function, which is executed by
+     * many branches and owned by no single person — the caller should
+     * render the entity count instead of a name.
+     */
+    public function getEffectiveOwnerAttribute(): ?User
+    {
+        $entity = $this->homeEntity;
+
+        if ($entity) {
+            return $entity->defaultOfficer ?? $entity->owner ?? $this->owner;
+        }
+
+        return $this->owner;
+    }
+
     /** Controls imported from the departmental checklist workbook. */
     public function scopeControlFunctions(Builder $query): Builder
     {

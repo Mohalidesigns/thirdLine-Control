@@ -36,6 +36,14 @@ class ControlFunctionChecklistSeeder extends Seeder
             return;
         }
 
+        // Officers FIRST: the importer stamps controls.owner_id from the
+        // desk's officer as it writes, so naming them afterwards would
+        // leave all 167 functions ownerless on the record. The desks
+        // themselves are created by the import, so this runs twice —
+        // once for the desks that already exist, once for the ones the
+        // workbook implies.
+        $this->seedDemoOfficers();
+
         foreach (Tenant::query()->pluck('id') as $tenantId) {
             $this->seedTenant($service, $pack, (int) $tenantId);
         }

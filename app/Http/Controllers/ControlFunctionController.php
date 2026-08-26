@@ -39,7 +39,12 @@ class ControlFunctionController extends Controller
             ->controlFunctions()
             ->with([
                 'controlUnit:id,code,name,domain',
-                'homeEntity:id,name,entity_kind',
+                // default_officer_id and owner_id must be in the select
+                // list or the nested relations below have no key to load
+                // on and silently resolve to null (§C.4 assignment chain).
+                'homeEntity:id,name,entity_kind,default_officer_id,owner_id',
+                'homeEntity.defaultOfficer:id,name',
+                'homeEntity.owner:id,name',
                 'controlFrequency:id,code,label,cycle,generation_mode',
                 'owner:id,name',
             ])
@@ -78,7 +83,9 @@ class ControlFunctionController extends Controller
 
         $control->load([
             'controlUnit:id,code,name,domain',
-            'homeEntity:id,name,entity_kind',
+            'homeEntity:id,name,entity_kind,default_officer_id,owner_id',
+            'homeEntity.defaultOfficer:id,name',
+            'homeEntity.owner:id,name',
             'controlFrequency',
             'owner:id,name',
             'controlEntities:id,name,entity_kind,control_unit_id',
@@ -209,6 +216,14 @@ class ControlFunctionController extends Controller
 
     private function summarise(Control $control): array
     {
+        // withCount() supplies this on the catalogue; the detail page has
+        // no such count, so resolve it once and use it for BOTH the
+        // displayed number and the shared-function test. Reading the raw
+        // attribute for one and the resolved value for the other is how
+        // a branch template ends up reporting three branches and no
+        // officer in the same header.
+        $entityCount = $control->entity_count ?? $control->controlEntities()->count();
+
         return [
             'id' => $control->id,
             'reference' => $control->control_ref,
@@ -216,12 +231,16 @@ class ControlFunctionController extends Controller
             'status' => $control->status,
             'unit' => $control->controlUnit?->only(['id', 'code', 'name', 'domain']),
             'entity' => $control->homeEntity?->only(['id', 'name', 'entity_kind']),
-            'entity_count' => $control->entity_count ?? $control->controlEntities()->count(),
+            'entity_count' => $entityCount,
             'frequency' => $control->controlFrequency?->only(['code', 'label', 'cycle', 'generation_mode']),
             // The client's own wording, shown alongside ours. "Frequency of
             // Activity" is the column they expect to recognise.
             'frequency_raw' => $control->frequency_raw,
-            'owner' => $control->owner?->only(['id', 'name']),
+            // §C.4: the person who performs it, not a stale snapshot.
+            // A branch template has many performers and no single owner,
+            // so it reports the count instead of a name.
+            'owner' => $control->effective_owner?->only(['id', 'name']),
+            'is_shared' => $control->control_entity_id === null && $entityCount > 1,
             'line_count' => $control->activeTestScript()?->checkItems()->count() ?? 0,
             'next_due' => TestInstance::query()
                 ->where('control_id', $control->id)

@@ -127,8 +127,14 @@ export default function Show({
                         <p className="mt-1 text-lg font-semibold tabular-nums">{entities.length}</p>
                     </div>
                     <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">Owner</p>
-                        <p className="mt-1">{fn.owner?.name ?? <span className="text-gray-400">Unassigned</span>}</p>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
+                            {fn.is_shared ? 'Performed by' : 'Control officer'}
+                        </p>
+                        <p className="mt-1">
+                            {fn.is_shared
+                                ? `${entities.length} branch${entities.length === 1 ? '' : 'es'}, each with its own officer`
+                                : (fn.owner?.name ?? <span className="text-gray-400">Unassigned</span>)}
+                        </p>
                     </div>
                 </div>
             </div>

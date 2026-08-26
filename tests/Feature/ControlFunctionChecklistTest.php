@@ -763,6 +763,46 @@ class ControlFunctionChecklistTest extends TestCase
         $this->assertGreaterThan(0, collect($units)->sum('total'));
     }
 
+    public function test_the_officer_shown_follows_the_assignment_chain_not_a_stale_snapshot(): void
+    {
+        $this->importSample();
+
+        $formM = $this->control('REVIEW OF FORM M');
+        $desk = $formM->homeEntity;
+
+        // Imported before anybody was named on the desk, so owner_id
+        // fell all the way back to the unit head — a snapshot that is
+        // correct on the day of the import and wrong the moment the desk
+        // names somebody.
+        $this->assertSame($this->cfh->id, $formM->owner_id);
+
+        $desk->forceFill(['default_officer_id' => $this->officer->id])->save();
+
+        $this->assertSame(
+            $this->officer->id,
+            $formM->fresh()->effective_owner?->id,
+            'The desk officer is the authority; controls.owner_id is a snapshot that goes stale.',
+        );
+
+        $this->actingAs($this->cfh)
+            ->get(route('control-functions.show', $formM->id))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('function.owner.name', $this->officer->name)
+                ->where('function.is_shared', false));
+
+        // A branch template is performed by many branches and owned by no
+        // single person — the header must say so rather than naming one.
+        $gl = $this->control('REVIEW OF GL MOVEMENTS');
+
+        $this->actingAs($this->cfh)
+            ->get(route('control-functions.show', $gl->id))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('function.is_shared', true)
+                ->where('function.entity_count', 2));
+    }
+
     // ── Routes and permissions (§E.3) ────────────────────────────────
 
     public function test_the_catalogue_renders_for_a_control_officer(): void
