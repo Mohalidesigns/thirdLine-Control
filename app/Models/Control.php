@@ -6,6 +6,7 @@ use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\GeneratesReference;
 use App\Models\Concerns\HasRichText;
+use App\Services\FrequencyResolver;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -48,7 +49,9 @@ class Control extends Model
     protected $fillable = [
         'tenant_id', 'control_ref', 'external_ref', 'title', 'description', 'objective',
         'type', 'nature', 'category_id', 'coso_component', 'process_id', 'unit_id',
-        'department', 'owner_id', 'frequency', 'test_frequency', 'is_key_control',
+        'control_unit_id', 'control_entity_id',
+        'department', 'owner_id', 'frequency', 'frequency_id', 'frequency_raw',
+        'source_ref', 'is_control_function', 'test_frequency', 'is_key_control',
         'framework_refs', 'control_documentation', 'notes',
         'design_effectiveness', 'operating_effectiveness', 'overall_rating', 'last_assessed_at',
         'status', 'current_version',
@@ -62,6 +65,7 @@ class Control extends Model
 
     protected $casts = [
         'is_key_control' => 'boolean',
+        'is_control_function' => 'boolean',
         'is_template' => 'boolean',
         'is_distributable' => 'boolean',
         'framework_refs' => 'array',
@@ -74,6 +78,87 @@ class Control extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(ControlCategory::class, 'category_id');
+    }
+
+    // ── Frequency (CR-03) ────────────────────────────────────────────
+
+    /**
+     * The catalogue rhythm. NULL means the legacy `frequency` enum is
+     * still the only word on it — the enum is not going anywhere, it is
+     * the compatibility surface every existing reader uses (§C.1).
+     */
+    public function controlFrequency(): BelongsTo
+    {
+        return $this->belongsTo(ControlFrequency::class, 'frequency_id');
+    }
+
+    /**
+     * The rhythm this control actually works to, catalogue row first,
+     * enum second. Callers that need a period should go through this
+     * rather than reading either column directly.
+     */
+    public function resolvedFrequency(): ?ControlFrequency
+    {
+        if ($this->frequency_id) {
+            return $this->controlFrequency;
+        }
+
+        return app(FrequencyResolver::class)->fromLegacy($this->frequency, $this->tenant_id);
+    }
+
+    /** The client's own wording where we have it, ours otherwise. */
+    public function getFrequencyLabelAttribute(): ?string
+    {
+        return $this->frequency_raw
+            ?: ($this->frequency_id ? $this->controlFrequency?->label : $this->frequency);
+    }
+
+    /** The second-line sub-unit that owns this function (CR-03 §D.1). */
+    public function controlUnit(): BelongsTo
+    {
+        return $this->belongsTo(ControlUnit::class, 'control_unit_id');
+    }
+
+    /**
+     * The single desk this function belongs to, where it belongs to one.
+     * NULL on a branch function: that one is a template every branch
+     * executes, and its entities come through control_entity_control.
+     */
+    public function homeEntity(): BelongsTo
+    {
+        return $this->belongsTo(ControlEntity::class, 'control_entity_id');
+    }
+
+    /**
+     * CR-03 §C.4: who actually performs this function, resolved the same
+     * way ControlTaskService::resolveAssignment() resolves it — the
+     * desk's or branch's control officer first, the control's own owner
+     * only as a fallback.
+     *
+     * controls.owner_id is a point-in-time snapshot taken at import. Read
+     * on its own it goes stale the moment a desk names a new officer, and
+     * shows "Unassigned" for every function imported before anybody was
+     * named. The entity is the authority; this accessor says so.
+     *
+     * Returns null for a branch template function, which is executed by
+     * many branches and owned by no single person — the caller should
+     * render the entity count instead of a name.
+     */
+    public function getEffectiveOwnerAttribute(): ?User
+    {
+        $entity = $this->homeEntity;
+
+        if ($entity) {
+            return $entity->defaultOfficer ?? $entity->owner ?? $this->owner;
+        }
+
+        return $this->owner;
+    }
+
+    /** Controls imported from the departmental checklist workbook. */
+    public function scopeControlFunctions(Builder $query): Builder
+    {
+        return $query->where('is_control_function', true);
     }
 
     public function process(): BelongsTo

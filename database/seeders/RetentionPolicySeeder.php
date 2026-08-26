@@ -20,6 +20,14 @@ class RetentionPolicySeeder extends Seeder
         $policies = [
             ['General Test Evidence', 'General', 72, 'Delete', true, 'Statutory record-keeping for financial institutions — confirm with DPO.', true],
             ['Customer Personal Data Evidence', 'Customer Personal Data', 60, 'Anonymise', true, 'NDPA 2023 data minimisation — confirm retention basis with DPO.', false],
+            // CR-03 §C.7 mitigation 3. At the client's branch count the
+            // departmental checklist writes tens of millions of line-level
+            // results a year, and most of it is daily evidence nobody reads
+            // after the examination that covered it. How long it must
+            // survive before summarising is a compliance answer, not an
+            // engineering one (§G.6) — 24 months is the plan's proposal and
+            // the tenant's DPO overrides it at onboarding.
+            ['Control Task Line Evidence', 'Control Task Evidence', 24, 'Delete', true, 'CR-03 §G.6 — CBN and the bank\'s own records policy govern; confirm before the first disposal run.', false],
         ];
 
         foreach ($policies as [$name, $class, $months, $action, $dual, $note, $default]) {

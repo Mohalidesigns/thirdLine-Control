@@ -53,6 +53,13 @@ class SystemDashboardSeeder extends Seeder
                 ['progress', 'CSA response rates', 'csa_response_rate', 8, 7, 4, 4],
                 ['horizontal_bar', 'Framework coverage', 'framework_coverage', 0, 10, 6, 4],
                 ['tree', 'Organisation rollup', 'org_unit_rollup', 6, 11, 6, 5],
+                // CR-03: the departmental checklist position. A Daily
+                // function not performed yesterday is visible here this
+                // morning, per sub-unit and per branch.
+                ['stat', 'Control tasks due today', 'control_tasks_due_today', 0, 16, 3, 2],
+                ['stat', 'Control tasks overdue', 'control_tasks_overdue', 3, 16, 3, 2],
+                ['bar', 'Control task completion by sub-unit', 'control_task_completion_by_unit', 6, 16, 6, 4],
+                ['horizontal_bar', 'Branch control scorecard', 'branch_control_scorecard', 0, 18, 12, 5],
             ],
         ],
         [
@@ -68,6 +75,10 @@ class SystemDashboardSeeder extends Seeder
                 ['table', 'My exceptions', 'my_exceptions', 6, 2, 6, 4],
                 ['donut', 'Open monitoring findings', 'monitoring_findings', 0, 6, 4, 4],
                 ['stacked_bar', 'Testing pipeline', 'testing_pipeline', 4, 6, 8, 4],
+                // CR-03: the checklist tasks this officer owes today.
+                ['stat', 'Control tasks due today', 'control_tasks_due_today', 0, 10, 3, 2],
+                ['stat', 'Control tasks overdue', 'control_tasks_overdue', 3, 10, 3, 2],
+                ['donut', 'Control functions by frequency', 'control_functions_by_frequency', 6, 10, 6, 4],
             ],
         ],
         [

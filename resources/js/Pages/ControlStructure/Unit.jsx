@@ -5,6 +5,7 @@ import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
+import ProgressBar from '@/Components/ProgressBar';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
@@ -42,6 +43,7 @@ export default function Unit({
     organisationUnits = [],
     businessProcesses = [],
     users = [],
+    functionCounts = {},
     can = {},
 }) {
     const isBranchDomain = unit.domain === 'branch';
@@ -87,6 +89,40 @@ export default function Unit({
         }
     };
 
+    // CR-03: how many departmental control functions this entity runs,
+    // and how much of the last 30 days' work it actually completed.
+    const functionColumns = [
+        {
+            field: 'control_functions',
+            label: 'Functions',
+            width: '7rem',
+            render: (row) => <span className="tabular-nums">{functionCounts[row.id]?.functions ?? 0}</span>,
+        },
+        {
+            field: 'task_completion',
+            label: 'Tasks (30d)',
+            width: '13rem',
+            render: (row) => {
+                const stats = functionCounts[row.id];
+
+                if (!stats || stats.tasks === 0) return <span className="text-gray-400">—</span>;
+
+                return (
+                    <div className="flex items-center gap-2">
+                        <ProgressBar
+                            value={stats.completion_rate}
+                            color={stats.completion_rate >= 95 ? 'var(--color-success)' : stats.completion_rate >= 80 ? 'var(--color-warning)' : 'var(--color-error)'}
+                        />
+                        <span className="shrink-0 text-xs tabular-nums text-gray-500">
+                            {stats.completed}/{stats.tasks}
+                            {stats.overdue > 0 && <span className="ms-1 font-semibold text-red-600">({stats.overdue} late)</span>}
+                        </span>
+                    </div>
+                );
+            },
+        },
+    ];
+
     const branchColumns = [
         {
             field: 'name',
@@ -103,6 +139,7 @@ export default function Unit({
         { field: 'head', label: 'Branch head', render: (row) => row.organisation_unit?.head?.name ?? '—' },
         { field: 'children_count', label: 'Activities', render: (row) => row.children_count },
         { field: 'controls_count', label: 'Controls', render: (row) => row.controls_count },
+        ...functionColumns,
     ];
 
     const flatColumns = [
@@ -120,6 +157,7 @@ export default function Unit({
         { field: 'owner', label: 'Relationship officer', render: (row) => row.owner?.name ?? '—' },
         { field: 'risk_rating', label: 'Rating', render: (row) => row.risk_rating ? <SeverityBadge severity={row.risk_rating} /> : '—' },
         { field: 'controls_count', label: 'Controls', render: (row) => row.controls_count },
+        ...functionColumns,
         {
             field: 'next_review_due_at',
             label: 'Next review',

@@ -6,6 +6,7 @@ use App\Models\EffectivenessRating;
 use App\Models\Evidence;
 use App\Models\TestInstance;
 use App\Rules\RichTextRule;
+use App\Services\ControlTaskService;
 use App\Services\TestingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -45,8 +46,12 @@ class TestInstanceController extends Controller
         $this->authorize('view', $testInstance);
 
         $testInstance->load([
-            'control:id,control_ref,title,owner_id',
+            'control:id,control_ref,title,owner_id,frequency_id,is_control_function,control_unit_id',
+            'control.controlUnit:id,code,name',
+            'controlEntity:id,name,entity_kind',
+            'frequency:id,code,label,cycle,generation_mode',
             'testScript.checkItems',
+            'testScript.checkItems.controlFrequency:id,code,label,cycle',
             'checkResults',
             'tester:id,name',
             'reviewer:id,name',
@@ -57,6 +62,34 @@ class TestInstanceController extends Controller
 
         return Inertia::render('TestInstances/Show', [
             'instance' => $testInstance,
+            // CR-03: a task carries only the lines belonging to its own
+            // rhythm. A NOSTRO daily task must not present the five
+            // monthly lines an officer has no business answering today.
+            'checkItems' => app(ControlTaskService::class)->checkItemsFor($testInstance)
+                ->map(fn ($item) => [
+                    'id' => $item->id,
+                    'sequence' => $item->sequence,
+                    'question' => $item->question,
+                    'guidance' => $item->guidance,
+                    'expected_result' => $item->expected_result,
+                    'is_mandatory' => $item->is_mandatory,
+                    'default_severity_on_fail' => $item->default_severity_on_fail,
+                    'source_ref' => $item->source_ref,
+                    'frequency' => $item->controlFrequency?->only(['code', 'label', 'cycle'])
+                        ?? $testInstance->frequency?->only(['code', 'label', 'cycle']),
+                    'frequency_raw' => $item->frequency_raw,
+                    'is_override' => $item->frequency_id !== null,
+                ])->values(),
+            // Which desk or branch this occurrence belongs to — a branch
+            // officer's screen is ambiguous without it.
+            'scope' => [
+                'unit' => $testInstance->control?->controlUnit?->only(['id', 'code', 'name']),
+                'entity' => $testInstance->controlEntity?->only(['id', 'name', 'entity_kind']),
+                'frequency' => $testInstance->frequency?->only(['code', 'label', 'cycle', 'generation_mode']),
+                'is_control_function' => (bool) $testInstance->control?->is_control_function,
+                'trigger_event' => $testInstance->trigger_event,
+                'trigger_context' => $testInstance->trigger_context,
+            ],
             'evidence' => Evidence::query()
                 ->where('linked_type', TestInstance::class)
                 ->where('linked_id', $testInstance->id)

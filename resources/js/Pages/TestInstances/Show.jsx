@@ -11,6 +11,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import RichTextEditor from '@/Components/RichTextEditor';
 import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
+import FrequencyBadge from '@/Components/FrequencyBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
@@ -55,6 +56,13 @@ function CheckItemRow({ item, result, editable, instanceId }) {
                         {item.sequence}. {item.question}
                         {item.is_mandatory && <span className="ms-1 text-red-500">*</span>}
                     </p>
+                    {/* CR-03: a line running to its own rhythm says so, on
+                        a chip carrying the bank's own wording. */}
+                    {item.is_override && (
+                        <div className="mt-1">
+                            <FrequencyBadge frequency={item.frequency} raw={item.frequency_raw} isOverride />
+                        </div>
+                    )}
                     {item.guidance && <p className="mt-1 text-xs text-gray-500">Guidance: {item.guidance}</p>}
                     {item.expected_result && <p className="mt-0.5 text-xs text-gray-500">Expected: {item.expected_result}</p>}
                     {currentResult && result?.comment && (
@@ -97,8 +105,10 @@ function CheckItemRow({ item, result, editable, instanceId }) {
     );
 }
 
-export default function Show({ instance, evidence = [], can = {} }) {
-    const items = instance.test_script?.check_items ?? [];
+export default function Show({ instance, evidence = [], can = {}, checkItems = null, scope = {} }) {
+    // CR-03: a control function task carries only the lines belonging to
+    // its own rhythm; an ordinary test still owns its whole script.
+    const items = checkItems ?? instance.test_script?.check_items ?? [];
     const resultsByItem = Object.fromEntries((instance.check_results ?? []).map((r) => [r.check_item_id, r]));
     const answered = items.filter((item) => resultsByItem[item.id]?.result).length;
     const editable = can.execute && ['Scheduled', 'In Progress', 'Reopened'].includes(instance.status);
@@ -181,6 +191,51 @@ export default function Show({ instance, evidence = [], can = {} }) {
                     </>
                 }
             />
+
+            {/* CR-03: a control function task belongs to a desk or a
+                branch and to one rhythm. Without saying which, a branch
+                officer's screen is ambiguous and an officer holding both
+                a daily and a monthly NOSTRO task cannot tell them apart. */}
+            {scope.is_control_function && (
+                <div className="card mb-6">
+                    <div className="card-body flex flex-wrap items-start gap-x-8 gap-y-3 text-sm">
+                        {scope.entity && (
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
+                                    {scope.entity.entity_kind === 'branch' ? 'Branch' : 'Desk'}
+                                </p>
+                                <p className="mt-0.5 font-medium">{scope.entity.name}</p>
+                            </div>
+                        )}
+                        {scope.unit && (
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">Sub-unit</p>
+                                <p className="mt-0.5 font-medium">{scope.unit.name}</p>
+                            </div>
+                        )}
+                        {scope.frequency && (
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
+                                    Frequency of Activity
+                                </p>
+                                <div className="mt-1"><FrequencyBadge frequency={scope.frequency} /></div>
+                            </div>
+                        )}
+                        {scope.trigger_event && (
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">Triggered by</p>
+                                <p className="mt-0.5 font-medium">{scope.trigger_context?.reason ?? scope.trigger_event}</p>
+                            </div>
+                        )}
+                        {!instance.due_date && (
+                            <p className="max-w-md text-xs text-[var(--color-text-secondary)]">
+                                A continuous observation — record what you see as you see it. It has no deadline and rolls
+                                into a fresh task each month.
+                            </p>
+                        )}
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 <div className="space-y-6 lg:col-span-2">

@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
+use App\Models\CheckItem;
 use App\Models\Control;
 use App\Models\CsaCampaign;
 use App\Models\CsaResponse;
 use App\Models\TestInstance;
 use App\Models\User;
+use Illuminate\Support\Collection;
 
 /**
  * "What do I owe, by when" (15.1/15.2): one feed behind both the mobile
@@ -38,11 +40,18 @@ class MyWorkService
             ->where('assigned_tester_id', $user->id)
             ->whereIn('status', ['Scheduled', 'In Progress', 'Reopened'])
             ->with([
-                'control:id,control_ref,title',
+                'control:id,control_ref,title,frequency_id,control_unit_id',
+                'control.controlUnit:id,code,name',
+                'controlEntity:id,name,entity_kind,control_unit_id',
+                'frequency:id,code,label,cycle,generation_mode',
                 'testScript:id,name',
-                'testScript.checkItems:id,test_script_id,sequence,question,guidance,is_mandatory',
+                'testScript.checkItems:id,test_script_id,sequence,question,guidance,is_mandatory,frequency_id',
                 'checkResults:id,test_instance_id,check_item_id,result,comment',
             ])
+            // CR-03: a task with no due date is a continuous observation.
+            // It sorts last rather than first, which is where a null would
+            // otherwise put it on MySQL.
+            ->orderByRaw('due_date is null')
             ->orderBy('due_date')
             ->limit(50)
             ->get()
@@ -57,17 +66,48 @@ class MyWorkService
                 'control' => $t->control
                     ? ['id' => $t->control->id, 'reference' => $t->control->control_ref, 'title' => $t->control->title]
                     : null,
-                'check_items' => $t->testScript?->checkItems->map(fn ($c) => [
+                // CR-03: which desk or branch this occurrence belongs to,
+                // and which rhythm produced it. A branch officer's queue is
+                // unreadable without the first, and an officer holding both
+                // a daily and a monthly NOSTRO task cannot tell them apart
+                // without the second.
+                'control_unit' => $t->control?->controlUnit?->only(['id', 'code', 'name']),
+                'control_entity' => $t->controlEntity?->only(['id', 'name', 'entity_kind']),
+                'frequency' => $t->frequency?->only(['code', 'label', 'cycle', 'generation_mode']),
+                // Only the lines this rhythm is asking about (§C.2).
+                'check_items' => $this->linesFor($t)->map(fn ($c) => [
                     'id' => $c->id,
                     'sequence' => $c->sequence,
                     'question' => $c->question,
                     'guidance' => $c->guidance,
                     'is_mandatory' => $c->is_mandatory,
                     'result' => $t->checkResults->firstWhere('check_item_id', $c->id)?->only(['result', 'comment']),
-                ])->values()->all() ?? [],
+                ])->values()->all(),
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * CR-03 §C.2: a control that carries more than one rhythm shows each
+     * task only the lines belonging to that rhythm. A pre-CR-03 instance
+     * has no rhythm of its own and still owns its whole checklist.
+     *
+     * @return Collection<int, CheckItem>
+     */
+    private function linesFor(TestInstance $instance): Collection
+    {
+        $items = $instance->testScript?->checkItems ?? collect();
+
+        if (! $instance->frequency_id) {
+            return $items;
+        }
+
+        $controlFrequencyId = $instance->control?->frequency_id;
+
+        return $items->filter(
+            fn ($item) => ($item->frequency_id ?: $controlFrequencyId) === $instance->frequency_id,
+        )->values();
     }
 
     private function openCsaResponses(User $user): array

@@ -22,6 +22,8 @@ use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\ContentPackController;
 use App\Http\Controllers\ControlController;
 use App\Http\Controllers\ControlDistributionController;
+use App\Http\Controllers\ControlFunctionController;
+use App\Http\Controllers\ControlFunctionImportController;
 use App\Http\Controllers\ControlRequirementMapController;
 use App\Http\Controllers\ControlStructureController;
 use App\Http\Controllers\CsaCampaignController;
@@ -222,6 +224,33 @@ Route::middleware('auth')->group(function () {
             ->middleware('permission:export audit log')->name('settings.activity-log.export');
         Route::get('settings/activity-log/export-pdf', [AuditLogController::class, 'exportPdf'])
             ->middleware('permission:export audit log')->name('settings.activity-log.export-pdf');
+    });
+
+    // ── Departmental control functions (CR-03) ───────────────────────
+    // The checklist catalogue and the frequency engine. Reading it is
+    // broad; editing a function is second line; IMPORTING the bank's
+    // workbook is the administrator's, because one commit rewrites the
+    // whole register in a single transaction. Gated exactly as
+    // control-structure is, so the module can ship dark per tenant.
+    Route::middleware('feature:control-functions')->group(function () {
+        Route::middleware('permission:view control-functions')->group(function () {
+            Route::get('control-functions', [ControlFunctionController::class, 'index'])->name('control-functions.index');
+            Route::get('control-functions/compliance', [ControlFunctionController::class, 'compliance'])->name('control-functions.compliance');
+            Route::get('control-functions/export', [ControlFunctionController::class, 'export'])
+                ->middleware('permission:export reports')->name('control-functions.export');
+            Route::get('control-functions/{control}', [ControlFunctionController::class, 'show'])->name('control-functions.show');
+        });
+
+        Route::middleware('permission:execute control-tasks')->group(function () {
+            Route::post('control-functions/{control}/trigger', [ControlFunctionController::class, 'trigger'])->name('control-functions.trigger');
+        });
+
+        Route::middleware('permission:import control-functions')->group(function () {
+            Route::get('control-function-imports', [ControlFunctionImportController::class, 'index'])->name('control-functions.import.index');
+            Route::post('control-function-imports', [ControlFunctionImportController::class, 'store'])->name('control-functions.import.store');
+            Route::post('control-function-imports/{controlFunctionImport}/commit', [ControlFunctionImportController::class, 'commit'])->name('control-functions.import.commit');
+            Route::delete('control-function-imports/{controlFunctionImport}', [ControlFunctionImportController::class, 'discard'])->name('control-functions.import.discard');
+        });
     });
 
     // ── Internal control structure (CR2-A) ───────────────────────────

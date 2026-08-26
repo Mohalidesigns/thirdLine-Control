@@ -22,6 +22,7 @@ class SyncControlStructureBranches extends Command
     {
         $totalBranches = 0;
         $totalActivities = 0;
+        $totalFunctions = 0;
 
         // Iterate tenants explicitly, the way EscalationService does —
         // the command runs unauthenticated, so the tenant global scope
@@ -30,9 +31,10 @@ class SyncControlStructureBranches extends Command
             $created = $service->syncBranches($tenantId);
             $totalBranches += $created['branches'];
             $totalActivities += $created['activities'];
+            $totalFunctions += $created['functions'];
         }
 
-        $this->info("Provisioned {$totalBranches} branch entit(ies) and {$totalActivities} activit(ies).");
+        $this->info("Provisioned {$totalBranches} branch entit(ies), {$totalActivities} activit(ies) and attached {$totalFunctions} control function(s).");
 
         return self::SUCCESS;
     }

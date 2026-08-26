@@ -35,6 +35,9 @@ class ControlEntity extends Model
         'description', 'description_rich', 'entity_kind', 'organisation_unit_id',
         'business_process_id', 'owner_id', 'risk_rating', 'review_frequency',
         'last_reviewed_at', 'next_review_due_at', 'is_template', 'sequence', 'is_active',
+        // CR-03 §C.4 — the officer who executes this desk's control tasks,
+        // distinct from owner_id (the relationship officer).
+        'default_officer_id', 'is_import_created',
     ];
 
     /** Editor.js-backed fields — see HasRichText. */
@@ -44,6 +47,7 @@ class ControlEntity extends Model
         'last_reviewed_at' => 'date',
         'next_review_due_at' => 'date',
         'is_template' => 'boolean',
+        'is_import_created' => 'boolean',
         'sequence' => 'integer',
         'is_active' => 'boolean',
     ];
@@ -78,6 +82,18 @@ class ControlEntity extends Model
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    /** The control officer who performs this entity's tasks (CR-03 §C.4). */
+    public function defaultOfficer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'default_officer_id');
+    }
+
+    /** Control tasks generated for this desk or branch (CR-03 §C.3). */
+    public function testInstances(): HasMany
+    {
+        return $this->hasMany(TestInstance::class);
     }
 
     /** The controls this entity oversees, through the structure pivot. */

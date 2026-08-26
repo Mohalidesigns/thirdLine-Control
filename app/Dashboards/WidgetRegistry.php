@@ -3,6 +3,7 @@
 namespace App\Dashboards;
 
 use App\Dashboards\Sources\ComplianceSources;
+use App\Dashboards\Sources\ControlFunctionSources;
 use App\Dashboards\Sources\ControlSources;
 use App\Dashboards\Sources\ControlStructureSources;
 use App\Dashboards\Sources\ExceptionSources;
@@ -31,6 +32,7 @@ class WidgetRegistry
     private const PROVIDERS = [
         ControlSources::class,
         ControlStructureSources::class,
+        ControlFunctionSources::class,
         TestingSources::class,
         ExceptionSources::class,
         RiskSources::class,

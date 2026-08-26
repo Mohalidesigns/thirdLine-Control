@@ -22,6 +22,10 @@ class DatabaseSeeder extends Seeder
             StarterControlLibrarySeeder::class,
             ReportTemplateSeeder::class,
             RetentionPolicySeeder::class,
+            // CR-03: the frequency catalogue and the client's own
+            // vocabulary. Reference data, and it must exist before any
+            // control resolves a rhythm.
+            ControlFrequencySeeder::class,
             // Phase 8: holidays before content packs (due dates depend on
             // them), content packs before demo data (assignments need
             // obligations to point at).
@@ -81,6 +85,11 @@ class DatabaseSeeder extends Seeder
             // Runs after the demo data so it can attach the demo controls
             // to branch activities and name a co-owner stakeholder.
             ControlStructureSeeder::class,
+            // CR-03: the departmental checklist workbook, through the same
+            // importer the UI uses. Runs after the control structure —
+            // the head office desks and Branch Control must exist to hang
+            // 167 functions and 1,517 checklist lines on.
+            ControlFunctionChecklistSeeder::class,
             // CR3: Activity Log demo rows across every event class. Runs
             // last so it can reference the demo controls and exceptions.
             ActivityLogSeeder::class,

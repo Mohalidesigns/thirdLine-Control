@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Services\ControlStructureService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -63,6 +64,11 @@ class ControlStructureController extends Controller
         return Inertia::render('ControlStructure/Unit', [
             'unit' => $controlUnit->load('head:id,name'),
             'entities' => $entities,
+            // CR-03: control function count and 30-day completion rate per
+            // desk or branch. One grouped query per metric, never one per
+            // entity — at the client's branch count the alternative is a
+            // few hundred queries to draw one table.
+            'functionCounts' => $this->functionCountsFor($entities->pluck('id')->all()),
             'templates' => $controlUnit->isBranchDomain()
                 ? ControlEntity::query()->templates()
                     ->where('control_unit_id', $controlUnit->id)
@@ -80,6 +86,64 @@ class ControlStructureController extends Controller
                 'manage' => auth()->user()->can('manage control-structure'),
             ],
         ]);
+    }
+
+    /**
+     * CR-03 §E.2: how many control functions each entity executes and how
+     * much of the last 30 days' work it completed.
+     *
+     * @param  array<int, int>  $entityIds
+     * @return array<int, array{functions: int, tasks: int, completed: int, overdue: int, completion_rate: float}>
+     */
+    private function functionCountsFor(array $entityIds): array
+    {
+        if ($entityIds === []) {
+            return [];
+        }
+
+        $functions = DB::table('control_entity_control')
+            ->join('controls', 'controls.id', '=', 'control_entity_control.control_id')
+            ->whereIn('control_entity_control.control_entity_id', $entityIds)
+            ->where('controls.is_control_function', true)
+            ->whereNull('controls.deleted_at')
+            ->groupBy('control_entity_control.control_entity_id')
+            ->select('control_entity_control.control_entity_id as entity_id', DB::raw('count(*) as total'))
+            ->pluck('total', 'entity_id');
+
+        $tasks = DB::table('test_instances')
+            ->whereIn('control_entity_id', $entityIds)
+            ->whereNull('deleted_at')
+            // Overlap, not containment — a monthly task that opened last
+            // month is part of the last 30 days' work.
+            ->whereDate('period_end', '>=', now()->subDays(30)->toDateString())
+            ->whereDate('period_start', '<=', now()->toDateString())
+            ->groupBy('control_entity_id')
+            ->select(
+                'control_entity_id as entity_id',
+                DB::raw('count(*) as total'),
+                DB::raw("sum(case when status in ('Reviewed', 'Closed') then 1 else 0 end) as completed"),
+                DB::raw("sum(case when status not in ('Reviewed', 'Closed') and due_date is not null and due_date < '".now()->toDateString()."' then 1 else 0 end) as overdue"),
+            )
+            ->get()
+            ->keyBy('entity_id');
+
+        $counts = [];
+
+        foreach ($entityIds as $entityId) {
+            $row = $tasks->get($entityId);
+            $total = (int) ($row->total ?? 0);
+            $completed = (int) ($row->completed ?? 0);
+
+            $counts[$entityId] = [
+                'functions' => (int) ($functions[$entityId] ?? 0),
+                'tasks' => $total,
+                'completed' => $completed,
+                'overdue' => (int) ($row->overdue ?? 0),
+                'completion_rate' => $total > 0 ? round(($completed / $total) * 100, 1) : 0.0,
+            ];
+        }
+
+        return $counts;
     }
 
     public function entity(ControlEntity $controlEntity): Response

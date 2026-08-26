@@ -224,6 +224,25 @@ class RegulatoryChangeService
 
         $this->notifyComplianceTeam($change, $tenantId);
 
+        // CR-03 §C.5: a new circular is a TRIGGER. The client's
+        // "Anytime there a new circular" control function has no
+        // calendar — it fires when the CBN publishes, and this is where
+        // the platform learns that it did. A failure here must never
+        // abort the feed poll.
+        try {
+            app(ControlTaskService::class)->fireTrigger($tenantId, 'cbn_circular_published', [
+                'regulatory_change_id' => $change->id,
+                'regulator' => $regulator->code,
+                'title' => $change->title,
+                'published_at' => $change->published_at?->toDateTimeString(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Circular-triggered control tasks not raised', [
+                'regulatory_change_id' => $change->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
         return true;
     }
 

@@ -26,6 +26,7 @@ use App\Policies\AiConfigurationPolicy;
 use App\Policies\AiInteractionPolicy;
 use App\Policies\CompensatingControlPolicy;
 use App\Policies\ControlEntityPolicy;
+use App\Policies\ControlFunctionPolicy;
 use App\Policies\ControlPolicy;
 use App\Policies\ControlUnitPolicy;
 use App\Policies\CrossBorderTransferPolicy;
@@ -39,6 +40,7 @@ use App\Policies\TestInstancePolicy;
 use App\Services\ActivityContext;
 use App\Services\Ai\KnowledgeIndexer;
 use App\Services\FeatureService;
+use App\Services\FrequencyResolver;
 use App\Services\ResidencyGuard;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -60,6 +62,10 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(FeatureService::class);
+
+        // CR-03: the frequency catalogue is read on every generated task —
+        // once per request, not once per control.
+        $this->app->singleton(FrequencyResolver::class);
 
         // Per-request activity state (batch id + fallback dedup flag, CR3):
         // scoped, so it resets between requests and queued jobs.
@@ -104,6 +110,15 @@ class AppServiceProvider extends ServiceProvider
         // CR2-A — the Internal Control structure.
         Gate::policy(ControlUnit::class, ControlUnitPolicy::class);
         Gate::policy(ControlEntity::class, ControlEntityPolicy::class);
+
+        // CR-03 — the control function surface hangs off Control, which
+        // already has a policy, so it gets a named gate namespace rather
+        // than a second policy that would shadow the first.
+        Gate::define('control-functions.viewAny', [ControlFunctionPolicy::class, 'viewAny']);
+        Gate::define('control-functions.view', [ControlFunctionPolicy::class, 'view']);
+        Gate::define('control-functions.manage', [ControlFunctionPolicy::class, 'manage']);
+        Gate::define('control-functions.import', [ControlFunctionPolicy::class, 'import']);
+        Gate::define('control-functions.trigger', [ControlFunctionPolicy::class, 'trigger']);
 
         // CR2-A: a newly created Branch unit is provisioned under Branch
         // Control immediately, not on the next nightly sync.
