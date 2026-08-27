@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\CaseFollowUp;
 use App\Models\CaseNote;
 use App\Models\SpeakUpCase;
 use App\Models\Tenant;
@@ -301,6 +302,139 @@ class CaseService
         $case->auditAction('assessed', null, ['by' => $user->id]);
 
         return $case->fresh();
+    }
+
+    /**
+     * Spec §5.4 — record the screening decision and why.
+     *
+     * Separate from assess(), which sets severity, confidentiality and who
+     * leads. This says what was DECIDED about the concern and on what
+     * reasoning, and stamps when — the stamp is what makes "average time to
+     * screen" answerable, which is the number a whistleblowing policy is
+     * actually judged on.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function triage(SpeakUpCase $case, User $user, array $data): SpeakUpCase
+    {
+        $note = trim((string) ($data['triage_note'] ?? ''));
+
+        if ($note === '') {
+            throw ValidationException::withMessages([
+                'triage_note' => 'Record why the concern was screened this way. A decision with no reasoning cannot be reviewed later.',
+            ]);
+        }
+
+        $case->update([
+            'triage_note' => $data['triage_note'],
+            'triage_note_rich' => $data['triage_note_rich'] ?? null,
+            'triage_decision' => $data['triage_decision'],
+            // The FIRST screening is the one the clock measures. A revised
+            // decision does not restart it, or the metric would flatter
+            // every case that was looked at twice.
+            'triaged_at' => $case->triaged_at ?? now(),
+            'triaged_by' => $user->id,
+        ]);
+
+        $case->auditAction('triaged', null, [
+            'decision' => $case->triage_decision,
+            'by' => $user->id,
+        ]);
+
+        return $case->fresh();
+    }
+
+    /**
+     * Spec §5.4 — tell the reporter their concern landed.
+     *
+     * The first thing a reporter asks and the first thing a regulator
+     * checks. Idempotent: acknowledging twice does not move the timestamp,
+     * because the question is when they were FIRST told.
+     */
+    public function acknowledge(SpeakUpCase $case, User $user, ?string $message = null): SpeakUpCase
+    {
+        if ($case->acknowledged_at === null) {
+            $case->update(['acknowledged_at' => now(), 'acknowledged_by' => $user->id]);
+            $case->auditAction('acknowledged', null, ['by' => $user->id]);
+        }
+
+        if ($message !== null && trim($message) !== '') {
+            // Reporter-visible by definition — an acknowledgement the
+            // reporter cannot read is not an acknowledgement.
+            $this->addNote($case, $user, $message, privileged: false, reporterVisible: true);
+        }
+
+        return $case->fresh();
+    }
+
+    /**
+     * Spec §5.4 — add one tracked follow-up action.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function addFollowUp(SpeakUpCase $case, User $user, array $data): CaseFollowUp
+    {
+        $followUp = CaseFollowUp::create([
+            'tenant_id' => $case->tenant_id,
+            'case_id' => $case->id,
+            'action' => $data['action'],
+            'detail' => $data['detail'] ?? null,
+            'detail_rich' => $data['detail_rich'] ?? null,
+            'owner_id' => $data['owner_id'] ?? null,
+            'due_date' => $data['due_date'] ?? null,
+            'created_by' => $user->id,
+        ]);
+
+        $case->auditAction('follow_up.added', null, ['action' => $followUp->action]);
+
+        return $followUp;
+    }
+
+    /** Mark a follow-up done. Re-completing does not move the timestamp. */
+    public function completeFollowUp(CaseFollowUp $followUp, User $user): CaseFollowUp
+    {
+        if (! $followUp->isComplete()) {
+            $followUp->update(['completed_at' => now(), 'completed_by' => $user->id]);
+            $followUp->speakUpCase?->auditAction('follow_up.completed', null, ['action' => $followUp->action]);
+        }
+
+        return $followUp->fresh();
+    }
+
+    /**
+     * Spec §5.4 — the Speak Up summary. Deliberately four numbers and two
+     * breakdowns: the stated preference is a simple dashboard, and a
+     * whistleblowing register that needs a wall of charts to be understood
+     * is not being read by anybody.
+     *
+     * Counts run through the model, so the allowlist scope applies and an
+     * officer sees the shape of their own caseload rather than the bank's.
+     *
+     * @return array<string, mixed>
+     */
+    public function summary(): array
+    {
+        $cases = SpeakUpCase::query()->get([
+            'id', 'status', 'case_type', 'received_at', 'triaged_at',
+        ]);
+
+        $screened = $cases->filter(fn (SpeakUpCase $c) => $c->triaged_at !== null);
+
+        return [
+            'total' => $cases->count(),
+            'open' => $cases->whereIn('status', SpeakUpCase::OPEN_STATUSES)->count(),
+            'substantiated' => $cases->where('status', 'Substantiated')->count(),
+            'awaiting_screening' => $cases->filter(
+                fn (SpeakUpCase $c) => $c->triaged_at === null && in_array($c->status, SpeakUpCase::OPEN_STATUSES, true)
+            )->count(),
+            // Null, not zero, when nothing has been screened — zero days
+            // would read as "we screen everything the same day".
+            'avg_days_to_screen' => $screened->isEmpty()
+                ? null
+                : (int) round($screened->avg(fn (SpeakUpCase $c) => $c->daysToScreen() ?? 0)),
+            'by_status' => $cases->groupBy('status')->map->count()->sortDesc(),
+            'by_category' => $cases->groupBy('case_type')->map->count()->sortDesc(),
+        ];
     }
 
     public function startInvestigation(SpeakUpCase $case, User $user, string $plan): SpeakUpCase

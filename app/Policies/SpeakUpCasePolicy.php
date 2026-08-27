@@ -63,6 +63,23 @@ class SpeakUpCasePolicy
             && $case->reporter_id !== $user->id;
     }
 
+    /**
+     * Spec §5.4 — screening, follow-up and acknowledgement.
+     *
+     * Gated like conclude() rather than like update(), and for the same
+     * reason: the reporter is on their own case's allowlist so they can
+     * follow it, and screening a concern is a decision ABOUT that concern.
+     * A reporter who also happens to hold `investigate cases` must not be
+     * able to screen, chase or answer their own report.
+     */
+    public function followUp(User $user, SpeakUpCase $case): bool
+    {
+        return $case->grantsAccessTo($user)
+            && $user->can('investigate cases')
+            && $case->status !== 'Closed'
+            && $case->reporter_id !== $user->id;
+    }
+
     public function close(User $user, SpeakUpCase $case): bool
     {
         return $case->grantsAccessTo($user)

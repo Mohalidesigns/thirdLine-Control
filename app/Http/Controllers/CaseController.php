@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CaseRequest;
+use App\Models\CaseFollowUp;
 use App\Models\OrganisationUnit;
 use App\Models\SpeakUpCase;
 use App\Models\User;
+use App\Rules\RichTextRule;
 use App\Services\CaseService;
 use App\Services\LinkageService;
 use App\Services\SpeakUpMetadataService;
@@ -34,7 +36,12 @@ class CaseController extends Controller
 
         $query = SpeakUpCase::query()
             ->with(['leadInvestigator:id,name', 'entity:id,name'])
-            ->withCount('notes')
+            ->withCount(['notes', 'followUps'])
+            // Spec §5.4 — the linked-investigation indicator. Counted, not
+            // loaded: the list says whether a case exists, never what is in
+            // it, and the count survives the investigation's own visibility
+            // scope without leaking a reference.
+            ->withCount('investigation')
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->when($request->case_type, fn ($q, $t) => $q->where('case_type', $t))
             ->when($request->severity, fn ($q, $s) => $q->where('severity', $s))
@@ -58,6 +65,9 @@ class CaseController extends Controller
                 'anonymous' => SpeakUpCase::where('is_anonymous', true)->count(),
                 'under_investigation' => SpeakUpCase::where('status', 'Under Investigation')->count(),
             ],
+            // Spec §5.4 — the Speak Up summary. Four numbers and two
+            // breakdowns, scoped to what the viewer may see.
+            'summary' => $this->cases->summary(),
         ]);
     }
 
@@ -99,9 +109,28 @@ class CaseController extends Controller
         $metadataCaptured = ! $case->is_anonymous && $case->metadata()->exists();
         $canMetadataBasic = $metadataCaptured && $request->user()->can('speak_up.metadata.view_basic');
 
+        // Spec §5.4 — the investigation this concern produced, read-only and
+        // deliberately shallow. Investigation carries a global visibility
+        // scope, so an officer handling the submission who is NOT on the
+        // investigation team gets null here: the submission then shows that
+        // a case exists without leaking its contents.
+        $investigation = $case->investigation()->first();
+
         return Inertia::render('Cases/Show', [
             'case' => $case,
             'notes' => $notes,
+            'followUps' => $case->followUps()->with(['owner:id,name', 'completer:id,name', 'creator:id,name'])->get(),
+            'triagedBy' => $case->triagedBy()->first(['id', 'name']),
+            'acknowledgedBy' => $case->acknowledgedBy()->first(['id', 'name']),
+            'triageDecisions' => SpeakUpCase::TRIAGE_DECISIONS,
+            'linkedInvestigation' => $investigation ? [
+                'id' => $investigation->id,
+                'reference' => $investigation->reference,
+                'status' => $investigation->status,
+                'risk_rating' => $investigation->risk_rating,
+                'lead' => $investigation->leadInvestigator?->name,
+                'opened_on' => $investigation->reported_date?->toDateString(),
+            ] : null,
             'links' => $this->linkage->neighbours('case', $case->id),
             'allowlist' => User::whereIn('id', $case->access_user_ids ?? [])->get(['id', 'name', 'email']),
             'users' => User::tenantPicker()->get(['id', 'name']),
@@ -118,6 +147,9 @@ class CaseController extends Controller
                 'close' => $request->user()->can('close', $case),
                 'manage_access' => $request->user()->can('manageAccess', $case),
                 'metadata_view_basic' => $canMetadataBasic,
+                // Spec §5.4 — screening, follow-up and acknowledgement.
+                'follow_up' => $request->user()->can('followUp', $case),
+                'raise_investigation' => $request->user()->can('create investigations'),
             ],
         ]);
     }
@@ -139,6 +171,71 @@ class CaseController extends Controller
         $this->cases->assess($case, $request->user(), $validated);
 
         return back()->with('success', 'Case assessed.');
+    }
+
+    /**
+     * Spec §5.4 — record the screening decision and its reasoning.
+     */
+    public function triage(Request $request, SpeakUpCase $case): RedirectResponse
+    {
+        $this->authorize('followUp', $case);
+
+        $validated = $request->validate([
+            'triage_decision' => ['required', 'in:'.implode(',', SpeakUpCase::TRIAGE_DECISIONS)],
+            'triage_note' => ['required', 'string', 'min:10', 'max:8000'],
+            'triage_note_rich' => ['nullable', 'array', new RichTextRule],
+        ]);
+
+        $this->cases->triage($case, $request->user(), $validated);
+
+        return back()->with('success', 'Screening decision recorded.');
+    }
+
+    /**
+     * Spec §5.4 — acknowledge to the reporter, with an optional message
+     * they can actually read.
+     */
+    public function acknowledge(Request $request, SpeakUpCase $case): RedirectResponse
+    {
+        $this->authorize('followUp', $case);
+
+        $validated = $request->validate([
+            'message' => ['nullable', 'string', 'max:4000'],
+        ]);
+
+        $this->cases->acknowledge($case, $request->user(), $validated['message'] ?? null);
+
+        return back()->with('success', 'The reporter has been acknowledged.');
+    }
+
+    public function storeFollowUp(Request $request, SpeakUpCase $case): RedirectResponse
+    {
+        $this->authorize('followUp', $case);
+
+        $validated = $request->validate([
+            'action' => ['required', 'string', 'max:255'],
+            'detail' => ['nullable', 'string', 'max:8000'],
+            'detail_rich' => ['nullable', 'array', new RichTextRule],
+            'owner_id' => ['nullable', 'tenant_user'],
+            'due_date' => ['nullable', 'date'],
+        ]);
+
+        $this->cases->addFollowUp($case, $request->user(), $validated);
+
+        return back()->with('success', 'Follow-up action added.');
+    }
+
+    /**
+     * Scoped binding: a follow-up id belonging to another case resolves to
+     * 404 rather than being completed under this case's authorisation.
+     */
+    public function completeFollowUp(Request $request, SpeakUpCase $case, CaseFollowUp $followUp): RedirectResponse
+    {
+        $this->authorize('followUp', $case);
+
+        $this->cases->completeFollowUp($followUp, $request->user());
+
+        return back()->with('success', 'Follow-up marked complete.');
     }
 
     public function investigate(Request $request, SpeakUpCase $case): RedirectResponse

@@ -5,12 +5,14 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\GeneratesReference;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
@@ -42,7 +44,7 @@ use Illuminate\Support\Str;
  */
 class SpeakUpCase extends Model
 {
-    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, HasRichText, SoftDeletes;
 
     protected $table = 'cases';
 
@@ -61,6 +63,12 @@ class SpeakUpCase extends Model
     ];
 
     public const OPEN_STATUSES = ['Received', 'Assessed', 'Under Investigation'];
+
+    /** Spec §5.4 — what screening concluded. Mirrors the column's enum. */
+    public const TRIAGE_DECISIONS = [
+        'refer_to_investigation', 'handle_within_speak_up', 'refer_externally',
+        'close_unsubstantiated', 'close_resolved', 'monitor',
+    ];
 
     public const TRANSITIONS = [
         'Received' => ['Assessed', 'Closed'],
@@ -81,9 +89,15 @@ class SpeakUpCase extends Model
         'referred_to', 'closed_by', 'closed_at', 'related_incident_id',
         'related_complaint_id', 'access_user_ids',
         'legal_hold', 'legal_hold_reason', 'legal_hold_by', 'legal_hold_at',
+        // Spec §5.4 — the screening decision and the acknowledgement.
+        'triage_note', 'triage_decision', 'triaged_at', 'triaged_by',
+        'acknowledged_at', 'acknowledged_by',
     ];
 
     protected $hidden = ['reporter_token_hash'];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['description', 'triage_note'];
 
     protected $casts = [
         'is_anonymous' => 'boolean',
@@ -94,6 +108,8 @@ class SpeakUpCase extends Model
         'access_user_ids' => 'array',
         'legal_hold' => 'boolean',
         'legal_hold_at' => 'datetime',
+        'triaged_at' => 'datetime',
+        'acknowledged_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -171,6 +187,55 @@ class SpeakUpCase extends Model
     public function metadata(): HasOne
     {
         return $this->hasOne(SpeakUpReportMetadata::class, 'report_id');
+    }
+
+    /**
+     * Spec §5.4 — the follow-up log: what was done about the concern, by
+     * whom, and whether it is finished.
+     */
+    public function followUps(): HasMany
+    {
+        return $this->hasMany(CaseFollowUp::class, 'case_id')->orderByRaw('completed_at is not null')->orderBy('due_date');
+    }
+
+    /**
+     * Spec §5.4 — the other half of the link.
+     *
+     * An investigation records where it came from as a morph
+     * (`origin_type`/`origin_id`), which is what lets one investigation be
+     * raised from a Speak Up report, a control exception, an incident, a
+     * complaint or a failed test. `morphOne` reads that same pair backwards
+     * rather than introducing a second `investigation_id` column that could
+     * disagree with it.
+     *
+     * Note this deliberately does NOT widen anybody's reach. Investigation
+     * carries a global visibility scope, so an officer who may see the
+     * submission but is not on the investigation team gets null here and
+     * the submission shows the link as unavailable rather than leaking it.
+     */
+    public function investigation(): MorphOne
+    {
+        return $this->morphOne(Investigation::class, 'origin');
+    }
+
+    public function triagedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'triaged_by');
+    }
+
+    public function acknowledgedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'acknowledged_by');
+    }
+
+    /** Days from receipt to the screening decision — null while unscreened. */
+    public function daysToScreen(): ?int
+    {
+        if (! $this->triaged_at || ! $this->received_at) {
+            return null;
+        }
+
+        return (int) max(0, $this->received_at->diffInDays($this->triaged_at));
     }
 
     public function scopeOpen(Builder $query): Builder

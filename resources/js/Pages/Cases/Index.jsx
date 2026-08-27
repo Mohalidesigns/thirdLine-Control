@@ -3,6 +3,7 @@ import FilterBar from '@/Components/FilterBar';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SeverityBadge from '@/Components/SeverityBadge';
 import StatCard from '@/Components/StatCard';
 import StatusBadge from '@/Components/StatusBadge';
@@ -10,7 +11,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import { AlertCircle, Clock, EyeOff } from 'lucide-react';
+import { AlertCircle, Clock, EyeOff, Gavel } from 'lucide-react';
 
 export default function Index({
     cases,
@@ -22,6 +23,7 @@ export default function Index({
     entities = [],
     investigators = [],
     stats = {},
+    summary = {},
 }) {
     const { auth } = usePage().props;
     const canCreate = auth?.permissions?.includes('create cases');
@@ -38,7 +40,9 @@ export default function Index({
         entity_id: '',
         lead_investigator_id: '',
         access_user_ids: [],
-    });
+    
+        description_rich: null,
+});
 
     const submit = (e) => {
         e.preventDefault();
@@ -79,6 +83,34 @@ export default function Index({
             label: 'Received',
             render: (row) => <span className="text-xs">{formatDate(row.received_at)}</span>,
         },
+        {
+            // Spec §5.4 — how long the concern has been sitting.
+            field: 'age',
+            label: 'Age',
+            width: '6rem',
+            render: (row) => {
+                const days = Math.max(0, Math.floor((Date.now() - new Date(row.received_at).getTime()) / 86400000));
+
+                return <span className="tabular-nums text-xs">{days}d</span>;
+            },
+        },
+        {
+            // Spec §5.4 — whether a case exists, never what is in it. An
+            // officer who may see this submission is not thereby on the
+            // investigation, so this is a marker and not a link.
+            field: 'investigation_count',
+            label: 'Investigation',
+            width: '8rem',
+            render: (row) =>
+                row.investigation_count > 0 ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-[var(--color-primary)]">
+                        <Gavel className="h-3.5 w-3.5" aria-hidden="true" />
+                        Raised
+                    </span>
+                ) : (
+                    <span className="text-xs text-gray-400">—</span>
+                ),
+        },
         { field: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
     ];
 
@@ -118,6 +150,37 @@ export default function Index({
                 <StatCard icon={AlertCircle} title="Open" value={stats.open ?? 0} color="primary" />
                 <StatCard icon={Clock} title="Under investigation" value={stats.under_investigation ?? 0} color="warning" />
                 <StatCard icon={EyeOff} title="Anonymous reports" value={stats.anonymous ?? 0} color="info" />
+            </div>
+
+            {/* Spec §5.4 — the Speak Up summary. Four numbers and two
+                breakdowns, kept deliberately small: a whistleblowing
+                register that needs a wall of charts is not being read. */}
+            <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+                <div className="card lg:col-span-1">
+                    <div className="card-header"><h3 className="text-sm font-semibold">Handling</h3></div>
+                    <div className="card-body grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p className="text-xs uppercase tracking-wide text-gray-400">Awaiting screening</p>
+                            <p className="mt-1 text-xl font-semibold tabular-nums">{summary.awaiting_screening ?? 0}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs uppercase tracking-wide text-gray-400">Avg days to screen</p>
+                            <p className="mt-1 text-xl font-semibold tabular-nums">
+                                {summary.avg_days_to_screen ?? '—'}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-xs uppercase tracking-wide text-gray-400">Substantiated</p>
+                            <p className="mt-1 text-xl font-semibold tabular-nums">{summary.substantiated ?? 0}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs uppercase tracking-wide text-gray-400">Total</p>
+                            <p className="mt-1 text-xl font-semibold tabular-nums">{summary.total ?? 0}</p>
+                        </div>
+                    </div>
+                </div>
+                <Breakdown title="By status" data={summary.by_status} />
+                <Breakdown title="By category" data={summary.by_category} />
             </div>
 
             <FilterBar
@@ -221,11 +284,11 @@ export default function Index({
 
                         <div className="col-span-2">
                             <label className="form-label">Description</label>
-                            <textarea
-                                className="form-input"
-                                rows={4}
-                                value={form.data.description}
-                                onChange={(e) => form.setData('description', e.target.value)}
+                            <RichTextEditor
+                                value={form.data.description_rich ?? form.data.description}
+                                onChange={(doc, plain) => form.setData((d) => ({ ...d, description: plain, description_rich: doc }))}
+                                tools="minimal"
+                                minHeight={104}
                             />
                         </div>
 
@@ -298,5 +361,37 @@ export default function Index({
                 </form>
             </Modal>
         </AuthenticatedLayout>
+    );
+}
+
+/**
+ * One labelled bar list. Percentages are of the viewer's own caseload, not
+ * the register's — the allowlist scope decides what is counted.
+ */
+function Breakdown({ title, data }) {
+    const entries = Object.entries(data ?? {});
+    const total = entries.reduce((sum, [, n]) => sum + n, 0);
+
+    return (
+        <div className="card">
+            <div className="card-header"><h3 className="text-sm font-semibold">{title}</h3></div>
+            <div className="card-body space-y-2">
+                {entries.length === 0 && <p className="text-sm text-[var(--color-text-secondary)]">Nothing to show.</p>}
+                {entries.map(([label, count]) => (
+                    <div key={label}>
+                        <div className="flex items-center justify-between text-xs">
+                            <span className="capitalize">{String(label).replace(/_/g, ' ')}</span>
+                            <span className="tabular-nums text-[var(--color-text-secondary)]">{count}</span>
+                        </div>
+                        <div className="mt-1 h-1.5 rounded-full bg-gray-100">
+                            <div
+                                className="h-1.5 rounded-full bg-[var(--color-primary)]"
+                                style={{ width: total ? `${Math.round((count / total) * 100)}%` : '0%' }}
+                            />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 }

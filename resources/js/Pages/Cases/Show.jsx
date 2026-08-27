@@ -4,6 +4,7 @@ import RaiseInvestigationButton from '@/Components/RaiseInvestigationButton';
 import ReporterSignals from '@/Components/ReporterSignals';
 import RelationshipsPanel from '@/Components/RelationshipsPanel';
 import SeverityBadge from '@/Components/SeverityBadge';
+import SpeakUpFollowUp from '@/Components/SpeakUpFollowUp';
 import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate, formatDateTime } from '@/utils';
@@ -13,6 +14,11 @@ import { useState } from 'react';
 export default function Show({
     case: investigationCase,
     notes = [],
+    followUps = [],
+    triagedBy = null,
+    acknowledgedBy = null,
+    triageDecisions = [],
+    linkedInvestigation = null,
     links = [],
     allowlist = [],
     users = [],
@@ -158,6 +164,19 @@ export default function Show({
                             </div>
                         </div>
                     )}
+
+                    {/* Spec §5.4 — screening, acknowledgement, follow-up log
+                        and the linked investigation, read-only. */}
+                    <SpeakUpFollowUp
+                        speakUpCase={investigationCase}
+                        followUps={followUps}
+                        triagedBy={triagedBy}
+                        acknowledgedBy={acknowledgedBy}
+                        triageDecisions={triageDecisions}
+                        linkedInvestigation={linkedInvestigation}
+                        users={users}
+                        can={can}
+                    />
 
                     <div className="card">
                         <div className="card-header">
