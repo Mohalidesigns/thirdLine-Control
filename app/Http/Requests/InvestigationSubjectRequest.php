@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\InvestigationSubject;
+use App\Rules\RichTextRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -11,6 +12,28 @@ class InvestigationSubjectRequest extends FormRequest
     public function authorize(): bool
     {
         return $this->user()->can('update', $this->route('investigation'));
+    }
+
+    /**
+     * DEF-M02 — the Add-subject dialog could never save.
+     *
+     * This request is shared by store and update. The outcome rules below
+     * are written for update, where a dialog posts the whole subject back
+     * including its outcome. The create dialog has no outcome field at
+     * all — an outcome is recorded later, from a different dialog — so
+     * `outcome` arrived absent, `required_unless:outcome,pending` saw a
+     * value that was not 'pending', and demanded a rationale for an
+     * outcome nobody had reached. Every attempt to name a subject 422'd.
+     *
+     * Defaulting the absent case to the column's own default makes the
+     * two paths agree, and keeps the pairing rule intact for the dialog
+     * that genuinely records an outcome.
+     */
+    protected function prepareForValidation(): void
+    {
+        if (! $this->has('outcome')) {
+            $this->merge(['outcome' => 'pending']);
+        }
     }
 
     public function rules(): array
@@ -30,6 +53,7 @@ class InvestigationSubjectRequest extends FormRequest
             // the service enforces the pairing, this states it on the form.
             'outcome' => ['nullable', Rule::in(InvestigationSubject::OUTCOMES)],
             'outcome_rationale' => ['nullable', 'required_unless:outcome,pending', 'string', 'max:5000'],
+            'outcome_rationale_rich' => ['nullable', 'array', new RichTextRule],
         ];
     }
 }

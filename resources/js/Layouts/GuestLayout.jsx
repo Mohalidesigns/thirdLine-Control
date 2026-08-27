@@ -1,4 +1,5 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import ValidationNotification from '@/Components/ValidationNotification';
 import { usePage } from '@inertiajs/react';
 
 export default function GuestLayout({ children }) {
@@ -33,6 +34,10 @@ export default function GuestLayout({ children }) {
             </div>
 
             <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-xl">{children}</div>
+
+            {/* A reporter checking their case token gets the same courtesy as
+                a signed-in user: a refused submission says why. */}
+            <ValidationNotification />
 
             <p className="mt-6 text-xs text-white/40">
                 © {new Date().getFullYear()} {branding?.product_name ?? 'Atheris Limited — Second line of defence'}

@@ -3,6 +3,7 @@ import AtlasChat from '@/Components/AtlasChat';
 import CommandPalette from '@/Components/CommandPalette';
 import ConnectionBanner from '@/Components/ConnectionBanner';
 import FlashNotification from '@/Components/FlashNotification';
+import ValidationNotification from '@/Components/ValidationNotification';
 import Dropdown from '@/Components/Dropdown';
 import { visibleNavigation } from '@/config/navigation';
 import { Link, usePage } from '@inertiajs/react';
@@ -430,6 +431,7 @@ export default function AuthenticatedLayout({ header, children }) {
             </div>
 
             <FlashNotification />
+            <ValidationNotification />
             <CommandPalette />
             <ConnectionBanner />
             {/* Atlas renders its own launcher and hides itself entirely when
