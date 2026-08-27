@@ -6,6 +6,7 @@
         <title inertia>{{ config('app.name', 'SecondLine') }}</title>
         <link rel="manifest" href="{{ route('pwa.manifest') }}" />
         <meta name="theme-color" content="#1A365D" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         @routes
         @viteReactRefresh

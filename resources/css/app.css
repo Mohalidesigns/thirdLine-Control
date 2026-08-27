@@ -50,6 +50,19 @@
     --color-info: #319795;
     --color-success: #2D7D46;
 
+    /* ── Brand mark ────────────────────────────────────────────────────
+       The SecondLine logo, consumed only by Components/ApplicationLogo.jsx.
+       These are fixed brand values and deliberately do NOT alias the
+       palette above: a tenant that recolours --color-primary recolours the
+       product, not the logo. A tenant with its own logo uploads it and the
+       mark is replaced wholesale. */
+    --logo-ring-outer: #5C7599;
+    --logo-ring-mid: #8FA6C4;
+    --logo-ring-inner: #DCE7F4;
+    --logo-core: #10223A;
+    --logo-check: #2FC4A8;
+    --logo-line: #B8D4F0;
+
     --sidebar-width: 260px;
     --sidebar-collapsed-width: 72px;
 

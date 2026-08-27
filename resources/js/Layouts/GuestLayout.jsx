@@ -1,3 +1,4 @@
+import ApplicationLogo from '@/Components/ApplicationLogo';
 import { usePage } from '@inertiajs/react';
 
 export default function GuestLayout({ children }) {
@@ -24,15 +25,7 @@ export default function GuestLayout({ children }) {
                         className="max-h-14 max-w-[220px] object-contain"
                     />
                 ) : (
-                    <>
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--color-accent)] text-lg font-bold text-[var(--color-primary)]">
-                            SL
-                        </div>
-                        <div className="leading-tight text-white">
-                            <p className="text-xl font-bold tracking-wide">SecondLine</p>
-                            <p className="text-[11px] uppercase tracking-widest text-white/60">Atheris Control Solution</p>
-                        </div>
-                    </>
+                    <ApplicationLogo tone="light" size="lg" tagline="caps" />
                 )}
                 {(branding?.logo_dark_url || branding?.logo_url) && branding?.product_name && (
                     <p className="text-xl font-bold tracking-wide text-white">{branding.product_name}</p>

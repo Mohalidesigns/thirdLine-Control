@@ -1,3 +1,4 @@
+import ApplicationLogo from '@/Components/ApplicationLogo';
 import AtlasChat from '@/Components/AtlasChat';
 import CommandPalette from '@/Components/CommandPalette';
 import ConnectionBanner from '@/Components/ConnectionBanner';
@@ -279,23 +280,24 @@ export default function AuthenticatedLayout({ header, children }) {
             <div className={`flex h-16 shrink-0 items-center border-b border-white/10 ${isCollapsed ? 'justify-center px-2' : 'px-5'}`}>
                 <Link href={route('dashboard')} className="flex items-center gap-2.5">
                     {branding?.logo_dark_url || branding?.logo_url ? (
-                        <img
-                            src={branding.logo_dark_url ?? branding.logo_url}
-                            alt={branding?.product_name ?? 'SecondLine'}
-                            className={`shrink-0 object-contain ${isCollapsed ? 'h-9 w-9' : 'max-h-9 max-w-[180px]'}`}
-                        />
-                    ) : (
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-accent)] font-bold text-[var(--color-primary)]">
-                            SL
-                        </div>
-                    )}
-                    {!isCollapsed && (
-                        <div className="leading-tight">
-                            <p className="text-sm font-bold tracking-wide">{branding?.product_name ?? 'SecondLine'}</p>
-                            {!branding?.product_name && (
-                                <p className="text-[10px] uppercase tracking-widest text-white/50">Control Solution</p>
+                        <>
+                            <img
+                                src={branding.logo_dark_url ?? branding.logo_url}
+                                alt={branding?.product_name ?? 'SecondLine'}
+                                className={`shrink-0 object-contain ${isCollapsed ? 'h-9 w-9' : 'max-h-9 max-w-[180px]'}`}
+                            />
+                            {!isCollapsed && branding?.product_name && (
+                                <p className="text-sm font-bold leading-tight tracking-wide">{branding.product_name}</p>
                             )}
-                        </div>
+                        </>
+                    ) : (
+                        <ApplicationLogo
+                            tone="light"
+                            size="sm"
+                            wordmark={!isCollapsed}
+                            tagline="caps"
+                            taglineText="Control Solution"
+                        />
                     )}
                 </Link>
             </div>

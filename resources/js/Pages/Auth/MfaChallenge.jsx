@@ -1,9 +1,9 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
+import AuthSplitLayout from '@/Layouts/AuthSplitLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { ArrowRight, KeyRound } from 'lucide-react';
 
 export default function MfaChallenge({ emailOtpSent }) {
     const { data, setData, post, processing, errors, reset } = useForm({ code: '' });
@@ -14,38 +14,47 @@ export default function MfaChallenge({ emailOtpSent }) {
     };
 
     return (
-        <GuestLayout>
+        <AuthSplitLayout
+            title="Two-factor verification"
+            subtitle="Enter the 6-digit code from your authenticator app, or use a recovery code."
+        >
             <Head title="Two-factor verification" />
 
-            <h1 className="mb-2 text-lg font-semibold text-[var(--color-text-primary)]">Two-factor verification</h1>
-            <p className="mb-6 text-sm text-[var(--color-text-secondary)]">
-                Enter the 6-digit code from your authenticator app, or use a recovery code.
-            </p>
-
             {emailOtpSent && (
-                <div className="mb-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
+                <div className="mt-6 rounded-lg bg-[var(--color-info)]/10 px-4 py-3 text-sm font-medium text-[var(--color-info)]">
                     A one-time code has been emailed to you. It expires in 10 minutes.
                 </div>
             )}
 
-            <form onSubmit={submit} className="space-y-4">
+            <form onSubmit={submit} className="mt-8 space-y-5">
                 <div>
                     <InputLabel htmlFor="code" value="Verification code" required />
-                    <TextInput
-                        id="code"
-                        name="code"
-                        value={data.code}
-                        autoComplete="one-time-code"
-                        isFocused
-                        placeholder="123456 or XXXXX-XXXXX"
-                        onChange={(e) => setData('code', e.target.value)}
-                    />
+                    <div className="relative">
+                        <KeyRound
+                            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-secondary)]"
+                            aria-hidden="true"
+                        />
+                        <TextInput
+                            id="code"
+                            name="code"
+                            value={data.code}
+                            autoComplete="one-time-code"
+                            placeholder="123456 or XXXXX-XXXXX"
+                            isFocused
+                            className="py-2.5 pl-10"
+                            onChange={(e) => setData('code', e.target.value)}
+                        />
+                    </div>
                     <InputError message={errors.code} className="mt-1" />
                 </div>
 
-                <PrimaryButton className="w-full" disabled={processing}>
+                <button type="submit" disabled={processing} className="btn-primary group w-full py-3 text-base">
                     Verify
-                </PrimaryButton>
+                    <ArrowRight
+                        className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                        aria-hidden="true"
+                    />
+                </button>
             </form>
 
             <div className="mt-6 flex items-center justify-between text-sm">
@@ -66,6 +75,6 @@ export default function MfaChallenge({ emailOtpSent }) {
                     Log out
                 </Link>
             </div>
-        </GuestLayout>
+        </AuthSplitLayout>
     );
 }
