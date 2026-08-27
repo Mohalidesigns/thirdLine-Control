@@ -283,19 +283,6 @@ class InvestigationService
     }
 
     /**
-     * Completion, with the three obligations that make a completed
-     * investigation mean something:
-     *
-     *   · a risk rating — an unrated investigation cannot be reported on;
-     *   · a completion date;
-     *   · no subject left on 'pending' — a named person whose position was
-     *     never resolved is the single worst way to close a case.
-     *
-     * The draft report is generated inside a try/catch that reports the
-     * failure but does NOT roll the completion back. Report generation
-     * must never be able to strand a case in pending_review.
-     */
-    /**
      * Spec §7.5 / §7.3 — the soft half of the completion gate.
      *
      * These do not block. A case can legitimately conclude with nobody
@@ -326,6 +313,19 @@ class InvestigationService
         return $warnings;
     }
 
+    /**
+     * Completion, with the three obligations that make a completed
+     * investigation mean something:
+     *
+     *   · a risk rating — an unrated investigation cannot be reported on;
+     *   · a completion date;
+     *   · no subject left on 'pending' — a named person whose position was
+     *     never resolved is the single worst way to close a case.
+     *
+     * The draft report is generated inside a try/catch that reports the
+     * failure but does NOT roll the completion back. Report generation
+     * must never be able to strand a case in pending_review.
+     */
     public function complete(Investigation $investigation, User $actor, array $data): Investigation
     {
         $this->assertNotArchived($investigation);
