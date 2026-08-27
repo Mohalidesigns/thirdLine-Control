@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ConsequenceAction;
 use App\Models\Investigation;
+use App\Models\InvestigationActivity;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -55,7 +56,7 @@ class InvestigationDashboardService
             'by_category' => $this->byCategory($user, $from, $to),
             'by_control_entity' => $this->byControlEntity($user, $from, $to),
             'ageing' => $this->ageing($user),
-            'activity' => $this->activityFeed($user),
+            'activity' => $this->activityFeed($user, $from, $to, $filters),
         ];
     }
 
@@ -89,9 +90,22 @@ class InvestigationDashboardService
             'opened' => $this->withComparison($opened, $openedPrevious),
             'completed' => $this->withComparison($completed, $completedPrevious),
             'open_now' => ['value' => $this->base($user)->open()->count(), 'previous' => null, 'change' => null],
+            // Spec §4 — work in progress, drafts excluded. Kept alongside
+            // open_now rather than replacing it: they answer different
+            // questions, and the register page leads on open_now.
+            'outstanding' => ['value' => $this->base($user)->outstanding()->count(), 'previous' => null, 'change' => null],
             'suspended' => ['value' => $this->base($user)->where('status', 'suspended')->count(), 'previous' => null, 'change' => null],
+            // Spec §4 — ARCHIVED. base() excludes archived cases from every
+            // other figure, so this one has to reach past that scope.
+            'archived' => [
+                'value' => Investigation::query()->where('is_archived', true)->count(),
+                'previous' => null,
+                'change' => null,
+            ],
             'overdue' => [
-                'value' => $this->base($user)->open()
+                // Spec §4 — every case that has not finished, drafts and
+                // suspended included. See Investigation::scopeUnfinished().
+                'value' => $this->base($user)->unfinished()
                     ->whereNotNull('target_completion_date')
                     ->whereDate('target_completion_date', '<', now()->toDateString())
                     ->count(),
@@ -186,7 +200,7 @@ class InvestigationDashboardService
     {
         $window = fn (Carbon $start, Carbon $end) => $this->base($user)
             ->whereBetween('reported_date', [$start->toDateString(), $end->toDateString()])
-            ->selectRaw('coalesce(sum(confirmed_financial_loss), 0) as loss, coalesce(sum(amount_recovered), 0) as recovered')
+            ->selectRaw('coalesce(sum(estimated_financial_impact), 0) as exposure, coalesce(sum(confirmed_financial_loss), 0) as loss, coalesce(sum(amount_recovered), 0) as recovered')
             ->first();
 
         $current = $window($from, $to);
@@ -196,10 +210,21 @@ class InvestigationDashboardService
         $recovered = (float) ($current->recovered ?? 0);
 
         return [
+            // Spec §4 — the widget leads on exposure, and it is a different
+            // number from confirmed loss: what the case was opened fearing,
+            // against what it went on to establish. Showing only the second
+            // hides every investigation that turned out smaller than feared.
+            'estimated_exposure' => $this->withComparison(
+                (float) ($current->exposure ?? 0),
+                (float) ($previous->exposure ?? 0),
+            ),
             'confirmed_loss' => $this->withComparison($loss, (float) ($previous->loss ?? 0)),
             'recovered' => $this->withComparison($recovered, (float) ($previous->recovered ?? 0)),
             'net_loss' => ['value' => round($loss - $recovered, 2), 'previous' => null, 'change' => null],
-            'recovery_rate' => ['value' => $loss > 0 ? (int) round($recovered / $loss * 100) : null, 'previous' => null, 'change' => null],
+            // Spec §4/§6.2 — of CONFIRMED LOSS, not of exposure, and to one
+            // decimal: ₦2.1m recovered against ₦55m is 3.8%, and rounding
+            // that to 4% overstates a recovery rate by a sixth.
+            'recovery_rate' => ['value' => $loss > 0 ? round($recovered / $loss * 100, 1) : null, 'previous' => null, 'change' => null],
             'by_category' => $this->base($user)
                 ->whereBetween('reported_date', [$from->toDateString(), $to->toDateString()])
                 ->selectRaw('category, coalesce(sum(confirmed_financial_loss), 0) as loss, coalesce(sum(amount_recovered), 0) as recovered, count(*) as total')
@@ -323,8 +348,12 @@ class InvestigationDashboardService
         $today = now()->toDateString();
         $buckets = [];
 
+        // Spec §4/§6.2 — ageing runs over OUTSTANDING cases, not merely
+        // open ones. §6.2 expects "No open cases" on a register holding
+        // three drafts, which is only true if a draft is not yet work
+        // sitting. Same reasoning as the Outstanding tile.
         foreach (self::AGEING_BUCKETS as $label => [$min, $max]) {
-            $query = $this->base($user)->open()->where('status', '!=', 'suspended')
+            $query = $this->base($user)->outstanding()
                 ->whereDate('reported_date', '<=', now()->subDays($min)->toDateString());
 
             if ($max !== null) {
@@ -341,8 +370,7 @@ class InvestigationDashboardService
 
         return [
             'buckets' => $buckets,
-            'sla_breaches' => $this->base($user)->open()
-                ->where('status', '!=', 'suspended')
+            'sla_breaches' => $this->base($user)->outstanding()
                 ->whereNotNull('target_completion_date')
                 ->whereDate('target_completion_date', '<', $today)
                 ->count(),
@@ -361,18 +389,59 @@ class InvestigationDashboardService
      * the type instead makes the leak structurally impossible rather than
      * dependent on how carefully each title was worded.
      */
-    private function activityFeed(User $user, int $limit = 15): array
+    /** Spec §4 — the timeline pages at twenty. */
+    public const ACTIVITY_PAGE_SIZE = 20;
+
+    /**
+     * Spec §4 — everything that happened WITHIN THE PERIOD, filterable by
+     * type, paginated.
+     *
+     * Three things about this feed are deliberate and should survive any
+     * future edit:
+     *
+     *   1. It is period-scoped like every other widget. It previously was
+     *      not — it returned the last fifteen events regardless of the
+     *      range, so a dashboard filtered to Q1 showed Q3's activity
+     *      underneath Q1's figures.
+     *   2. `confidential_view` never appears. Reading a confidential file
+     *      is oversight of the case, not news, and listing it would
+     *      advertise who is reading what.
+     *   3. It carries the event TYPE and the case reference, never the
+     *      diary line. A diary line is free text and free text can name a
+     *      person: "Subject named: A. Teller" belongs on the case file and
+     *      nowhere near a dashboard. That is why §4's "— description" is
+     *      not reproduced here; the type carries the meaning and the leak
+     *      is structurally impossible rather than dependent on how
+     *      carefully somebody worded a title.
+     *
+     * @return array<string, mixed>
+     */
+    private function activityFeed(User $user, Carbon $from, Carbon $to, array $filters = []): array
     {
-        return DB::table('investigation_activities')
+        $type = $filters['activity_type'] ?? null;
+
+        if ($type !== null && ! in_array($type, InvestigationActivity::TYPES, true)) {
+            $type = null;
+        }
+
+        $query = DB::table('investigation_activities')
             ->join('investigations', 'investigations.id', '=', 'investigation_activities.investigation_id')
             ->leftJoin('users', 'users.id', '=', 'investigation_activities.performed_by')
             ->whereIn('investigation_activities.investigation_id', $this->base($user)->select('investigations.id'))
-            // A confidential-view entry is oversight of the case, not news
-            // for the feed — and putting it here would advertise who is
-            // reading what.
             ->where('investigation_activities.activity_type', '!=', 'confidential_view')
+            ->whereBetween('investigation_activities.activity_date', [$from, $to])
+            ->when($type, fn ($q) => $q->where('investigation_activities.activity_type', $type));
+
+        $total = (clone $query)->count();
+        $pages = (int) max(1, ceil($total / self::ACTIVITY_PAGE_SIZE));
+        // Clamped rather than trusted: a page number past the end should
+        // show the last page, not an empty table with working paging.
+        $page = (int) max(1, min($pages, (int) ($filters['activity_page'] ?? 1)));
+
+        $rows = $query
             ->orderByDesc('investigation_activities.activity_date')
-            ->limit($limit)
+            ->orderByDesc('investigation_activities.id')
+            ->forPage($page, self::ACTIVITY_PAGE_SIZE)
             ->get([
                 'investigation_activities.id',
                 'investigation_activities.activity_type',
@@ -383,6 +452,18 @@ class InvestigationDashboardService
             ])
             ->map(fn ($row) => (array) $row)
             ->all();
+
+        return [
+            'rows' => $rows,
+            'page' => $page,
+            'pages' => $pages,
+            'total' => $total,
+            'per_page' => self::ACTIVITY_PAGE_SIZE,
+            'activity_type' => $type,
+            // The filter's options: every type the feed can show, so the
+            // dropdown does not change shape as the period moves.
+            'types' => array_values(array_diff(InvestigationActivity::TYPES, ['confidential_view'])),
+        ];
     }
 
     // ── CSV export ───────────────────────────────────────────────────────

@@ -25,7 +25,9 @@ class InvestigationDashboardController extends Controller
     {
         $this->authorize('viewDashboard', Investigation::class);
 
-        $filters = $request->only(['period', 'from', 'to']);
+        // Spec §4 — the activity timeline pages and filters independently
+        // of the period, so its two controls travel with the rest.
+        $filters = $request->only(['period', 'from', 'to', 'activity_page', 'activity_type']);
 
         return Inertia::render('Investigations/Dashboard', [
             'data' => $this->dashboard->build($request->user(), $filters),

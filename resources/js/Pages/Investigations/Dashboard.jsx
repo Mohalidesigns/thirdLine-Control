@@ -6,7 +6,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatCurrency, formatDateTime, formatNumber } from '@/utils';
 import { Head, Link, router } from '@inertiajs/react';
-import { Activity, AlertTriangle, BarChart3, CheckCircle2, Clock, Gavel, PauseCircle } from 'lucide-react';
+import { Activity, AlertTriangle, Archive, BarChart3, CheckCircle2, Clock, Gavel, PauseCircle } from 'lucide-react';
 
 const humanise = (value) => (value ? String(value).replace(/_/g, ' ') : '—');
 
@@ -33,6 +33,16 @@ export default function Dashboard({ data = {}, filters = {}, can = {} }) {
     const currency = financials.top_cases?.[0]?.currency ?? 'NGN';
 
     const setPeriod = (period) => router.get(route('investigations.dashboard'), { period }, { preserveState: true, replace: true });
+
+    // Spec §4 — the timeline's own controls. They carry the current period
+    // with them, so paging the feed never silently widens the dashboard.
+    const activity = data.activity ?? {};
+    const goActivity = (changes) =>
+        router.get(
+            route('investigations.dashboard'),
+            { ...filters, ...changes },
+            { preserveState: true, preserveScroll: true, replace: true },
+        );
 
     return (
         <AuthenticatedLayout header="Investigations">
@@ -65,13 +75,24 @@ export default function Dashboard({ data = {}, filters = {}, can = {} }) {
                 }
             />
 
-            <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-                <Kpi icon={Gavel} title="Opened" kpi={kpis.opened} tone="blue" />
+            {/* Spec §4 — the six the specification asks for, in its order.
+                "Outstanding" excludes drafts and "Past target" includes
+                them; the two are deliberately not the same population. */}
+            <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+                <Kpi icon={Gavel} title="Total cases" kpi={kpis.opened} tone="blue" />
                 <Kpi icon={CheckCircle2} title="Completed" kpi={kpis.completed} tone="emerald" />
-                <Kpi icon={Clock} title="Open now" kpi={kpis.open_now} tone="amber" />
-                <Kpi icon={PauseCircle} title="Suspended" kpi={kpis.suspended} tone="slate" />
-                <Kpi icon={AlertTriangle} title="Past target" kpi={kpis.overdue} tone="red" />
+                <Kpi icon={Clock} title="Outstanding" kpi={kpis.outstanding} tone="amber" />
+                <Kpi icon={AlertTriangle} title="Overdue" kpi={kpis.overdue} tone="red" />
                 <Kpi icon={Activity} title="Avg days to close" kpi={kpis.average_days_to_close} tone="violet" />
+                <Kpi icon={Archive} title="Archived" kpi={kpis.archived} tone="slate" />
+            </div>
+
+            {/* Two this product keeps that the specification has no place
+                for: drafts are real work-in-progress, and a suspended case
+                is neither outstanding nor finished. */}
+            <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2">
+                <Kpi icon={Clock} title="Open now (drafts included)" kpi={kpis.open_now} tone="slate" />
+                <Kpi icon={PauseCircle} title="Suspended" kpi={kpis.suspended} tone="slate" />
             </div>
 
             <div className="mb-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
@@ -103,6 +124,9 @@ export default function Dashboard({ data = {}, filters = {}, can = {} }) {
                     <div className="card-header"><h3 className="text-sm font-semibold">Financial position</h3></div>
                     <div className="card-body space-y-3">
                         <div className="grid grid-cols-2 gap-3 text-sm">
+                            {/* Spec §4 — exposure first: what the cases were
+                                opened fearing, against what they established. */}
+                            <Figure label="Estimated exposure" value={formatCurrency(financials.estimated_exposure?.value ?? 0, currency)} />
                             <Figure label="Confirmed loss" value={formatCurrency(financials.confirmed_loss?.value ?? 0, currency)} />
                             <Figure label="Recovered" value={formatCurrency(financials.recovered?.value ?? 0, currency)} />
                             <Figure label="Net loss" value={formatCurrency(financials.net_loss?.value ?? 0, currency)} />
@@ -210,12 +234,17 @@ export default function Dashboard({ data = {}, filters = {}, can = {} }) {
                 <div className="card">
                     <div className="card-header"><h3 className="text-sm font-semibold">Ageing</h3></div>
                     <div className="card-body space-y-2">
-                        {(ageing.buckets ?? []).map((bucket) => (
+                        {/* Spec §4 — the empty state, not a column of zeros. */}
+                        {(ageing.buckets ?? []).every((b) => !b.total) && (
+                            <p className="py-4 text-center text-sm text-[var(--color-text-secondary)]">No open cases</p>
+                        )}
+                        {(ageing.buckets ?? []).some((b) => b.total > 0) &&
+                            (ageing.buckets ?? []).map((bucket) => (
                             <div key={bucket.bucket} className="flex items-center justify-between text-sm">
                                 <span>{bucket.bucket === 'Suspended' ? 'Suspended (clock stopped)' : `${bucket.bucket} days`}</span>
                                 <span className="font-semibold tabular-nums">{formatNumber(bucket.total)}</span>
                             </div>
-                        ))}
+                            ))}
                         <div className="flex items-center justify-between border-t border-gray-100 pt-2 text-sm">
                             <span>Past target completion date</span>
                             <span className="font-semibold tabular-nums text-[var(--color-error)]">{formatNumber(ageing.sla_breaches ?? 0)}</span>
@@ -229,7 +258,27 @@ export default function Dashboard({ data = {}, filters = {}, can = {} }) {
             </div>
 
             <div className="card mt-6">
-                <div className="card-header"><h3 className="text-sm font-semibold">Recent activity</h3></div>
+                <div className="card-header flex flex-wrap items-center justify-between gap-3">
+                    <h3 className="text-sm font-semibold">
+                        Activity timeline
+                        <span className="ms-2 text-xs font-normal text-[var(--color-text-secondary)]">
+                            everything within {data.period?.label ?? 'the period'}
+                        </span>
+                    </h3>
+                    <select
+                        className="rounded-md border-gray-300 text-xs"
+                        value={activity.activity_type ?? ''}
+                        onChange={(e) => goActivity({ activity_type: e.target.value || undefined, activity_page: 1 })}
+                        aria-label="Filter by activity type"
+                    >
+                        <option value="">All activity types</option>
+                        {(activity.types ?? []).map((t) => (
+                            <option key={t} value={t} className="capitalize">
+                                {humanise(t)}
+                            </option>
+                        ))}
+                    </select>
+                </div>
                 <DataTable
                     columns={[
                         { field: 'activity_date', label: 'When', width: '13rem', render: (row) => formatDateTime(row.activity_date) },
@@ -237,9 +286,50 @@ export default function Dashboard({ data = {}, filters = {}, can = {} }) {
                         { field: 'activity_type', label: 'What happened', render: (row) => humanise(row.activity_type) },
                         { field: 'performed_by', label: 'By', width: '11rem', render: (row) => row.performed_by ?? 'System' },
                     ]}
-                    data={data.activity ?? []}
-                    emptyMessage="Nothing has happened yet."
+                    data={activity.rows ?? []}
+                    emptyMessage="Nothing happened in this period."
                 />
+
+                {(activity.pages ?? 1) > 1 && (
+                    <div className="flex items-center justify-between border-t border-gray-100 px-5 py-3 text-xs">
+                        <span className="text-[var(--color-text-secondary)]">
+                            {activity.total} events · page {activity.page} of {activity.pages}
+                        </span>
+                        <div className="flex items-center gap-1">
+                            <button
+                                type="button"
+                                className="rounded px-2 py-1 disabled:opacity-40"
+                                disabled={activity.page <= 1}
+                                onClick={() => goActivity({ activity_page: activity.page - 1 })}
+                            >
+                                « Previous
+                            </button>
+                            {Array.from({ length: activity.pages }, (_, i) => i + 1).map((n) => (
+                                <button
+                                    key={n}
+                                    type="button"
+                                    className={
+                                        n === activity.page
+                                            ? 'rounded bg-[var(--color-primary)] px-2 py-1 font-semibold text-white'
+                                            : 'rounded px-2 py-1 hover:bg-gray-100'
+                                    }
+                                    onClick={() => goActivity({ activity_page: n })}
+                                >
+                                    {n}
+                                </button>
+                            ))}
+                            <button
+                                type="button"
+                                className="rounded px-2 py-1 disabled:opacity-40"
+                                disabled={activity.page >= activity.pages}
+                                onClick={() => goActivity({ activity_page: activity.page + 1 })}
+                            >
+                                Next »
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 <div className="border-t border-gray-100 px-5 py-3 text-xs text-[var(--color-text-secondary)]">
                     The feed carries the kind of event and the case it happened on, never the diary line itself — a
                     diary line is free text and free text can name a person.

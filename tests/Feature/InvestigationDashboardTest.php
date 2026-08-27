@@ -255,7 +255,11 @@ class InvestigationDashboardTest extends TestCase
 
         $financials = $this->dashboard($this->officer)['financials'];
 
-        $this->assertSame(25, $financials['recovery_rate']['value']);
+        // Spec §6.2 — the rate carries one decimal now, because ₦2.1m
+        // against ₦55m is 3.8% and rounding that to a whole number
+        // overstates a recovery rate by a sixth. A clean quarter still
+        // reads 25.0.
+        $this->assertSame(25.0, $financials['recovery_rate']['value']);
         $this->assertSame(750000.0, (float) $financials['net_loss']['value']);
     }
 
@@ -265,9 +269,11 @@ class InvestigationDashboardTest extends TestCase
 
         app(InvestigationService::class)->recordAccess($investigation, $this->head);
 
+        // Spec §4 — the feed is paginated now, so it arrives as
+        // {rows, page, pages, total, …} rather than a bare list.
         $feed = $this->dashboard($this->officer)['activity'];
 
-        $this->assertNotContains('confidential_view', array_column($feed, 'activity_type'));
+        $this->assertNotContains('confidential_view', array_column($feed['rows'], 'activity_type'));
     }
 
     public function test_an_archived_case_leaves_every_count(): void
@@ -278,7 +284,14 @@ class InvestigationDashboardTest extends TestCase
         $service->transition($investigation, 'reported', $this->officer);
         $service->transition($investigation->refresh(), 'under_investigation', $this->officer);
         $service->transition($investigation->refresh(), 'pending_review', $this->officer);
-        $service->complete($investigation->refresh(), $this->officer, ['risk_rating' => 'Low']);
+        $service->addFinding($investigation->refresh(), [
+            'title' => 'The matter duplicates an earlier case',
+            'severity' => 'Low',
+        ], $this->officer);
+        $service->complete($investigation->refresh(), $this->officer, [
+            'risk_rating' => 'Low',
+            'conclusion' => 'Duplicate of an earlier matter; no further action.',
+        ]);
         $service->archive($investigation->refresh(), $this->head, 'Duplicate of an earlier matter.');
 
         $data = $this->dashboard($this->officer);
