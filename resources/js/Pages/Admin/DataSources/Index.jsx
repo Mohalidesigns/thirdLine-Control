@@ -216,9 +216,8 @@ function CreateModal({ show, options, owners, onClose }) {
         timeout_seconds: 30,
         data_residency_note: '',
         owner_id: '',
-    
         data_residency_note_rich: null,
-});
+    });
 
     const [configError, setConfigError] = useState(null);
 

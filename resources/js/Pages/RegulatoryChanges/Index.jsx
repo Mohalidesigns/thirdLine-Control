@@ -30,9 +30,8 @@ export default function Index({ changes, filters = {}, regulators = [], statuses
         effective_at: '',
         document_url: '',
         summary: '',
-    
         summary_rich: null,
-});
+    });
 
     const assessForm = useForm({ impact_assessment: '' , impact_assessment_rich: null});
 

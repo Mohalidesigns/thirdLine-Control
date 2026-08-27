@@ -189,9 +189,8 @@ function CreateModal({ show, onClose, options, schemas, datasets, controls, owne
         auto_create_exception: true,
         auto_create_incident: false,
         owner_id: '',
-    
         description_rich: null,
-});
+    });
 
     const [definitionText, setDefinitionText] = useState('{\n  "conditions": [\n    { "field": "status", "operator": "eq", "value": "FAILED" }\n  ]\n}');
     const [definitionError, setDefinitionError] = useState(null);

@@ -274,9 +274,8 @@ function MaterialityModal({ topic, onClose, period, entityId, bases, entities })
         is_material: true,
         rationale: '',
         stakeholders_consulted: [],
-    
         rationale_rich: null,
-});
+    });
 
     if (!topic) {
         return null;

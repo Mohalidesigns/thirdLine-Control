@@ -182,9 +182,8 @@ function CreateModal({ show, onClose, perspectives, entities, owners, parents, m
         progress_mode: 'auto',
         weight: 1,
         measures: [],
-    
         description_rich: null,
-});
+    });
 
     const addMeasure = () =>
         form.setData('measures', [...form.data.measures, { metric_id: '', baseline_value: '', target_value: '', weight: 1 }]);

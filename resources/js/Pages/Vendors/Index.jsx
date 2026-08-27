@@ -222,9 +222,8 @@ function CreateModal({ show, onClose, criticalities, statuses, classifications, 
         sub_processors: [],
         review_frequency_months: 12,
         status: 'Onboarding',
-    
         services_provided_rich: null,
-});
+    });
 
     const addSubProcessor = () =>
         form.setData('sub_processors', [...form.data.sub_processors, { name: '', country: '', service: '' }]);

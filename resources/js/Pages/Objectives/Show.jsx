@@ -484,9 +484,8 @@ function InitiativeModal({ show, onClose, objective, owners, statuses }) {
         progress_mode: 'auto',
         weight: 1,
         milestones: [],
-    
         description_rich: null,
-});
+    });
 
     const addMilestone = () =>
         form.setData('milestones', [...form.data.milestones, { title: '', due_date: '', status: 'Pending', weight: 1 }]);

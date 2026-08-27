@@ -236,10 +236,9 @@ function CreateModal({ show, onClose, levels, riskCategories, entities }) {
         metric_definition: '',
         effective_from: '',
         review_due_at: '',
-    
         metric_definition_rich: null,
         statement_rich: null,
-});
+    });
 
     const submit = (event) => {
         event.preventDefault();

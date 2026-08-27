@@ -450,10 +450,9 @@ function AssessmentModal({ show, onClose, risk, scales }) {
         loss_max_minor: '',
         likelihood_percent: '',
         currency: risk.loss_currency ?? 'NGN',
-    
         impact_rationale_rich: null,
         likelihood_rationale_rich: null,
-});
+    });
 
     const submit = (event) => {
         event.preventDefault();

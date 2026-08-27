@@ -32,9 +32,8 @@ export default function Show({
         redress_currency: 'NGN',
         customer_satisfied: true,
         linked_control_id: '',
-    
         resolution_summary_rich: null,
-});
+    });
 
     const submitResolution = (e) => {
         e.preventDefault();

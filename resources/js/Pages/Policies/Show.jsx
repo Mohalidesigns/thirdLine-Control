@@ -23,10 +23,9 @@ export default function Show({ policy, links = [], attestation = null, users = [
         compensating_measures: '',
         requested_from: new Date().toISOString().slice(0, 10),
         requested_to: '',
-    
         compensating_measures_rich: null,
         justification_rich: null,
-});
+    });
 
     const submitWaiver = (e) => {
         e.preventDefault();

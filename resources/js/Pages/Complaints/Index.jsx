@@ -37,9 +37,8 @@ export default function Index({
         category_id: '',
         product: '',
         assigned_to: '',
-    
         description_rich: null,
-});
+    });
 
     const submit = (e) => {
         e.preventDefault();

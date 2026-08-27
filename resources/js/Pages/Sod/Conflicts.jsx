@@ -190,9 +190,8 @@ function ConflictModal({ show, rule, options, controls, onClose }) {
         risk_level: rule?.risk_level ?? 'High',
         mitigating_control_id: rule?.mitigating_control_id ?? '',
         is_active: rule?.is_active ?? true,
-    
         description_rich: rule?.description_rich ?? null,
-});
+    });
 
     const submit = (event) => {
         event.preventDefault();

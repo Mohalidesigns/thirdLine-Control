@@ -24,9 +24,8 @@ export default function Create({ categories = [], verificationStatuses = [] }) {
         verification_status: 'draft',
         description: '',
         is_active: true,
-    
         description_rich: null,
-});
+    });
 
     const submit = (event) => {
         event.preventDefault();

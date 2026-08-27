@@ -69,9 +69,8 @@ export default function Show({
         subject_type: 'staff', name: '', user_id: '', staff_id: '', account_number: '',
         department: '', position: '', role_in_case: 'primary_subject', notes: '',
         outcome: 'exonerated', outcome_rationale: '',
-    
         outcome_rationale_rich: null,
-});
+    });
 
     const openOutcome = (subject) => {
         outcomeForm.setData({
@@ -86,9 +85,8 @@ export default function Show({
             notes: subject.notes ?? '',
             outcome: subject.outcome === 'pending' ? 'exonerated' : subject.outcome,
             outcome_rationale: subject.outcome_rationale ?? '',
-        
             outcome_rationale_rich: subject.outcome_rationale_rich ?? null,
-});
+        });
         setDialog(`outcome:${subject.id}`);
     };
     const findingForm = useForm({

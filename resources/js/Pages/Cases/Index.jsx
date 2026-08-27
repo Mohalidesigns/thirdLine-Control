@@ -40,9 +40,8 @@ export default function Index({
         entity_id: '',
         lead_investigator_id: '',
         access_user_ids: [],
-    
         description_rich: null,
-});
+    });
 
     const submit = (e) => {
         e.preventDefault();

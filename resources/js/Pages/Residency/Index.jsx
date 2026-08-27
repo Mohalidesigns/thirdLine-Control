@@ -203,10 +203,9 @@ function TransferForm({ lawfulBases, entities, onDone }) {
         lawful_basis_id: '',
         lawful_basis_note: '',
         volume_records: '',
-    
         description_rich: null,
         lawful_basis_note_rich: null,
-});
+    });
 
     const submit = (e) => {
         e.preventDefault();
