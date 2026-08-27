@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MetricBreach extends Model
 {
-    use Auditable, BelongsToTenant, HasFactory;
+    use Auditable, BelongsToTenant, HasFactory, HasRichText;
 
     public const LEVELS = ['Amber', 'Red', 'Critical'];
 
@@ -20,6 +21,9 @@ class MetricBreach extends Model
         'acknowledged_by', 'acknowledged_at', 'root_cause', 'action_taken',
         'resolved_at', 'exception_id', 'incident_id', 'escalation_event_id',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['action_taken'];
 
     protected $casts = [
         'detected_at' => 'datetime',

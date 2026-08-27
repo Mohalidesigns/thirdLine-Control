@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\GeneratesReference;
+use App\Models\Concerns\HasRichText;
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,7 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /** A project delivering a strategic objective (17.1). */
 class Initiative extends Model
 {
-    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, HasRichText, SoftDeletes;
 
     public const STATUSES = ['Proposed', 'Approved', 'In Progress', 'On Hold', 'Delivered', 'Cancelled'];
 
@@ -30,6 +31,9 @@ class Initiative extends Model
         'owner_id', 'status', 'start_date', 'end_date', 'budget_minor', 'spend_minor',
         'currency', 'progress', 'progress_mode', 'weight', 'created_by',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['description'];
 
     protected $casts = [
         'start_date' => 'date',

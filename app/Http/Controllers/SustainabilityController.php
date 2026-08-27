@@ -13,6 +13,7 @@ use App\Models\SustainabilityFiling;
 use App\Models\SustainabilityFilingStage;
 use App\Models\SustainabilityTopic;
 use App\Models\User;
+use App\Rules\RichTextRule;
 use App\Services\SustainabilityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -229,6 +230,7 @@ class SustainabilityController extends Controller
             'submission_reference' => ['nullable', 'string', 'max:255'],
             'evidence_id' => ['nullable', 'exists:evidence,id'],
             'note' => ['nullable', 'string', 'max:2000'],
+            'note_rich' => ['nullable', 'array', new RichTextRule],
         ]);
 
         $this->sustainability->submitStage($stage, $request->user(), $validated);
@@ -247,6 +249,7 @@ class SustainabilityController extends Controller
 
         $validated = $request->validate([
             'verification_note' => ['required', 'string', 'max:2000'],
+            'verification_note_rich' => ['nullable', 'array', new RichTextRule],
         ]);
 
         $filing->update([

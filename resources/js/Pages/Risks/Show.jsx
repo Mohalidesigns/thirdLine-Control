@@ -9,7 +9,6 @@ import SelectInput from '@/Components/SelectInput';
 import StatusBadge from '@/Components/StatusBadge';
 import RichTextEditor from '@/Components/RichTextEditor';
 import RichTextViewer from '@/Components/RichTextViewer';
-import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate, formatMoney } from '@/utils';
@@ -451,7 +450,10 @@ function AssessmentModal({ show, onClose, risk, scales }) {
         loss_max_minor: '',
         likelihood_percent: '',
         currency: risk.loss_currency ?? 'NGN',
-    });
+    
+        impact_rationale_rich: null,
+        likelihood_rationale_rich: null,
+});
 
     const submit = (event) => {
         event.preventDefault();
@@ -537,11 +539,21 @@ function AssessmentModal({ show, onClose, risk, scales }) {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                         <InputLabel value="Likelihood rationale" />
-                        <TextArea rows={2} value={form.data.likelihood_rationale} onChange={(e) => form.setData('likelihood_rationale', e.target.value)} />
+                        <RichTextEditor
+                            value={form.data.likelihood_rationale_rich ?? form.data.likelihood_rationale}
+                            onChange={(doc, plain) => form.setData((d) => ({ ...d, likelihood_rationale: plain, likelihood_rationale_rich: doc }))}
+                            tools="minimal"
+                            minHeight={90}
+                        />
                     </div>
                     <div>
                         <InputLabel value="Impact rationale" />
-                        <TextArea rows={2} value={form.data.impact_rationale} onChange={(e) => form.setData('impact_rationale', e.target.value)} />
+                        <RichTextEditor
+                            value={form.data.impact_rationale_rich ?? form.data.impact_rationale}
+                            onChange={(doc, plain) => form.setData((d) => ({ ...d, impact_rationale: plain, impact_rationale_rich: doc }))}
+                            tools="minimal"
+                            minHeight={90}
+                        />
                     </div>
                 </div>
 

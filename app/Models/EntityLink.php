@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,7 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class EntityLink extends Model
 {
-    use Auditable, BelongsToTenant, HasFactory;
+    use Auditable, BelongsToTenant, HasFactory, HasRichText;
 
     public const RELATIONSHIPS = [
         'mitigates', 'causes', 'indicates', 'governs', 'evidences',
@@ -74,6 +75,9 @@ class EntityLink extends Model
         'tenant_id', 'source_type', 'source_id', 'target_type', 'target_id',
         'relationship', 'strength', 'notes', 'created_by',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['notes'];
 
     protected $casts = [
         'source_id' => 'integer',

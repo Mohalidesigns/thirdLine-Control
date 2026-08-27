@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SustainabilityFilingStage extends Model
 {
-    use Auditable, BelongsToTenant, HasFactory;
+    use Auditable, BelongsToTenant, HasFactory, HasRichText;
 
     public const STATUSES = ['Pending', 'In Progress', 'Submitted', 'Late', 'Waived'];
 
@@ -22,6 +23,9 @@ class SustainabilityFilingStage extends Model
         'submitted_at', 'submitted_by', 'submission_reference', 'evidence_id',
         'status', 'note',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['note'];
 
     protected $casts = [
         'due_at' => 'date',

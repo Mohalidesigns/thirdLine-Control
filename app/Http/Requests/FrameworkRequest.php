@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Framework;
+use App\Rules\RichTextRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -28,6 +29,7 @@ class FrameworkRequest extends FormRequest
             'source_url' => ['nullable', 'url', 'max:500'],
             'verification_status' => ['required', Rule::in(Framework::VERIFICATION_STATUSES)],
             'description' => ['nullable', 'string'],
+            'description_rich' => ['nullable', 'array', new RichTextRule],
             'is_active' => ['boolean'],
         ];
     }

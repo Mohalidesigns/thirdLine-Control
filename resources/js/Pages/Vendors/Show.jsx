@@ -3,6 +3,7 @@ import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
 import RelationshipsPanel from '@/Components/RelationshipsPanel';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import SeverityBadge from '@/Components/SeverityBadge';
@@ -483,7 +484,12 @@ function AssessmentModal({ show, onClose, vendor, campaigns, options }) {
                 </div>
                 <div>
                     <InputLabel value="Conclusion" />
-                    <TextArea rows={3} value={form.data.conclusion} onChange={(e) => form.setData('conclusion', e.target.value)} />
+                    <RichTextEditor
+                        value={form.data.conclusion_rich ?? form.data.conclusion}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, conclusion: plain, conclusion_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
+                    />
                 </div>
                 <div className="flex justify-end gap-2">
                     <SecondaryButton type="button" onClick={onClose}>
@@ -542,7 +548,12 @@ function ScreeningModal({ show, onClose, vendor, options }) {
                 </div>
                 <div>
                     <InputLabel value="Summary" />
-                    <TextArea rows={2} value={form.data.summary} onChange={(e) => form.setData('summary', e.target.value)} />
+                    <RichTextEditor
+                        value={form.data.summary_rich ?? form.data.summary}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, summary: plain, summary_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
+                    />
                 </div>
                 <div>
                     <div className="mb-2 flex items-center justify-between">
@@ -600,11 +611,11 @@ function DispositionModal({ screening, onClose, vendor, options }) {
             <form onSubmit={submit} className="space-y-4">
                 <div>
                     <InputLabel value="Decision" required />
-                    <TextArea
-                        rows={3}
-                        value={form.data.disposition}
-                        onChange={(e) => form.setData('disposition', e.target.value)}
-                        placeholder="False positive — different legal entity, confirmed against RC number."
+                    <RichTextEditor
+                        value={form.data.disposition_rich ?? form.data.disposition}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, disposition: plain, disposition_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
                     />
                 </div>
                 <label className="flex items-center gap-2 text-sm">

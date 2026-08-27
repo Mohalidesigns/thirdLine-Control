@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasRichText;
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class ObligationInstance extends Model
 {
-    use Auditable, BelongsToTenant, HasFactory;
+    use Auditable, BelongsToTenant, HasFactory, HasRichText;
 
     public const STATUSES = [
         'Not Started', 'In Progress', 'Submitted', 'Accepted',
@@ -41,6 +42,9 @@ class ObligationInstance extends Model
         'reviewed_by', 'reviewed_at', 'evidence_count', 'days_overdue',
         'penalty_exposure_minor', 'penalty_currency', 'reminders_sent', 'notes',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['notes'];
 
     protected $casts = [
         'period_start' => 'date',

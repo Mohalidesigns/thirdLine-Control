@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\SpeakUpCase;
+use App\Rules\RichTextRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -19,6 +20,7 @@ class CaseRequest extends FormRequest
             'case_type' => ['required', Rule::in(SpeakUpCase::TYPES)],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:8000'],
+            'description_rich' => ['nullable', 'array', new RichTextRule],
             'confidentiality' => ['required', Rule::in(SpeakUpCase::CONFIDENTIALITY_LEVELS)],
             'severity' => ['required', Rule::in(SpeakUpCase::SEVERITIES)],
             'is_anonymous' => ['nullable', 'boolean'],

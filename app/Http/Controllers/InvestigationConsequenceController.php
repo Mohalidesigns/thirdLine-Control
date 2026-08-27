@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\InvestigationConsequenceRequest;
 use App\Models\ConsequenceAction;
 use App\Models\Investigation;
+use App\Rules\RichTextRule;
 use App\Services\ConsequenceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,8 +39,10 @@ class InvestigationConsequenceController extends Controller
         $validated = $request->validate([
             'action' => ['required', Rule::in(['approve', 'reject', 'start', 'implement'])],
             'rejection_reason' => ['required_if:action,reject', 'nullable', 'string', 'min:5', 'max:2000'],
+            'rejection_reason_rich' => ['nullable', 'array', new RichTextRule],
             'amount_recovered' => ['nullable', 'numeric', 'min:0'],
             'implementation_note' => ['nullable', 'string', 'max:5000'],
+            'implementation_note_rich' => ['nullable', 'array', new RichTextRule],
             'implemented_on' => ['nullable', 'date'],
             'evidence_id' => ['nullable', 'exists:evidence,id'],
         ]);

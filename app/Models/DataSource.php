@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,7 +24,7 @@ use Illuminate\Support\Facades\Log;
  */
 class DataSource extends Model
 {
-    use Auditable, BelongsToTenant, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenant, HasFactory, HasRichText, SoftDeletes;
 
     public const SOURCE_TYPES = [
         'rest_api', 'soap', 'database', 'sftp', 'file_upload', 'webhook', 'odata', 'graphql', 'jdbc',
@@ -52,6 +53,9 @@ class DataSource extends Model
         'timeout_seconds', 'paused_at', 'paused_reason', 'data_residency_note',
         'owner_id', 'created_by', 'approved_by', 'approved_at',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['data_residency_note'];
 
     protected $casts = [
         'is_active' => 'boolean',

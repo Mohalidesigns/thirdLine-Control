@@ -4,6 +4,7 @@ import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import PrimaryButton from '@/Components/PrimaryButton';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import StatCard from '@/Components/StatCard';
@@ -405,7 +406,7 @@ function CaptureModal({ show, onClose, period, entities, controls, options }) {
 }
 
 function VerifyModal({ point, onClose }) {
-    const form = useForm({ note: '' });
+    const form = useForm({ note: '' , note_rich: null});
 
     if (!point) {
         return null;
@@ -430,11 +431,11 @@ function VerifyModal({ point, onClose }) {
                 )}
                 <div>
                     <InputLabel value="Verification note" />
-                    <TextArea
-                        rows={3}
-                        value={form.data.note}
-                        onChange={(e) => form.setData('note', e.target.value)}
-                        placeholder="Traced to the fuel purchase ledger and the meter readings."
+                    <RichTextEditor
+                        value={form.data.note_rich ?? form.data.note}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, note: plain, note_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
                     />
                 </div>
                 <div className="flex justify-end gap-2">

@@ -4,6 +4,7 @@ import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import StatCard from '@/Components/StatCard';
 import StatusBadge from '@/Components/StatusBadge';
@@ -25,7 +26,7 @@ export default function InstanceShow({ instance, can = {} }) {
     const remaining = daysUntil(instance.due_at);
     const hasEvidence = (instance.evidence?.length ?? 0) > 0;
 
-    const submitForm = useForm({ submission_reference: '', acknowledgement_ref: '', notes: '' });
+    const submitForm = useForm({ submission_reference: '', acknowledgement_ref: '', notes: '' , notes_rich: null});
 
     const submit = (event) => {
         event.preventDefault();
@@ -245,12 +246,11 @@ export default function InstanceShow({ instance, can = {} }) {
 
                     <div>
                         <InputLabel htmlFor="notes" value="Notes" />
-                        <TextArea
-                            id="notes"
-                            value={submitForm.data.notes}
-                            onChange={(e) => submitForm.setData('notes', e.target.value)}
-                            className="mt-1 block w-full"
-                            rows={3}
+                        <RichTextEditor
+                            value={submitForm.data.notes_rich ?? submitForm.data.notes}
+                            onChange={(doc, plain) => submitForm.setData((d) => ({ ...d, notes: plain, notes_rich: doc }))}
+                            tools="minimal"
+                            minHeight={90}
                         />
                     </div>
 

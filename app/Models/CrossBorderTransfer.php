@@ -5,13 +5,14 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\GeneratesReference;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CrossBorderTransfer extends Model
 {
-    use Auditable, BelongsToTenant, GeneratesReference, HasFactory;
+    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, HasRichText;
 
     public const STATUSES = ['pending_authorisation', 'authorised', 'completed'];
 
@@ -21,6 +22,9 @@ class CrossBorderTransfer extends Model
         'recipient', 'lawful_basis_id', 'lawful_basis_note', 'volume_records',
         'transferred_at', 'recorded_by', 'authorised_by', 'authorised_at', 'status',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['description', 'lawful_basis_note'];
 
     protected $casts = [
         'data_categories' => 'array',

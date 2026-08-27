@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Vendor;
+use App\Rules\RichTextRule;
 use App\Support\Money;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -24,6 +25,7 @@ class VendorRequest extends FormRequest
             'category' => ['nullable', 'string', 'max:100'],
             'criticality' => ['required', Rule::in(Vendor::CRITICALITIES)],
             'services_provided' => ['nullable', 'string', 'max:4000'],
+            'services_provided_rich' => ['nullable', 'array', new RichTextRule],
             'jurisdiction' => ['required', 'string', 'size:2'],
             'processing_country' => ['nullable', 'string', 'size:2'],
             'relationship_start' => ['nullable', 'date'],

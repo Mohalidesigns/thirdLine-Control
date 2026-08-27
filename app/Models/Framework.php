@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenantOrGlobal;
+use App\Models\Concerns\HasRichText;
 use App\Models\Concerns\HasVersions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Framework extends Model
 {
-    use Auditable, BelongsToTenantOrGlobal, HasFactory, HasVersions, SoftDeletes;
+    use Auditable, BelongsToTenantOrGlobal, HasFactory, HasRichText, HasVersions, SoftDeletes;
 
     public const CATEGORIES = [
         'internal_control', 'risk', 'security', 'privacy', 'governance',
@@ -29,6 +30,9 @@ class Framework extends Model
         'is_certifiable', 'source_url', 'verification_status', 'verified_by',
         'verified_at', 'description', 'is_active',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['description'];
 
     protected $casts = [
         'effective_from' => 'date',

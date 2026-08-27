@@ -4,11 +4,11 @@ import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import PrimaryButton from '@/Components/PrimaryButton';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import StatCard from '@/Components/StatCard';
 import StatusBadge from '@/Components/StatusBadge';
-import TextArea from '@/Components/TextArea';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime } from '@/utils';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -210,7 +210,7 @@ export default function Index({ findings, filters = {}, statuses = [], severitie
 }
 
 function ReviewModal({ finding, onClose }) {
-    const form = useForm({ status: 'Confirmed', review_notes: '' });
+    const form = useForm({ status: 'Confirmed', review_notes: '' , review_notes_rich: null});
 
     if (!finding) return null;
 
@@ -248,11 +248,11 @@ function ReviewModal({ finding, onClose }) {
                         value="Notes"
                         required={['False Positive', 'Accepted'].includes(form.data.status)}
                     />
-                    <TextArea
-                        rows={4}
-                        value={form.data.review_notes}
-                        onChange={(e) => form.setData('review_notes', e.target.value)}
-                        placeholder="What did you check, and what did you conclude?"
+                    <RichTextEditor
+                        value={form.data.review_notes_rich ?? form.data.review_notes}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, review_notes: plain, review_notes_rich: doc }))}
+                        tools="minimal"
+                        minHeight={104}
                     />
                     {form.errors.review_notes && (
                         <p className="mt-1 text-xs text-[var(--color-error)]">{form.errors.review_notes}</p>
@@ -271,7 +271,7 @@ function ReviewModal({ finding, onClose }) {
 }
 
 function BulkModal({ show, ids, onClose }) {
-    const form = useForm({ finding_ids: [], status: 'False Positive', review_notes: '' });
+    const form = useForm({ finding_ids: [], status: 'False Positive', review_notes: '' , review_notes_rich: null});
 
     const submit = (event) => {
         event.preventDefault();
@@ -294,11 +294,11 @@ function BulkModal({ show, ids, onClose }) {
                 </div>
                 <div>
                     <InputLabel value="Notes" required={['False Positive', 'Accepted'].includes(form.data.status)} />
-                    <TextArea
-                        rows={4}
-                        value={form.data.review_notes}
-                        onChange={(e) => form.setData('review_notes', e.target.value)}
-                        placeholder="The same reason is recorded against every selected finding."
+                    <RichTextEditor
+                        value={form.data.review_notes_rich ?? form.data.review_notes}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, review_notes: plain, review_notes_rich: doc }))}
+                        tools="minimal"
+                        minHeight={104}
                     />
                     {form.errors.review_notes && (
                         <p className="mt-1 text-xs text-[var(--color-error)]">{form.errors.review_notes}</p>

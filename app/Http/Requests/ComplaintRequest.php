@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Complaint;
+use App\Rules\RichTextRule;
 use App\Support\Money;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -33,6 +34,7 @@ class ComplaintRequest extends FormRequest
             'category_id' => ['nullable', 'exists:complaint_categories,id'],
             'subject' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:8000'],
+            'description_rich' => ['nullable', 'array', new RichTextRule],
             'product' => ['nullable', 'string', 'max:120'],
             'amount_disputed_minor' => ['nullable', 'integer', 'min:0'],
             'currency' => ['nullable', Rule::in(Money::SUPPORTED), 'required_with:amount_disputed_minor'],

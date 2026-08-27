@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MaterialityAssessment extends Model
 {
-    use Auditable, BelongsToTenant, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenant, HasFactory, HasRichText, SoftDeletes;
 
     public const BASES = ['financial', 'double'];
 
@@ -24,6 +25,9 @@ class MaterialityAssessment extends Model
         'rationale', 'stakeholders_consulted', 'assessed_by', 'assessed_at',
         'approved_by', 'approved_at', 'status',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['rationale'];
 
     protected $casts = [
         'financial_materiality_score' => 'integer',

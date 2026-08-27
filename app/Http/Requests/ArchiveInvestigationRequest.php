@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\RichTextRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ArchiveInvestigationRequest extends FormRequest
@@ -17,6 +18,7 @@ class ArchiveInvestigationRequest extends FormRequest
             // Archived cases leave every list, count and KPI. That needs a
             // reason on the record, not in someone's memory.
             'archive_reason' => ['required', 'string', 'min:10', 'max:2000'],
+            'archive_reason_rich' => ['nullable', 'array', new RichTextRule],
         ];
     }
 }

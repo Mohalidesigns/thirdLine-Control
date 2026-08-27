@@ -11,6 +11,7 @@ use App\Models\MetricValue;
 use App\Models\OrganisationUnit;
 use App\Models\RiskCategory;
 use App\Models\User;
+use App\Rules\RichTextRule;
 use App\Services\LinkageService;
 use App\Services\MetricService;
 use Illuminate\Http\RedirectResponse;
@@ -162,6 +163,7 @@ class MetricController extends Controller
         $validated = $request->validate([
             'root_cause' => ['required', 'string', 'max:2000'],
             'action_taken' => ['nullable', 'string', 'max:2000'],
+            'action_taken_rich' => ['nullable', 'array', new RichTextRule],
         ]);
 
         $this->metrics->acknowledgeBreach($breach, $request->user(), $validated);

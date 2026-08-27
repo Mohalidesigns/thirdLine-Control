@@ -5,12 +5,12 @@ import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import PrimaryButton from '@/Components/PrimaryButton';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import SeverityBadge from '@/Components/SeverityBadge';
 import StatCard from '@/Components/StatCard';
 import StatusBadge from '@/Components/StatusBadge';
-import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
@@ -222,7 +222,9 @@ function CreateModal({ show, onClose, criticalities, statuses, classifications, 
         sub_processors: [],
         review_frequency_months: 12,
         status: 'Onboarding',
-    });
+    
+        services_provided_rich: null,
+});
 
     const addSubProcessor = () =>
         form.setData('sub_processors', [...form.data.sub_processors, { name: '', country: '', service: '' }]);
@@ -292,10 +294,11 @@ function CreateModal({ show, onClose, criticalities, statuses, classifications, 
 
                 <div>
                     <InputLabel value="Services provided" />
-                    <TextArea
-                        rows={2}
-                        value={form.data.services_provided}
-                        onChange={(e) => form.setData('services_provided', e.target.value)}
+                    <RichTextEditor
+                        value={form.data.services_provided_rich ?? form.data.services_provided}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, services_provided: plain, services_provided_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
                     />
                 </div>
 

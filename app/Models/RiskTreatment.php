@@ -35,7 +35,7 @@ class RiskTreatment extends Model
     ];
 
     /** Editor.js-backed fields — see HasRichText. */
-    protected array $richText = ['description', 'benefit_description'];
+    protected array $richText = ['acceptance_reason', 'benefit_description', 'description', 'verification_notes'];
 
     protected $casts = [
         'start_at' => 'date',

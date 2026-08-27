@@ -5,11 +5,11 @@ import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import PrimaryButton from '@/Components/PrimaryButton';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import StatCard from '@/Components/StatCard';
 import StatusBadge from '@/Components/StatusBadge';
-import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
@@ -30,9 +30,11 @@ export default function Index({ changes, filters = {}, regulators = [], statuses
         effective_at: '',
         document_url: '',
         summary: '',
-    });
+    
+        summary_rich: null,
+});
 
-    const assessForm = useForm({ impact_assessment: '' });
+    const assessForm = useForm({ impact_assessment: '' , impact_assessment_rich: null});
 
     const log = (event) => {
         event.preventDefault();
@@ -254,12 +256,11 @@ export default function Index({ changes, filters = {}, regulators = [], statuses
 
                     <div className="sm:col-span-2">
                         <InputLabel htmlFor="summary" value="Summary" />
-                        <TextArea
-                            id="summary"
-                            value={logForm.data.summary}
-                            onChange={(e) => logForm.setData('summary', e.target.value)}
-                            className="mt-1 block w-full"
-                            rows={3}
+                        <RichTextEditor
+                            value={logForm.data.summary_rich ?? logForm.data.summary}
+                            onChange={(doc, plain) => logForm.setData((d) => ({ ...d, summary: plain, summary_rich: doc }))}
+                            tools="minimal"
+                            minHeight={90}
                         />
                     </div>
 
@@ -278,13 +279,11 @@ export default function Index({ changes, filters = {}, regulators = [], statuses
                         Describe what changes for us — which obligations move, which controls need amending, and by when.
                         Sign-off is a separate step by a different person.
                     </p>
-                    <TextArea
-                        value={assessForm.data.impact_assessment}
-                        onChange={(e) => assessForm.setData('impact_assessment', e.target.value)}
-                        rows={6}
-                        className="block w-full"
-                        placeholder="Impact assessment (minimum 20 characters)"
-                        required
+                    <RichTextEditor
+                        value={assessForm.data.impact_assessment_rich ?? assessForm.data.impact_assessment}
+                        onChange={(doc, plain) => assessForm.setData((d) => ({ ...d, impact_assessment: plain, impact_assessment_rich: doc }))}
+                        tools="minimal"
+                        minHeight={156}
                     />
                     <div className="flex justify-end gap-2">
                         <SecondaryButton type="button" onClick={() => setAssessing(null)}>

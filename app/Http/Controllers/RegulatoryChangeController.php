@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\RegulatoryChangeRequest;
 use App\Models\Regulator;
 use App\Models\RegulatoryChange;
+use App\Rules\RichTextRule;
 use App\Services\RegulatoryChangeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -70,6 +71,7 @@ class RegulatoryChangeController extends Controller
 
         $data = $request->validate([
             'impact_assessment' => ['required', 'string', 'min:20', 'max:10000'],
+            'impact_assessment_rich' => ['nullable', 'array', new RichTextRule],
             'affected_obligation_ids' => ['nullable', 'array'],
             'affected_obligation_ids.*' => ['integer', 'exists:regulatory_obligations,id'],
             'affected_control_ids' => ['nullable', 'array'],

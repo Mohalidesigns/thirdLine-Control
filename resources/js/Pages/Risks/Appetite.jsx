@@ -4,11 +4,11 @@ import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import PrimaryButton from '@/Components/PrimaryButton';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import StatCard from '@/Components/StatCard';
 import StatusBadge from '@/Components/StatusBadge';
-import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate } from '@/utils';
@@ -236,7 +236,10 @@ function CreateModal({ show, onClose, levels, riskCategories, entities }) {
         metric_definition: '',
         effective_from: '',
         review_due_at: '',
-    });
+    
+        metric_definition_rich: null,
+        statement_rich: null,
+});
 
     const submit = (event) => {
         event.preventDefault();
@@ -278,7 +281,12 @@ function CreateModal({ show, onClose, levels, riskCategories, entities }) {
 
                 <div>
                     <InputLabel value="Statement" required />
-                    <TextArea rows={3} value={form.data.statement} onChange={(e) => form.setData('statement', e.target.value)} />
+                    <RichTextEditor
+                        value={form.data.statement_rich ?? form.data.statement}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, statement: plain, statement_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
+                    />
                     {form.errors.statement && <p className="mt-1 text-xs text-[var(--color-error)]">{form.errors.statement}</p>}
                 </div>
 
@@ -313,7 +321,12 @@ function CreateModal({ show, onClose, levels, riskCategories, entities }) {
 
                 <div>
                     <InputLabel value="How the position is measured" />
-                    <TextArea rows={2} value={form.data.metric_definition} onChange={(e) => form.setData('metric_definition', e.target.value)} />
+                    <RichTextEditor
+                        value={form.data.metric_definition_rich ?? form.data.metric_definition}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, metric_definition: plain, metric_definition_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
+                    />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

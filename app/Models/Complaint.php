@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\GeneratesReference;
+use App\Models\Concerns\HasRichText;
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Complaint extends Model
 {
-    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, HasRichText, SoftDeletes;
 
     public const CHANNELS = [
         'letter', 'email', 'phone', 'social_media', 'branch', 'app',
@@ -56,6 +57,9 @@ class Complaint extends Model
         'penalty_exposure_minor', 'penalty_currency', 'escalated_to_regulator',
         'regulator_reference', 'root_cause_id', 'linked_incident_id', 'linked_control_id',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['description', 'resolution_summary'];
 
     protected $casts = [
         'received_at' => 'datetime',

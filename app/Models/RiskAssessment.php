@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RiskAssessment extends Model
 {
-    use Auditable, BelongsToTenant, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenant, HasFactory, HasRichText, SoftDeletes;
 
     public const TYPES = ['inherent', 'residual', 'target'];
 
@@ -32,6 +33,9 @@ class RiskAssessment extends Model
         'impact_dimensions', 'driving_dimension', 'confidence', 'method',
         'period_label', 'notes',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['impact_rationale', 'likelihood_rationale'];
 
     protected $casts = [
         'assessed_at' => 'datetime',

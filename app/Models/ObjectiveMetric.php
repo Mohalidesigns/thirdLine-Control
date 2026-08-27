@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,12 +15,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class ObjectiveMetric extends Model
 {
-    use Auditable, BelongsToTenant, HasFactory;
+    use Auditable, BelongsToTenant, HasFactory, HasRichText;
 
     protected $fillable = [
         'tenant_id', 'objective_id', 'metric_id', 'baseline_value',
         'target_value', 'weight', 'note',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['note'];
 
     protected $casts = [
         'baseline_value' => 'float',

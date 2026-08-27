@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class VendorScreening extends Model
 {
-    use Auditable, BelongsToTenant, HasFactory;
+    use Auditable, BelongsToTenant, HasFactory, HasRichText;
 
     public const TYPES = ['sanctions', 'pep', 'adverse_media', 'credit', 'litigation'];
 
@@ -25,6 +26,9 @@ class VendorScreening extends Model
         'result', 'hit_count', 'hits', 'summary', 'ai_interaction_id',
         'cleared_by', 'cleared_at', 'disposition', 'finding_id',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['disposition', 'summary'];
 
     protected $casts = [
         'screened_at' => 'datetime',

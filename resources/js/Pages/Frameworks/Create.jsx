@@ -2,8 +2,8 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PageHeader from '@/Components/PageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SelectInput from '@/Components/SelectInput';
-import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -24,7 +24,9 @@ export default function Create({ categories = [], verificationStatuses = [] }) {
         verification_status: 'draft',
         description: '',
         is_active: true,
-    });
+    
+        description_rich: null,
+});
 
     const submit = (event) => {
         event.preventDefault();
@@ -178,12 +180,11 @@ export default function Create({ categories = [], verificationStatuses = [] }) {
 
                         <div className="sm:col-span-2">
                             <InputLabel htmlFor="description" value="Description" />
-                            <TextArea
-                                id="description"
-                                value={form.data.description}
-                                onChange={(e) => form.setData('description', e.target.value)}
-                                className="mt-1 block w-full"
-                                rows={3}
+                            <RichTextEditor
+                                value={form.data.description_rich ?? form.data.description}
+                                onChange={(doc, plain) => form.setData((d) => ({ ...d, description: plain, description_rich: doc }))}
+                                tools="minimal"
+                                minHeight={90}
                             />
                         </div>
 

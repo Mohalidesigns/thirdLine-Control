@@ -4,6 +4,7 @@ import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import SeverityBadge from '@/Components/SeverityBadge';
@@ -95,7 +96,7 @@ export default function Show({ escalation, evidence = [], can = {} }) {
         action_type: 'corrective',
         action_target_date: '',
     });
-    const closeForm = useForm({ validation_status: 'Effective', closure_note: '' });
+    const closeForm = useForm({ validation_status: 'Effective', closure_note: '' , closure_note_rich: null});
     const withdrawForm = useForm({ reason: '' });
     const linkForm = useForm({ expires_at: '' });
     const progressForms = useForm({ progress_percentage: '', progress_note: '' });
@@ -381,7 +382,12 @@ export default function Show({ escalation, evidence = [], can = {} }) {
                     </div>
                     <div>
                         <InputLabel value="Validation / closure note" />
-                        <TextArea value={closeForm.data.closure_note} onChange={(e) => closeForm.setData('closure_note', e.target.value)} />
+                        <RichTextEditor
+                            value={closeForm.data.closure_note_rich ?? closeForm.data.closure_note}
+                            onChange={(doc, plain) => closeForm.setData((d) => ({ ...d, closure_note: plain, closure_note_rich: doc }))}
+                            tools="minimal"
+                            minHeight={90}
+                        />
                         <InputError message={closeForm.errors.closure} className="mt-1" />
                     </div>
                     <div className="flex justify-end gap-2">

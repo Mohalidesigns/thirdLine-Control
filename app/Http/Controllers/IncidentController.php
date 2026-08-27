@@ -278,6 +278,7 @@ class IncidentController extends Controller
         $validated = $request->validate([
             'notification_reference' => ['required', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:2000'],
+            'notes_rich' => ['nullable', 'array', new RichTextRule],
         ]);
 
         $this->incidents->recordNotification(

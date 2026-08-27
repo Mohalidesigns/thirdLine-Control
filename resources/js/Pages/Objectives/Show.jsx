@@ -5,10 +5,10 @@ import PageHeader from '@/Components/PageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
 import ProgressBar from '@/Components/ProgressBar';
 import RelationshipsPanel from '@/Components/RelationshipsPanel';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import StatusBadge from '@/Components/StatusBadge';
-import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate, formatNumber } from '@/utils';
@@ -352,7 +352,7 @@ function InitiativeRow({ initiative, canProgress }) {
 }
 
 function ReportModal({ show, onClose, objective, statuses }) {
-    const form = useForm({ progress: objective.progress ?? 0, status: objective.status, note: '' });
+    const form = useForm({ progress: objective.progress ?? 0, status: objective.status, note: '' , note_rich: null});
 
     const submit = (event) => {
         event.preventDefault();
@@ -390,7 +390,12 @@ function ReportModal({ show, onClose, objective, statuses }) {
                 </div>
                 <div>
                     <InputLabel value="Note" />
-                    <TextArea rows={3} value={form.data.note} onChange={(e) => form.setData('note', e.target.value)} />
+                    <RichTextEditor
+                        value={form.data.note_rich ?? form.data.note}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, note: plain, note_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
+                    />
                 </div>
                 <div className="flex justify-end gap-2">
                     <SecondaryButton type="button" onClick={onClose}>
@@ -404,7 +409,7 @@ function ReportModal({ show, onClose, objective, statuses }) {
 }
 
 function MeasureModal({ show, onClose, objective, metrics }) {
-    const form = useForm({ metric_id: '', baseline_value: '', target_value: '', weight: 1, note: '' });
+    const form = useForm({ metric_id: '', baseline_value: '', target_value: '', weight: 1, note: '' , note_rich: null});
 
     const submit = (event) => {
         event.preventDefault();
@@ -479,7 +484,9 @@ function InitiativeModal({ show, onClose, objective, owners, statuses }) {
         progress_mode: 'auto',
         weight: 1,
         milestones: [],
-    });
+    
+        description_rich: null,
+});
 
     const addMilestone = () =>
         form.setData('milestones', [...form.data.milestones, { title: '', due_date: '', status: 'Pending', weight: 1 }]);
@@ -505,7 +512,12 @@ function InitiativeModal({ show, onClose, objective, owners, statuses }) {
                 </div>
                 <div>
                     <InputLabel value="Description" />
-                    <TextArea rows={2} value={form.data.description} onChange={(e) => form.setData('description', e.target.value)} />
+                    <RichTextEditor
+                        value={form.data.description_rich ?? form.data.description}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, description: plain, description_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
+                    />
                 </div>
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                     <div>

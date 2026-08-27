@@ -147,7 +147,15 @@ class TreatmentService
      * owner. Checked here as well as in the policy so a service-level call
      * cannot slip past the gate (R2).
      */
-    public function verify(RiskTreatment $treatment, User $verifier, ?string $notes = null): RiskTreatment
+    /**
+     * Spec §9 — `$notesRich` carries the Editor.js document alongside the
+     * plain mirror. Optional and last in the signature: every existing
+     * caller keeps working, and one that has no document simply does not
+     * pass one.
+     *
+     * @param  array<string, mixed>|null  $notesRich
+     */
+    public function verify(RiskTreatment $treatment, User $verifier, ?string $notes = null, ?array $notesRich = null): RiskTreatment
     {
         if ($treatment->owner_id === $verifier->id) {
             throw ValidationException::withMessages([
@@ -159,6 +167,7 @@ class TreatmentService
             'verified_by' => $verifier->id,
             'verified_at' => now(),
             'verification_notes' => $notes,
+            'verification_notes_rich' => $notesRich,
             'last_update_at' => now(),
         ]);
 

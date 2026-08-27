@@ -5,11 +5,11 @@ import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import PrimaryButton from '@/Components/PrimaryButton';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import StatCard from '@/Components/StatCard';
 import StatusBadge from '@/Components/StatusBadge';
-import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
@@ -189,7 +189,9 @@ function CreateModal({ show, onClose, options, schemas, datasets, controls, owne
         auto_create_exception: true,
         auto_create_incident: false,
         owner_id: '',
-    });
+    
+        description_rich: null,
+});
 
     const [definitionText, setDefinitionText] = useState('{\n  "conditions": [\n    { "field": "status", "operator": "eq", "value": "FAILED" }\n  ]\n}');
     const [definitionError, setDefinitionError] = useState(null);
@@ -250,10 +252,11 @@ function CreateModal({ show, onClose, options, schemas, datasets, controls, owne
 
                 <div>
                     <InputLabel value="Description" />
-                    <TextArea
-                        rows={2}
-                        value={form.data.description}
-                        onChange={(e) => form.setData('description', e.target.value)}
+                    <RichTextEditor
+                        value={form.data.description_rich ?? form.data.description}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, description: plain, description_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
                     />
                 </div>
 

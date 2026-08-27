@@ -2,11 +2,11 @@ import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import StatCard from '@/Components/StatCard';
 import StatusBadge from '@/Components/StatusBadge';
-import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import VerificationBadge from '@/Components/VerificationBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -274,7 +274,9 @@ function MaterialityModal({ topic, onClose, period, entityId, bases, entities })
         is_material: true,
         rationale: '',
         stakeholders_consulted: [],
-    });
+    
+        rationale_rich: null,
+});
 
     if (!topic) {
         return null;
@@ -359,7 +361,12 @@ function MaterialityModal({ topic, onClose, period, entityId, bases, entities })
 
                 <div>
                     <InputLabel value="Rationale" required />
-                    <TextArea rows={3} value={form.data.rationale} onChange={(e) => form.setData('rationale', e.target.value)} />
+                    <RichTextEditor
+                        value={form.data.rationale_rich ?? form.data.rationale}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, rationale: plain, rationale_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
+                    />
                     {form.errors.rationale && <p className="mt-1 text-xs text-[var(--color-error)]">{form.errors.rationale}</p>}
                 </div>
 

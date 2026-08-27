@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\GeneratesReference;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class ExceptionEscalation extends Model
 {
-    use Auditable, BelongsToTenant, GeneratesReference, HasFactory;
+    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, HasRichText;
 
     public const STATUSES = [
         'Draft', 'Issued', 'Acknowledged', 'Responded', 'Under Review',
@@ -52,6 +53,9 @@ class ExceptionEscalation extends Model
         'withdrawn_at', 'withdrawn_by', 'withdrawal_reason',
         'notified_to', 'superseded_by_escalation_id',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['closure_note'];
 
     protected $casts = [
         'round_no' => 'integer',

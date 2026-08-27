@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasRichText;
 use App\Models\Concerns\HasVersions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RiskAppetite extends Model
 {
-    use Auditable, BelongsToTenant, HasFactory, HasVersions, SoftDeletes;
+    use Auditable, BelongsToTenant, HasFactory, HasRichText, HasVersions, SoftDeletes;
 
     public const LEVELS = ['Averse', 'Minimal', 'Cautious', 'Open', 'Hungry'];
 
@@ -26,6 +27,9 @@ class RiskAppetite extends Model
         'version_no', 'supersedes_id', 'approved_by', 'approved_at',
         'effective_from', 'effective_to', 'review_due_at', 'status', 'created_by',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['metric_definition', 'statement'];
 
     protected $casts = [
         'tolerance_upper' => 'float',

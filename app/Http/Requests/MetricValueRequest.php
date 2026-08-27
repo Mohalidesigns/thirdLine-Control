@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\RichTextRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class MetricValueRequest extends FormRequest
@@ -18,6 +19,7 @@ class MetricValueRequest extends FormRequest
             'target' => ['nullable', 'numeric'],
             'period_label' => ['nullable', 'string', 'max:40'],
             'comment' => ['nullable', 'string', 'max:2000'],
+            'comment_rich' => ['nullable', 'array', new RichTextRule],
             'supporting_evidence_id' => ['nullable', 'exists:evidence,id'],
         ];
     }

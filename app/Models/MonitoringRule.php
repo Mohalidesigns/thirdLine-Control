@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\GeneratesReference;
+use App\Models\Concerns\HasRichText;
 use App\Models\Concerns\HasVersions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -24,7 +25,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class MonitoringRule extends Model
 {
-    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, HasVersions, SoftDeletes;
+    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, HasRichText, HasVersions, SoftDeletes;
 
     public const TYPES = [
         'threshold', 'reconciliation', 'duplicate', 'gap', 'sod_conflict',
@@ -52,6 +53,9 @@ class MonitoringRule extends Model
         'auto_create_incident', 'owner_id', 'created_by', 'approved_by', 'approved_at',
         'status', 'version_no', 'last_run_at', 'next_run_at',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['description'];
 
     protected $casts = [
         'dataset_ids' => 'array',

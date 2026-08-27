@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Objective;
+use App\Rules\RichTextRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -31,6 +32,7 @@ class ObjectiveRequest extends FormRequest
             ],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:4000'],
+            'description_rich' => ['nullable', 'array', new RichTextRule],
             'owner_id' => ['nullable', 'tenant_user'],
             'period' => ['nullable', 'string', 'max:40'],
             'start_date' => ['nullable', 'date'],

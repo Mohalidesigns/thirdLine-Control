@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\MaterialityAssessment;
+use App\Rules\RichTextRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -25,6 +26,7 @@ class MaterialityAssessmentRequest extends FormRequest
             'impact_materiality_score' => ['nullable', 'integer', 'min:0', 'max:100'],
             'is_material' => ['required', 'boolean'],
             'rationale' => ['required', 'string', 'max:4000'],
+            'rationale_rich' => ['nullable', 'array', new RichTextRule],
             'stakeholders_consulted' => ['nullable', 'array', 'max:50'],
             'stakeholders_consulted.*' => ['string', 'max:255'],
         ];

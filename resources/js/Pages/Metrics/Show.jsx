@@ -5,6 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import PrimaryButton from '@/Components/PrimaryButton';
 import RelationshipsPanel from '@/Components/RelationshipsPanel';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import StatCard from '@/Components/StatCard';
 import TextArea from '@/Components/TextArea';
@@ -252,7 +253,7 @@ function BreachRow({ breach, metric, can }) {
 }
 
 function AcknowledgeModal({ show, onClose, metric, breach }) {
-    const form = useForm({ root_cause: '', action_taken: '' });
+    const form = useForm({ root_cause: '', action_taken: '' , action_taken_rich: null});
 
     const submit = (event) => {
         event.preventDefault();
@@ -272,7 +273,12 @@ function AcknowledgeModal({ show, onClose, metric, breach }) {
                 </div>
                 <div>
                     <InputLabel value="Action taken" />
-                    <TextArea rows={2} value={form.data.action_taken} onChange={(e) => form.setData('action_taken', e.target.value)} />
+                    <RichTextEditor
+                        value={form.data.action_taken_rich ?? form.data.action_taken}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, action_taken: plain, action_taken_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
+                    />
                 </div>
                 <div className="flex justify-end gap-2">
                     <SecondaryButton type="button" onClick={onClose}>
@@ -286,7 +292,7 @@ function AcknowledgeModal({ show, onClose, metric, breach }) {
 }
 
 function CaptureModal({ show, onClose, metric, period }) {
-    const form = useForm({ value: '', target: metric.target_value ?? '', period_label: period, comment: '' });
+    const form = useForm({ value: '', target: metric.target_value ?? '', period_label: period, comment: '' , comment_rich: null});
 
     const submit = (event) => {
         event.preventDefault();
@@ -319,7 +325,12 @@ function CaptureModal({ show, onClose, metric, period }) {
                 </div>
                 <div>
                     <InputLabel value="Comment" />
-                    <TextArea rows={2} value={form.data.comment} onChange={(e) => form.setData('comment', e.target.value)} />
+                    <RichTextEditor
+                        value={form.data.comment_rich ?? form.data.comment}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, comment: plain, comment_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
+                    />
                 </div>
                 <p className="text-xs text-[var(--color-text-secondary)]">
                     A reading in a Red or Critical band opens a breach, escalates it, and raises a linked exception.

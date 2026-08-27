@@ -4,10 +4,10 @@ import PageHeader from '@/Components/PageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
 import ProgressBar from '@/Components/ProgressBar';
 import RelationshipsPanel from '@/Components/RelationshipsPanel';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import StatusBadge from '@/Components/StatusBadge';
-import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate, formatDateTime, formatMoney } from '@/utils';
@@ -257,7 +257,7 @@ function ProgressForm({ treatment }) {
 
 function ApproveModal({ show, onClose, treatment }) {
     const isAcceptance = treatment.strategy === 'Accept';
-    const form = useForm({ acceptance_reason: '', acceptance_expiry: '' });
+    const form = useForm({ acceptance_reason: '', acceptance_expiry: '' , acceptance_reason_rich: null});
 
     const submit = (event) => {
         event.preventDefault();
@@ -278,7 +278,12 @@ function ApproveModal({ show, onClose, treatment }) {
                         </p>
                         <div>
                             <InputLabel value="Reason for acceptance" required />
-                            <TextArea rows={3} value={form.data.acceptance_reason} onChange={(e) => form.setData('acceptance_reason', e.target.value)} />
+                            <RichTextEditor
+                                value={form.data.acceptance_reason_rich ?? form.data.acceptance_reason}
+                                onChange={(doc, plain) => form.setData((d) => ({ ...d, acceptance_reason: plain, acceptance_reason_rich: doc }))}
+                                tools="minimal"
+                                minHeight={90}
+                            />
                         </div>
                         <div>
                             <InputLabel value="Acceptance expires" required />
@@ -307,7 +312,7 @@ function ApproveModal({ show, onClose, treatment }) {
 }
 
 function VerifyModal({ show, onClose, treatment }) {
-    const form = useForm({ verification_notes: '' });
+    const form = useForm({ verification_notes: '' , verification_notes_rich: null});
 
     const submit = (event) => {
         event.preventDefault();
@@ -323,7 +328,12 @@ function VerifyModal({ show, onClose, treatment }) {
                 </p>
                 <div>
                     <InputLabel value="What was checked" />
-                    <TextArea rows={3} value={form.data.verification_notes} onChange={(e) => form.setData('verification_notes', e.target.value)} />
+                    <RichTextEditor
+                        value={form.data.verification_notes_rich ?? form.data.verification_notes}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, verification_notes: plain, verification_notes_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
+                    />
                 </div>
                 <div className="flex justify-end gap-2">
                     <SecondaryButton type="button" onClick={onClose}>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\MonitoringFinding;
 use App\Models\MonitoringRule;
+use App\Rules\RichTextRule;
 use App\Services\MonitoringService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -69,6 +70,7 @@ class MonitoringFindingController extends Controller
         $validated = $request->validate([
             'status' => ['required', Rule::in(['Under Review', 'Confirmed', 'False Positive', 'Remediated', 'Accepted'])],
             'review_notes' => ['nullable', 'string', 'max:4000'],
+            'review_notes_rich' => ['nullable', 'array', new RichTextRule],
         ]);
 
         $reviewed = $this->monitoring->reviewFinding(

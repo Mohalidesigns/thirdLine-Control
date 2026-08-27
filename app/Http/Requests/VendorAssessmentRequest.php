@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\VendorAssessment;
+use App\Rules\RichTextRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -26,6 +27,7 @@ class VendorAssessmentRequest extends FormRequest
             'risk_score' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'risk_band' => ['nullable', Rule::in(VendorAssessment::BANDS)],
             'conclusion' => ['nullable', 'string', 'max:4000'],
+            'conclusion_rich' => ['nullable', 'array', new RichTextRule],
             'review_frequency_months' => ['required', 'integer', 'min:1', 'max:60'],
         ];
     }

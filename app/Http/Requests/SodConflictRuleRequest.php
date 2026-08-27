@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\SodConflictRule;
+use App\Rules\RichTextRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -19,6 +20,7 @@ class SodConflictRuleRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
+            'description_rich' => ['nullable', 'array', new RichTextRule],
             'system_key' => ['nullable', 'string', 'max:60'],
             'function_a' => ['required', 'string', 'max:255'],
             'function_b' => ['required', 'string', 'max:255'],

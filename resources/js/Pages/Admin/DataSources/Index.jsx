@@ -5,10 +5,10 @@ import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import PrimaryButton from '@/Components/PrimaryButton';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import StatCard from '@/Components/StatCard';
-import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime } from '@/utils';
@@ -216,7 +216,9 @@ function CreateModal({ show, options, owners, onClose }) {
         timeout_seconds: 30,
         data_residency_note: '',
         owner_id: '',
-    });
+    
+        data_residency_note_rich: null,
+});
 
     const [configError, setConfigError] = useState(null);
 
@@ -345,11 +347,11 @@ function CreateModal({ show, options, owners, onClose }) {
 
                 <div>
                     <InputLabel value="Data residency note" />
-                    <TextArea
-                        rows={2}
-                        value={form.data.data_residency_note}
-                        onChange={(e) => form.setData('data_residency_note', e.target.value)}
-                        placeholder="Where the extracted data is stored, and under whose authority."
+                    <RichTextEditor
+                        value={form.data.data_residency_note_rich ?? form.data.data_residency_note}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, data_residency_note: plain, data_residency_note_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
                     />
                 </div>
 

@@ -14,6 +14,7 @@ use App\Models\VendorAssessment;
 use App\Models\VendorContract;
 use App\Models\VendorFinding;
 use App\Models\VendorScreening;
+use App\Rules\RichTextRule;
 use App\Services\LinkageService;
 use App\Services\VendorService;
 use App\Support\Money;
@@ -291,6 +292,7 @@ class VendorController extends Controller
             'result' => ['required', 'in:'.implode(',', VendorScreening::RESULTS)],
             'data_source_id' => ['nullable', 'exists:data_sources,id'],
             'summary' => ['nullable', 'string', 'max:4000'],
+            'summary_rich' => ['nullable', 'array', new RichTextRule],
             'hits' => ['nullable', 'array', 'max:100'],
             'hits.*.name' => ['required', 'string', 'max:255'],
             'hits.*.source' => ['nullable', 'string', 'max:255'],
@@ -309,6 +311,7 @@ class VendorController extends Controller
 
         $validated = $request->validate([
             'disposition' => ['required', 'string', 'max:4000'],
+            'disposition_rich' => ['nullable', 'array', new RichTextRule],
             'raise_finding' => ['nullable', 'boolean'],
             'severity' => ['nullable', 'in:'.implode(',', VendorFinding::SEVERITIES)],
         ]);

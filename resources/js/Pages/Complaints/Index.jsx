@@ -4,6 +4,7 @@ import FilterBar from '@/Components/FilterBar';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
+import RichTextEditor from '@/Components/RichTextEditor';
 import StatCard from '@/Components/StatCard';
 import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -36,7 +37,9 @@ export default function Index({
         category_id: '',
         product: '',
         assigned_to: '',
-    });
+    
+        description_rich: null,
+});
 
     const submit = (e) => {
         e.preventDefault();
@@ -240,11 +243,11 @@ export default function Index({
 
                         <div className="sm:col-span-2">
                             <label className="form-label">Description</label>
-                            <textarea
-                                className="form-input"
-                                rows={3}
-                                value={form.data.description}
-                                onChange={(e) => form.setData('description', e.target.value)}
+                            <RichTextEditor
+                                value={form.data.description_rich ?? form.data.description}
+                                onChange={(doc, plain) => form.setData((d) => ({ ...d, description: plain, description_rich: doc }))}
+                                tools="minimal"
+                                minHeight={90}
                             />
                         </div>
 

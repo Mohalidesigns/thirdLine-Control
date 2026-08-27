@@ -10,6 +10,7 @@ use App\Models\Evidence;
 use App\Models\ExceptionEscalation;
 use App\Models\ExceptionResponse;
 use App\Models\OrganisationUnit;
+use App\Rules\RichTextRule;
 use App\Services\ExceptionEscalationService;
 use App\Services\ExceptionResponseService;
 use Illuminate\Http\RedirectResponse;
@@ -183,6 +184,7 @@ class ExceptionManagerController extends Controller
         $validated = $request->validate([
             'validation_status' => ['required', 'in:Effective,Partially Effective,Ineffective'],
             'closure_note' => ['nullable', 'string', 'max:2000'],
+            'closure_note_rich' => ['nullable', 'array', new RichTextRule],
         ]);
 
         $result = $this->escalationService->close(

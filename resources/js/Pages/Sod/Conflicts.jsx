@@ -5,10 +5,10 @@ import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import PrimaryButton from '@/Components/PrimaryButton';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import StatCard from '@/Components/StatCard';
-import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -190,7 +190,9 @@ function ConflictModal({ show, rule, options, controls, onClose }) {
         risk_level: rule?.risk_level ?? 'High',
         mitigating_control_id: rule?.mitigating_control_id ?? '',
         is_active: rule?.is_active ?? true,
-    });
+    
+        description_rich: rule?.description_rich ?? null,
+});
 
     const submit = (event) => {
         event.preventDefault();
@@ -291,10 +293,11 @@ function ConflictModal({ show, rule, options, controls, onClose }) {
 
                 <div>
                     <InputLabel value="Description" />
-                    <TextArea
-                        rows={2}
-                        value={form.data.description}
-                        onChange={(e) => form.setData('description', e.target.value)}
+                    <RichTextEditor
+                        value={form.data.description_rich ?? form.data.description}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, description: plain, description_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
                     />
                 </div>
 

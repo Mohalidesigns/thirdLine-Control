@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\GeneratesReference;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PolicyException extends Model
 {
-    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, HasRichText, SoftDeletes;
 
     public const STATUSES = ['Requested', 'Under Review', 'Approved', 'Rejected', 'Expired', 'Revoked'];
 
@@ -34,6 +35,9 @@ class PolicyException extends Model
         'requested_from', 'requested_to', 'status', 'approved_by', 'approved_at',
         'review_at', 'decision_notes', 'revoked_reason',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['compensating_measures', 'justification'];
 
     protected $casts = [
         'requested_from' => 'date',

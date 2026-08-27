@@ -3,6 +3,7 @@ import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import ProgressBar from '@/Components/ProgressBar';
 import RelationshipsPanel from '@/Components/RelationshipsPanel';
+import RichTextEditor from '@/Components/RichTextEditor';
 import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate, formatDateTime } from '@/utils';
@@ -22,7 +23,10 @@ export default function Show({ policy, links = [], attestation = null, users = [
         compensating_measures: '',
         requested_from: new Date().toISOString().slice(0, 10),
         requested_to: '',
-    });
+    
+        compensating_measures_rich: null,
+        justification_rich: null,
+});
 
     const submitWaiver = (e) => {
         e.preventDefault();
@@ -266,21 +270,21 @@ export default function Show({ policy, links = [], attestation = null, users = [
 
                     <div>
                         <label className="form-label">Justification</label>
-                        <textarea
-                            className="form-input"
-                            rows={3}
-                            value={waiver.data.justification}
-                            onChange={(e) => waiver.setData('justification', e.target.value)}
+                        <RichTextEditor
+                            value={waiver.data.justification_rich ?? waiver.data.justification}
+                            onChange={(doc, plain) => waiver.setData((d) => ({ ...d, justification: plain, justification_rich: doc }))}
+                            tools="minimal"
+                            minHeight={90}
                         />
                     </div>
 
                     <div>
                         <label className="form-label">Compensating measures</label>
-                        <textarea
-                            className="form-input"
-                            rows={2}
-                            value={waiver.data.compensating_measures}
-                            onChange={(e) => waiver.setData('compensating_measures', e.target.value)}
+                        <RichTextEditor
+                            value={waiver.data.compensating_measures_rich ?? waiver.data.compensating_measures}
+                            onChange={(doc, plain) => waiver.setData((d) => ({ ...d, compensating_measures: plain, compensating_measures_rich: doc }))}
+                            tools="minimal"
+                            minHeight={90}
                         />
                     </div>
 

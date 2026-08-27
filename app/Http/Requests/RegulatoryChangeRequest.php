@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\RichTextRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class RegulatoryChangeRequest extends FormRequest
@@ -21,6 +22,7 @@ class RegulatoryChangeRequest extends FormRequest
             'effective_at' => ['nullable', 'date'],
             'document_url' => ['nullable', 'url', 'max:500'],
             'summary' => ['nullable', 'string', 'max:5000'],
+            'summary_rich' => ['nullable', 'array', new RichTextRule],
         ];
     }
 }

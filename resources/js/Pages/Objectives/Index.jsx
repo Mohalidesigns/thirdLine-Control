@@ -6,11 +6,11 @@ import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import PrimaryButton from '@/Components/PrimaryButton';
 import ProgressBar from '@/Components/ProgressBar';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import StatCard from '@/Components/StatCard';
 import StatusBadge from '@/Components/StatusBadge';
-import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
@@ -182,7 +182,9 @@ function CreateModal({ show, onClose, perspectives, entities, owners, parents, m
         progress_mode: 'auto',
         weight: 1,
         measures: [],
-    });
+    
+        description_rich: null,
+});
 
     const addMeasure = () =>
         form.setData('measures', [...form.data.measures, { metric_id: '', baseline_value: '', target_value: '', weight: 1 }]);
@@ -232,7 +234,12 @@ function CreateModal({ show, onClose, perspectives, entities, owners, parents, m
 
                 <div>
                     <InputLabel value="Description" />
-                    <TextArea rows={2} value={form.data.description} onChange={(e) => form.setData('description', e.target.value)} />
+                    <RichTextEditor
+                        value={form.data.description_rich ?? form.data.description}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, description: plain, description_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
+                    />
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">

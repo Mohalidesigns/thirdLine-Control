@@ -9,6 +9,7 @@ use App\Models\Control;
 use App\Models\Incident;
 use App\Models\OrganisationUnit;
 use App\Models\User;
+use App\Rules\RichTextRule;
 use App\Services\ComplaintService;
 use App\Services\ExcelExportService;
 use App\Services\LinkageService;
@@ -170,6 +171,7 @@ class ComplaintController extends Controller
 
         $validated = $request->validate([
             'resolution_summary' => ['required', 'string', 'max:4000'],
+            'resolution_summary_rich' => ['nullable', 'array', new RichTextRule],
             'resolution_type' => ['required', 'in:'.implode(',', Complaint::RESOLUTION_TYPES)],
             'root_cause_id' => ['required', 'exists:complaint_categories,id'],
             'redress_amount_minor' => ['nullable', 'integer', 'min:0'],

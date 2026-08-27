@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\Risk;
 use App\Models\RiskAssessment;
 use App\Models\RiskAssessmentScale;
+use App\Rules\RichTextRule;
 use App\Services\RiskAssessmentService;
 use App\Support\Money;
 use Illuminate\Foundation\Http\FormRequest;
@@ -35,7 +36,9 @@ class RiskAssessmentRequest extends FormRequest
             'likelihood_level' => ['required', 'integer', "between:1,{$maxLikelihood}"],
             'impact_level' => ['required', 'integer', "between:1,{$maxImpact}"],
             'likelihood_rationale' => ['nullable', 'string', 'max:2000'],
+            'likelihood_rationale_rich' => ['nullable', 'array', new RichTextRule],
             'impact_rationale' => ['nullable', 'string', 'max:2000'],
+            'impact_rationale_rich' => ['nullable', 'array', new RichTextRule],
             'impact_dimensions' => ['nullable', 'array'],
             ...$dimensionRules,
             'confidence' => ['nullable', Rule::in(['Low', 'Medium', 'High'])],

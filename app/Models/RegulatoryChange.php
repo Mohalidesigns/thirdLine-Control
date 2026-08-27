@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RegulatoryChange extends Model
 {
-    use Auditable, BelongsToTenant, HasFactory;
+    use Auditable, BelongsToTenant, HasFactory, HasRichText;
 
     public const STATUSES = ['New', 'Under Review', 'Impact Assessed', 'Actioned', 'Not Applicable'];
 
@@ -29,6 +30,9 @@ class RegulatoryChange extends Model
         'assessed_by', 'assessed_at', 'actioned_by', 'actioned_at',
         'affected_obligation_ids', 'affected_control_ids', 'source', 'source_guid',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['impact_assessment', 'summary'];
 
     protected $casts = [
         'published_at' => 'datetime',

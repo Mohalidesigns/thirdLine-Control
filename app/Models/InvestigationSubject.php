@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,7 +23,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class InvestigationSubject extends Model
 {
-    use Auditable, BelongsToTenant, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenant, HasFactory, HasRichText, SoftDeletes;
 
     public const TYPES = ['staff', 'customer', 'vendor', 'third_party', 'system_process', 'unknown'];
 
@@ -42,6 +43,9 @@ class InvestigationSubject extends Model
         'role_in_case', 'outcome', 'outcome_rationale', 'outcome_recorded_on',
         'outcome_recorded_by', 'notes',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['outcome_rationale'];
 
     protected $casts = ['outcome_recorded_on' => 'date'];
 

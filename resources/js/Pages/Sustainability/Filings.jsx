@@ -3,10 +3,10 @@ import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import StatusBadge from '@/Components/StatusBadge';
-import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import VerificationBadge from '@/Components/VerificationBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -336,7 +336,12 @@ function FileStageModal({ target, onClose }) {
                 </div>
                 <div>
                     <InputLabel value="Note" />
-                    <TextArea rows={2} value={form.data.note} onChange={(e) => form.setData('note', e.target.value)} />
+                    <RichTextEditor
+                        value={form.data.note_rich ?? form.data.note}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, note: plain, note_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
+                    />
                 </div>
                 <div className="flex justify-end gap-2">
                     <SecondaryButton type="button" onClick={onClose}>
@@ -370,11 +375,11 @@ function VerifyFilingModal({ filing, onClose }) {
                 </p>
                 <div>
                     <InputLabel value="What was checked, and against what" required />
-                    <TextArea
-                        rows={3}
-                        value={form.data.verification_note}
-                        onChange={(e) => form.setData('verification_note', e.target.value)}
-                        placeholder="Checked against the FRC roadmap dated …, section …"
+                    <RichTextEditor
+                        value={form.data.verification_note_rich ?? form.data.verification_note}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, verification_note: plain, verification_note_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
                     />
                     {form.errors.verification_note && (
                         <p className="mt-1 text-xs text-[var(--color-error)]">{form.errors.verification_note}</p>

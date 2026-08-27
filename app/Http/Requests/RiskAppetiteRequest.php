@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\RiskAppetite;
+use App\Rules\RichTextRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -19,11 +20,13 @@ class RiskAppetiteRequest extends FormRequest
             'entity_id' => ['nullable', 'exists:organisation_units,id'],
             'risk_category_id' => ['nullable', 'exists:risk_categories,id'],
             'statement' => ['required', 'string', 'max:4000'],
+            'statement_rich' => ['nullable', 'array', new RichTextRule],
             'appetite_level' => ['required', Rule::in(RiskAppetite::LEVELS)],
             'tolerance_lower' => ['nullable', 'numeric', 'min:0'],
             'tolerance_upper' => ['nullable', 'numeric', 'min:0', 'gte:tolerance_lower'],
             'capacity' => ['nullable', 'numeric', 'min:0', 'gte:tolerance_upper'],
             'metric_definition' => ['nullable', 'string', 'max:2000'],
+            'metric_definition_rich' => ['nullable', 'array', new RichTextRule],
             'effective_from' => ['nullable', 'date'],
             'review_due_at' => ['nullable', 'date', 'after:today'],
         ];

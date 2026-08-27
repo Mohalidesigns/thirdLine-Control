@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\DataSourceDataset;
 use App\Models\MonitoringRule;
+use App\Rules\RichTextRule;
 use App\Services\RuleEngineService;
 use App\Services\SamplingService;
 use Illuminate\Contracts\Validation\Validator;
@@ -24,6 +25,7 @@ class MonitoringRuleRequest extends FormRequest
             'control_id' => ['nullable', 'exists:controls,id'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:4000'],
+            'description_rich' => ['nullable', 'array', new RichTextRule],
             'rule_type' => ['required', Rule::in(MonitoringRule::TYPES)],
             'dataset_ids' => ['required', 'array', 'min:1', 'max:5'],
             'dataset_ids.*' => ['integer', 'exists:data_source_datasets,id'],

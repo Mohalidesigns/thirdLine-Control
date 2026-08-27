@@ -3,6 +3,7 @@ import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import RaiseInvestigationButton from '@/Components/RaiseInvestigationButton';
 import RelationshipsPanel from '@/Components/RelationshipsPanel';
+import RichTextEditor from '@/Components/RichTextEditor';
 import StatusBadge from '@/Components/StatusBadge';
 import VerificationBadge from '@/Components/VerificationBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -31,7 +32,9 @@ export default function Show({
         redress_currency: 'NGN',
         customer_satisfied: true,
         linked_control_id: '',
-    });
+    
+        resolution_summary_rich: null,
+});
 
     const submitResolution = (e) => {
         e.preventDefault();
@@ -257,11 +260,11 @@ export default function Show({
 
                     <div>
                         <label className="form-label">Resolution summary</label>
-                        <textarea
-                            className="form-input"
-                            rows={3}
-                            value={resolution.data.resolution_summary}
-                            onChange={(e) => resolution.setData('resolution_summary', e.target.value)}
+                        <RichTextEditor
+                            value={resolution.data.resolution_summary_rich ?? resolution.data.resolution_summary}
+                            onChange={(doc, plain) => resolution.setData((d) => ({ ...d, resolution_summary: plain, resolution_summary_rich: doc }))}
+                            tools="minimal"
+                            minHeight={90}
                         />
                     </div>
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MonitoringFinding extends Model
 {
-    use Auditable, BelongsToTenant, HasFactory;
+    use Auditable, BelongsToTenant, HasFactory, HasRichText;
 
     public const STATUSES = [
         'Open', 'Under Review', 'Confirmed', 'False Positive', 'Remediated', 'Accepted',
@@ -25,6 +26,9 @@ class MonitoringFinding extends Model
         'severity', 'status', 'reviewed_by', 'reviewed_at', 'review_notes',
         'exception_id', 'incident_id',
     ];
+
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['review_notes'];
 
     protected $casts = [
         'record_data' => 'array',

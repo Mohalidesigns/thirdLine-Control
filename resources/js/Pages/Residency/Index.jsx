@@ -5,10 +5,10 @@ import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import Pagination from '@/Components/Pagination';
 import PrimaryButton from '@/Components/PrimaryButton';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import StatusBadge from '@/Components/StatusBadge';
-import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime } from '@/utils';
@@ -203,7 +203,10 @@ function TransferForm({ lawfulBases, entities, onDone }) {
         lawful_basis_id: '',
         lawful_basis_note: '',
         volume_records: '',
-    });
+    
+        description_rich: null,
+        lawful_basis_note_rich: null,
+});
 
     const submit = (e) => {
         e.preventDefault();
@@ -238,7 +241,12 @@ function TransferForm({ lawfulBases, entities, onDone }) {
                 </div>
                 <div className="sm:col-span-2">
                     <InputLabel value="Description" required />
-                    <TextArea rows={2} value={form.data.description} onChange={(e) => form.setData('description', e.target.value)} className="w-full" />
+                    <RichTextEditor
+                        value={form.data.description_rich ?? form.data.description}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, description: plain, description_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
+                    />
                     <InputError message={form.errors.description} />
                 </div>
                 <div>
@@ -274,7 +282,12 @@ function TransferForm({ lawfulBases, entities, onDone }) {
                 </div>
                 <div className="sm:col-span-2">
                     <InputLabel value="Basis note (adequacy / instrument reference)" />
-                    <TextArea rows={2} value={form.data.lawful_basis_note} onChange={(e) => form.setData('lawful_basis_note', e.target.value)} className="w-full" />
+                    <RichTextEditor
+                        value={form.data.lawful_basis_note_rich ?? form.data.lawful_basis_note}
+                        onChange={(doc, plain) => form.setData((d) => ({ ...d, lawful_basis_note: plain, lawful_basis_note_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
+                    />
                 </div>
                 <label className="flex items-center gap-2 text-sm text-gray-600 sm:col-span-2">
                     <input

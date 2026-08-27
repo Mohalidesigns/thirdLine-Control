@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\DataSource;
+use App\Rules\RichTextRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -45,6 +46,7 @@ class DataSourceRequest extends FormRequest
             'rate_limit_per_minute' => ['nullable', 'integer', 'min:1', 'max:10000'],
             'timeout_seconds' => ['nullable', 'integer', 'min:1', 'max:600'],
             'data_residency_note' => ['nullable', 'string', 'max:2000'],
+            'data_residency_note_rich' => ['nullable', 'array', new RichTextRule],
             'owner_id' => ['nullable', 'tenant_user'],
         ];
     }

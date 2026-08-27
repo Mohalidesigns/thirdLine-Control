@@ -7,6 +7,7 @@ use App\Models\Risk;
 use App\Models\RiskTreatment;
 use App\Models\TreatmentMilestone;
 use App\Models\User;
+use App\Rules\RichTextRule;
 use App\Services\LinkageService;
 use App\Services\TreatmentService;
 use Illuminate\Http\RedirectResponse;
@@ -98,6 +99,7 @@ class RiskTreatmentController extends Controller
 
         $validated = $request->validate([
             'acceptance_reason' => ['nullable', 'string', 'max:2000'],
+            'acceptance_reason_rich' => ['nullable', 'array', new RichTextRule],
             'acceptance_expiry' => ['nullable', 'date', 'after:today'],
         ]);
 
@@ -129,9 +131,17 @@ class RiskTreatmentController extends Controller
     {
         $this->authorize('verify', $treatment);
 
-        $validated = $request->validate(['verification_notes' => ['nullable', 'string', 'max:2000']]);
+        $validated = $request->validate([
+            'verification_notes' => ['nullable', 'string', 'max:2000'],
+            'verification_notes_rich' => ['nullable', 'array', new RichTextRule],
+        ]);
 
-        $this->treatments->verify($treatment, $request->user(), $validated['verification_notes'] ?? null);
+        $this->treatments->verify(
+            $treatment,
+            $request->user(),
+            $validated['verification_notes'] ?? null,
+            $validated['verification_notes_rich'] ?? null,
+        );
 
         return back()->with('success', 'Treatment verified — the risk position has been re-scored.');
     }

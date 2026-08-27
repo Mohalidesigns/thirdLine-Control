@@ -9,6 +9,7 @@ use App\Models\Metric;
 use App\Models\Objective;
 use App\Models\ObjectiveMetric;
 use App\Models\User;
+use App\Rules\RichTextRule;
 use App\Services\LinkageService;
 use App\Services\ObjectiveService;
 use Illuminate\Http\RedirectResponse;
@@ -173,6 +174,7 @@ class ObjectiveController extends Controller
             'progress' => ['required', 'integer', 'min:0', 'max:100'],
             'status' => ['required', 'in:'.implode(',', Objective::STATUSES)],
             'note' => ['nullable', 'string', 'max:2000'],
+            'note_rich' => ['nullable', 'array', new RichTextRule],
         ]);
 
         $before = ['progress' => (int) $objective->progress, 'status' => $objective->status];

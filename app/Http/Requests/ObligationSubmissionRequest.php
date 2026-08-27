@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\RichTextRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -22,6 +23,7 @@ class ObligationSubmissionRequest extends FormRequest
             'submission_reference' => ['required', 'string', 'max:120'],
             'acknowledgement_ref' => ['nullable', 'string', 'max:120'],
             'notes' => ['nullable', 'string', 'max:5000'],
+            'notes_rich' => ['nullable', 'array', new RichTextRule],
         ];
     }
 }

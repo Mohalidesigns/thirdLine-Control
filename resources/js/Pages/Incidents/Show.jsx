@@ -3,6 +3,7 @@ import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import RaiseInvestigationButton from '@/Components/RaiseInvestigationButton';
 import RelationshipsPanel from '@/Components/RelationshipsPanel';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SeverityBadge from '@/Components/SeverityBadge';
 import StatusBadge from '@/Components/StatusBadge';
 import VerificationBadge from '@/Components/VerificationBadge';
@@ -16,7 +17,7 @@ export default function Show({ incident, links = [], users = [], controls = [], 
     const [notifying, setNotifying] = useState(null);
     const [addingAction, setAddingAction] = useState(false);
 
-    const notification = useForm({ notification_reference: '', notes: '' });
+    const notification = useForm({ notification_reference: '', notes: '' , notes_rich: null});
     const action = useForm({
         action_type: 'corrective',
         title: '',
@@ -382,11 +383,11 @@ export default function Show({ incident, links = [], users = [], controls = [], 
 
                     <div>
                         <label className="form-label">Notes</label>
-                        <textarea
-                            className="form-input"
-                            rows={3}
-                            value={notification.data.notes}
-                            onChange={(e) => notification.setData('notes', e.target.value)}
+                        <RichTextEditor
+                            value={notification.data.notes_rich ?? notification.data.notes}
+                            onChange={(doc, plain) => notification.setData((d) => ({ ...d, notes: plain, notes_rich: doc }))}
+                            tools="minimal"
+                            minHeight={90}
                         />
                     </div>
 

@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Initiative;
 use App\Models\InitiativeMilestone;
+use App\Rules\RichTextRule;
 use App\Support\Money;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -22,6 +23,7 @@ class InitiativeRequest extends FormRequest
             'entity_id' => ['nullable', 'exists:entities,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:4000'],
+            'description_rich' => ['nullable', 'array', new RichTextRule],
             'owner_id' => ['nullable', 'tenant_user'],
             'status' => ['required', Rule::in(Initiative::STATUSES)],
             'start_date' => ['nullable', 'date'],
