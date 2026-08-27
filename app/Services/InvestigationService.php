@@ -174,7 +174,18 @@ class InvestigationService
     private function initialTeam(Investigation $investigation, array $data, ?Model $origin): array
     {
         if ($origin instanceof SpeakUpCase) {
-            return array_map('intval', $origin->access_user_ids ?? []);
+            $allowlist = array_map('intval', $origin->access_user_ids ?? []);
+
+            // The reporter is on the Speak Up allowlist by design — they
+            // must be able to follow their own report and read the
+            // feedback written back to them. They must NOT thereby become
+            // an investigator on the case their report opened: that hands
+            // them the subjects, the outcomes and the evidence register,
+            // prints their name in the report's parties table, and lets a
+            // reader work backwards from the team to the source. The
+            // allowlist grants sight of the SUBMISSION, not a seat on the
+            // investigation.
+            return array_values(array_diff($allowlist, [(int) $origin->reporter_id]));
         }
 
         return array_map('intval', $data['team_member_ids'] ?? []);
@@ -284,6 +295,37 @@ class InvestigationService
      * failure but does NOT roll the completion back. Report generation
      * must never be able to strand a case in pending_review.
      */
+    /**
+     * Spec §7.5 / §7.3 — the soft half of the completion gate.
+     *
+     * These do not block. A case can legitimately conclude with nobody
+     * named (a process failure with no culpable person) or with the
+     * evidence held outside the platform. What they must not do is pass
+     * unremarked, because each is far more often an omission than a
+     * finding.
+     *
+     * @return array<int, string>
+     */
+    public function completionWarnings(Investigation $investigation): array
+    {
+        $warnings = [];
+
+        if ($investigation->subjects()->count() === 0) {
+            $warnings[] = 'no subject was named';
+        }
+
+        if ($investigation->evidence()->count() === 0) {
+            $warnings[] = 'no evidence was attached';
+        }
+
+        if ($investigation->confirmedLossExceedsEstimate()) {
+            $threshold = (int) round(Investigation::IMPACT_VARIANCE_THRESHOLD * 100);
+            $warnings[] = "the confirmed loss is more than {$threshold}% above the opening estimate — revisit the priority and risk rating";
+        }
+
+        return $warnings;
+    }
+
     public function complete(Investigation $investigation, User $actor, array $data): Investigation
     {
         $this->assertNotArchived($investigation);
@@ -314,6 +356,26 @@ class InvestigationService
             ]);
         }
 
+        // Spec §7.5. The reference implementation shows a case marked
+        // Completed and rated High with no findings, no subjects, no
+        // evidence and no consequences — a status column asserting a
+        // conclusion the record cannot support. A completed investigation
+        // must at minimum say what it established and what it concluded;
+        // those two produce a report with content in it.
+        if ($investigation->findings()->count() === 0) {
+            throw ValidationException::withMessages([
+                'findings' => 'An investigation cannot be completed without at least one finding. If it established nothing, record that as a finding — a completed case with no findings cannot be reported on.',
+            ]);
+        }
+
+        $conclusion = trim((string) ($data['conclusion'] ?? $investigation->conclusion));
+
+        if ($conclusion === '') {
+            throw ValidationException::withMessages([
+                'conclusion' => 'An investigation cannot be completed without a conclusion. It is the one section of the report that cannot be generated from the record.',
+            ]);
+        }
+
         DB::transaction(function () use ($investigation, $actor, $data) {
             $investigation->update([
                 'status' => 'completed',
@@ -338,12 +400,29 @@ class InvestigationService
             ]);
         });
 
+        $run = null;
+
         try {
-            $this->reports->generate($investigation->refresh(), $actor);
+            $run = $this->reports->generate($investigation->refresh(), $actor);
         } catch (\Throwable $e) {
             // Deliberately swallowed: the investigation IS complete. A
             // failed report is a report to re-run, not a case to strand.
             Log::error('Investigation report generation failed after completion', [
+                'investigation' => $investigation->reference,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        // Spec §5.3 — completion produces version 1 of the report, in
+        // draft, waiting for its first reviewer. Deliberately outside the
+        // try above and not conditional on it: the render is the document,
+        // this is its position in the review chain, and a renderer that
+        // fell over must not also cost the case its review workflow. The
+        // run is attached if there is one and back-filled if there is not.
+        try {
+            app(InvestigationReportWorkflow::class)->openDraft($investigation->refresh(), $actor, $run);
+        } catch (\Throwable $e) {
+            Log::error('Investigation report draft could not be opened after completion', [
                 'investigation' => $investigation->reference,
                 'error' => $e->getMessage(),
             ]);

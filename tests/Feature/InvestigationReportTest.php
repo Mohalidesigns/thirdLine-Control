@@ -168,7 +168,25 @@ class InvestigationReportTest extends TestCase
         $investigation = $this->fullCase();
         $sections = collect($this->builder()->sections($investigation))->keyBy('key');
 
-        $this->assertSame('A. Teller', $sections['parties']['table']['rows'][0][0]);
+        // Spec §5.3-2: the investigating team leads the parties section,
+        // then the people the investigation named.
+        $parties = $sections['parties']['table']['rows'];
+
+        $this->assertSame($investigation->leadInvestigator->name, $parties[0][0]);
+        $this->assertSame('Investigation team', $parties[0][1]);
+        $this->assertSame('Lead', $parties[0][2]);
+
+        $this->assertContains('A. Teller', array_column($parties, 0));
+
+        // §7.2 — the lead reaches this table from two directions and must
+        // still appear once.
+        $names = array_column($parties, 0);
+        $this->assertSame(
+            count($names),
+            count(array_unique($names)),
+            'The lead is both a team member and lead_investigator_id — the report must print them once.',
+        );
+
         $this->assertNotEmpty($sections['chronology']['table']['rows']);
         $this->assertSame('CTL-042', $sections['findings_of_fact']['table']['rows'][0][3]);
         $this->assertStringContainsString('CTL-042', $sections['root_cause']['body']);
@@ -191,7 +209,7 @@ class InvestigationReportTest extends TestCase
 
     public function test_generation_produces_a_run_through_the_shared_pipeline(): void
     {
-        $investigation = $this->service()->complete($this->fullCase(), $this->officer, ['risk_rating' => 'Critical']);
+        $investigation = $this->service()->complete($this->fullCase(), $this->officer, ['risk_rating' => 'Critical', 'conclusion' => 'The suppression is established and the loss is quantified.']);
 
         $run = ReportRun::query()->latest('id')->first();
 
@@ -221,7 +239,7 @@ class InvestigationReportTest extends TestCase
 
     public function test_the_run_lands_on_the_case_chronology(): void
     {
-        $investigation = $this->service()->complete($this->fullCase(), $this->officer, ['risk_rating' => 'Critical']);
+        $investigation = $this->service()->complete($this->fullCase(), $this->officer, ['risk_rating' => 'Critical', 'conclusion' => 'The suppression is established and the loss is quantified.']);
 
         $this->assertTrue($investigation->activities()->where('activity_type', 'report_issued')->exists());
         $this->assertTrue($this->builder()->hasReport($investigation));
@@ -230,7 +248,7 @@ class InvestigationReportTest extends TestCase
 
     public function test_regeneration_is_blocked_once_a_run_exists(): void
     {
-        $investigation = $this->service()->complete($this->fullCase(), $this->officer, ['risk_rating' => 'Critical']);
+        $investigation = $this->service()->complete($this->fullCase(), $this->officer, ['risk_rating' => 'Critical', 'conclusion' => 'The suppression is established and the loss is quantified.']);
 
         $this->expectException(ValidationException::class);
         $this->builder()->generate($investigation->refresh(), $this->officer);
@@ -253,7 +271,7 @@ class InvestigationReportTest extends TestCase
             }
         });
 
-        $investigation = app(InvestigationService::class)->complete($investigation, $this->officer, ['risk_rating' => 'High']);
+        $investigation = app(InvestigationService::class)->complete($investigation, $this->officer, ['risk_rating' => 'High', 'conclusion' => 'The suppression is established and the loss is quantified.']);
 
         $this->assertSame('completed', $investigation->status);
         $this->assertSame('High', $investigation->risk_rating);
@@ -284,6 +302,16 @@ class InvestigationReportTest extends TestCase
             'source' => 'whistleblowing',
             'priority' => 'High',
         ], $this->officer, $case);
+
+        // The leak this test was written to catch lived in the RECORD, not
+        // in the rendering: the Speak Up allowlist carries the reporter so
+        // they can follow their own report, and the investigation team was
+        // seeded from that allowlist wholesale. It went unnoticed while the
+        // report declined to print its own team. Assert the record first.
+        $this->assertFalse(
+            $investigation->teamMembers()->where('user_id', $reporter->id)->exists(),
+            'A Speak Up reporter must not be seeded onto the investigation their report opened.',
+        );
 
         $document = json_encode($this->builder()->document($investigation, $this->officer));
 

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\GeneratesReference;
+use App\Models\Concerns\HasRichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,7 +23,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class ConsequenceAction extends Model
 {
-    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, SoftDeletes;
+    use Auditable, BelongsToTenant, GeneratesReference, HasFactory, HasRichText, SoftDeletes;
 
     public const ACTION_TYPES = [
         'query_issued', 'warning_letter', 'suspension', 'demotion', 'dismissal',
@@ -46,11 +47,14 @@ class ConsequenceAction extends Model
         'amount_recovered', 'evidence_id', 'improvement_action_id',
     ];
 
+    /** Spec §9 — Editor.js documents in {field}_rich; the plain column is the derived mirror. */
+    protected array $richText = ['implementation_note', 'rejection_reason'];
+
     protected $casts = [
-        'recommended_on' => 'date',
-        'approved_on' => 'date',
-        'due_date' => 'date',
-        'implemented_on' => 'date',
+        'recommended_on' => 'date:Y-m-d',
+        'approved_on' => 'date:Y-m-d',
+        'due_date' => 'date:Y-m-d',
+        'implemented_on' => 'date:Y-m-d',
         'amount_recovered' => 'decimal:2',
     ];
 

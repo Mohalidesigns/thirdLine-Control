@@ -151,6 +151,12 @@ class InvestigationController extends Controller
             'links' => $this->linkage->neighbours('investigation', $investigation->id),
             'reports' => $this->reports->runsFor($investigation),
             'hasReport' => $this->reports->hasReport($investigation),
+            // Spec §5.3 — the report as a document under review, which is a
+            // different question from which renders exist for it.
+            'reportVersions' => $investigation->reports()
+                ->with('preparedBy:id,name')
+                ->orderByDesc('version')
+                ->get(),
             'options' => $this->options(full: true),
             'users' => User::tenantPicker()->get(['id', 'name']),
             'manualActivityTypes' => InvestigationActivity::MANUAL_TYPES,
@@ -196,6 +202,15 @@ class InvestigationController extends Controller
 
         $investigation->update([...$data, 'updated_by' => $request->user()->id]);
 
+        // Spec §7.3 — an investigation uncovering more than was first
+        // estimated is normal, so this saves and then says so rather than
+        // refusing the figure.
+        if ($investigation->confirmedLossExceedsEstimate()) {
+            $threshold = (int) round(Investigation::IMPACT_VARIANCE_THRESHOLD * 100);
+
+            return back()->with('warning', "Saved. The confirmed loss is more than {$threshold}% above the opening estimate — revisit the priority and risk rating.");
+        }
+
         return back()->with('success', 'Investigation updated.');
     }
 
@@ -235,9 +250,18 @@ class InvestigationController extends Controller
     {
         $this->authorize('complete', $investigation);
 
+        // Read before the transition: once complete() runs, the warnings
+        // describe a case the investigator can no longer edit, so they are
+        // gathered while they can still act on them.
+        $warnings = $this->investigations->completionWarnings($investigation);
+
         $investigation = $this->investigations->complete($investigation, $request->user(), $request->validated());
 
-        return back()->with('success', "Investigation completed and rated {$investigation->risk_rating}. A draft report has been generated.");
+        $redirect = back()->with('success', "Investigation completed and rated {$investigation->risk_rating}. A draft report has been generated.");
+
+        return $warnings === []
+            ? $redirect
+            : $redirect->with('warning', 'Completed, but note: '.implode('; ', $warnings).'.');
     }
 
     public function archive(ArchiveInvestigationRequest $request, Investigation $investigation): RedirectResponse
@@ -409,6 +433,17 @@ class InvestigationController extends Controller
                 // to offer a switch that the service would refuse (§D.3-1).
                 'is_confidential' => true,
                 'confidentiality_locked' => true,
+                // Spec §5.4 — the concern itself carries across, blocks
+                // intact, so the investigator is not retyping a disclosure
+                // (and quietly paraphrasing it) to open the case. The
+                // reporter's identity and device metadata do NOT: they stay
+                // on the submission, and only the submission reference
+                // crosses over.
+                'description' => $origin->description,
+                'description_rich' => $origin->description_rich,
+                'reported_date' => $origin->received_at?->toDateString(),
+                'organisation_unit_id' => $origin->entity_id,
+                'origin_reference' => $origin->case_ref,
             ],
             'exception' => [
                 'origin_type' => 'exception', 'origin_id' => $origin->getKey(),

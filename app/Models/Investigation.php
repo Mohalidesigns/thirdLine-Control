@@ -114,16 +114,17 @@ class Investigation extends Model
     ];
 
     /** Editor.js-backed fields — see HasRichText. */
-    protected array $richText = [
-        'description', 'background', 'scope', 'objectives', 'methodology', 'chronology', 'conclusion',
-    ];
+    protected array $richText = ['archive_reason', 'background', 'chronology', 'conclusion', 'description', 'methodology', 'objectives', 'scope'];
+
+    /** Derived, never stored — see daysOpen() and financialImpact(). */
+    protected $appends = ['days_open', 'financial_impact'];
 
     protected $casts = [
-        'reported_date' => 'date',
-        'commenced_date' => 'date',
-        'target_completion_date' => 'date',
-        'completed_date' => 'date',
-        'closed_date' => 'date',
+        'reported_date' => 'date:Y-m-d',
+        'commenced_date' => 'date:Y-m-d',
+        'target_completion_date' => 'date:Y-m-d',
+        'completed_date' => 'date:Y-m-d',
+        'closed_date' => 'date:Y-m-d',
         'is_confidential' => 'boolean',
         'confidentiality_locked' => 'boolean',
         'has_sod_conflict' => 'boolean',
@@ -187,6 +188,12 @@ class Investigation extends Model
         return $this->hasMany(ConsequenceAction::class);
     }
 
+    /** Spec §5.3 — the report(s), each with its own review trail. */
+    public function reports(): HasMany
+    {
+        return $this->hasMany(InvestigationReport::class);
+    }
+
     public function activities(): HasMany
     {
         return $this->hasMany(InvestigationActivity::class)->orderByDesc('activity_date');
@@ -218,6 +225,37 @@ class Investigation extends Model
     public function scopeOpen(Builder $query): Builder
     {
         return $query->whereIn('status', self::OPEN_STATUSES);
+    }
+
+    /**
+     * Spec §4 — OUTSTANDING is work in progress, and a draft is not.
+     *
+     * Deliberately narrower than open(): a draft is a case somebody has
+     * started typing, not a case the function is carrying. Counting drafts
+     * as outstanding inflates the one number a control function is asked
+     * for most often, and inflates it with records that may never be
+     * reported at all.
+     */
+    public const OUTSTANDING_STATUSES = ['reported', 'under_investigation', 'pending_review'];
+
+    public function scopeOutstanding(Builder $query): Builder
+    {
+        return $query->whereIn('status', self::OUTSTANDING_STATUSES);
+    }
+
+    /**
+     * Spec §4 — anything that has not finished, for the OVERDUE count.
+     *
+     * Wider than open() at both ends: drafts count, and so does a
+     * suspended case. A deadline does not stop existing because the case
+     * is waiting on a police report — the whole point of the number is to
+     * show what has slipped, and a suspended case past its date has.
+     * (Ageing takes the opposite view and buckets suspended separately,
+     * because there the question is how long work has been sitting.)
+     */
+    public function scopeUnfinished(Builder $query): Builder
+    {
+        return $query->whereNotIn('status', ['completed', 'closed']);
     }
 
     /** Archived cases drop out of every list, count and KPI. */
@@ -321,6 +359,82 @@ class Investigation extends Model
     public function netLoss(): float
     {
         return round((float) $this->confirmed_financial_loss - (float) $this->amount_recovered, 2);
+    }
+
+    /**
+     * Spec §7.6 — days open stops accruing when the case does.
+     *
+     * A closed case that keeps counting is not reporting how long the
+     * investigation took; it is reporting how long ago it happened. The
+     * clock stops at the completion date, or the closing date where the
+     * case went straight to closed.
+     */
+    public function daysOpen(): int
+    {
+        $end = $this->completed_date ?? $this->closed_date ?? now();
+
+        return (int) max(0, $this->reported_date?->diffInDays($end) ?? 0);
+    }
+
+    /**
+     * Spec §7.3 — the single figure the list and the status strip lead on.
+     *
+     * The reference implementation labels it "Financial Exposure" and
+     * shows the CONFIRMED loss under it, which reads as an estimate of
+     * what is at risk when it is in fact a finding of what was lost.
+     * Confirmed loss is the better number once it exists, so it wins —
+     * but it is labelled for what it is, which is why this returns the
+     * basis alongside the amount.
+     *
+     * @return array{amount: float|null, basis: string|null}
+     */
+    public function financialImpact(): array
+    {
+        if ($this->confirmed_financial_loss !== null) {
+            return ['amount' => (float) $this->confirmed_financial_loss, 'basis' => 'Confirmed'];
+        }
+
+        if ($this->estimated_financial_impact !== null) {
+            return ['amount' => (float) $this->estimated_financial_impact, 'basis' => 'Estimated'];
+        }
+
+        return ['amount' => null, 'basis' => null];
+    }
+
+    /**
+     * Spec §7.3 — an investigation that uncovers more than was first
+     * estimated is normal and must not be blocked. It should, however, be
+     * visible: a confirmed loss well past the opening estimate is the
+     * single most useful prompt to revisit the case's priority and rating.
+     */
+    public const IMPACT_VARIANCE_THRESHOLD = 0.20;
+
+    /**
+     * Both figures travel with the record so the list, the status strip
+     * and the dashboard read one implementation rather than three.
+     * Neither accessor issues a query.
+     */
+    public function getDaysOpenAttribute(): int
+    {
+        return $this->daysOpen();
+    }
+
+    /** @return array{amount: float|null, basis: string|null} */
+    public function getFinancialImpactAttribute(): array
+    {
+        return $this->financialImpact();
+    }
+
+    public function confirmedLossExceedsEstimate(): bool
+    {
+        $estimate = (float) $this->estimated_financial_impact;
+        $confirmed = (float) $this->confirmed_financial_loss;
+
+        if ($estimate <= 0 || $confirmed <= 0) {
+            return false;
+        }
+
+        return $confirmed > $estimate * (1 + self::IMPACT_VARIANCE_THRESHOLD);
     }
 
     public function raisedFromSpeakUp(): bool

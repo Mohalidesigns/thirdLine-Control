@@ -6,7 +6,7 @@ import SeverityBadge from '@/Components/SeverityBadge';
 import StatCard from '@/Components/StatCard';
 import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { formatDate } from '@/utils';
+import { formatCurrency, formatDate } from '@/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import { AlertTriangle, BarChart3, Clock, EyeOff, Gavel, Plus } from 'lucide-react';
 
@@ -63,6 +63,38 @@ export default function Index({ investigations, filters = {}, options = {}, stat
             ),
         },
         { field: 'reported_date', label: 'Reported', width: '8rem', render: (row) => <span className="text-xs">{formatDate(row.reported_date)}</span> },
+        {
+            // Spec §7.6 — frozen server-side at the completion date; a
+            // finished case must not keep counting.
+            field: 'days_open',
+            label: 'Days open',
+            width: '7rem',
+            render: (row) => (
+                <span className="tabular-nums text-xs text-[var(--color-text-secondary)]">
+                    {row.days_open ?? 0}d
+                    {['completed', 'closed'].includes(row.status) && (
+                        <span className="ml-1 text-gray-400" title="Stopped at completion">·</span>
+                    )}
+                </span>
+            ),
+        },
+        {
+            // Spec §7.3 — "Financial impact", not "Financial exposure":
+            // once a loss is confirmed this is a finding, not an estimate,
+            // so the basis is printed under the figure.
+            field: 'financial_impact',
+            label: 'Financial impact',
+            width: '10rem',
+            render: (row) =>
+                row.financial_impact?.amount == null ? (
+                    <span className="text-gray-400">—</span>
+                ) : (
+                    <div className="text-right">
+                        <p className="tabular-nums text-xs font-medium">{formatCurrency(row.financial_impact.amount)}</p>
+                        <p className="text-[0.65rem] uppercase tracking-wide text-gray-400">{row.financial_impact.basis}</p>
+                    </div>
+                ),
+        },
         { field: 'status', label: 'Status', width: '10rem', render: (row) => <StatusBadge status={humanise(row.status)} /> },
     ];
 

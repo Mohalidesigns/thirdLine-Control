@@ -81,6 +81,27 @@ class InvestigationWorkflowTest extends TestCase
         return $this->service()->transition($investigation, 'pending_review', $this->officer);
     }
 
+    /**
+     * Spec §7.5 — completion now requires a finding and a conclusion, so
+     * every test that only wanted "a completed case" has to supply the
+     * substance one is made of. Kept in one helper so the gate can tighten
+     * again without editing a dozen call sites.
+     */
+    private function completeWith(Investigation $investigation, string $rating): Investigation
+    {
+        if ($investigation->findings()->count() === 0) {
+            $this->service()->addFinding($investigation, [
+                'title' => 'Cash lodgements were not posted on the day they were received',
+                'severity' => 'Moderate',
+            ], $this->officer);
+        }
+
+        return $this->service()->complete($investigation, $this->officer, [
+            'risk_rating' => $rating,
+            'conclusion' => 'The suppression is established and the loss is quantified.',
+        ]);
+    }
+
     // ── Reference, defaults and the diary ────────────────────────────
 
     public function test_opening_an_investigation_stamps_the_house_reference_and_seeds_the_lead(): void
@@ -227,7 +248,7 @@ class InvestigationWorkflowTest extends TestCase
 
         $this->service()->recordSubjectOutcome($subject, 'culpable', 'Admitted the suppression in interview.', $this->officer);
 
-        $investigation = $this->service()->complete($investigation, $this->officer, ['risk_rating' => 'High']);
+        $investigation = $this->completeWith($investigation, 'High');
 
         $this->assertSame('completed', $investigation->status);
         $this->assertSame('High', $investigation->risk_rating);
@@ -382,6 +403,6 @@ class InvestigationWorkflowTest extends TestCase
     {
         $investigation = $this->toPendingReview($this->open());
 
-        return $this->service()->complete($investigation, $this->officer, ['risk_rating' => 'Moderate']);
+        return $this->completeWith($investigation, 'Moderate');
     }
 }

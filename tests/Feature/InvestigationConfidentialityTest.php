@@ -386,8 +386,16 @@ class InvestigationConfidentialityTest extends TestCase
 
         $this->service()->recordSubjectOutcome($subject, 'culpable', 'Three awards with no competitive process.', $this->lead);
 
+        $this->service()->addFinding($investigation, [
+            'title' => 'Three awards were made with no competitive process',
+            'severity' => 'High',
+        ], $this->lead);
+
         $investigation = $this->service()->transition($investigation, 'pending_review', $this->lead);
-        $investigation = $this->service()->complete($investigation, $this->lead, ['risk_rating' => 'High']);
+        $investigation = $this->service()->complete($investigation, $this->lead, [
+            'risk_rating' => 'High',
+            'conclusion' => 'The awards were made outside the procurement policy.',
+        ]);
 
         $this->assertSame('completed', $investigation->status);
     }

@@ -40,7 +40,7 @@ class InvestigationFinding extends Model
     protected array $richText = ['description', 'root_cause', 'control_failure', 'recommendation'];
 
     protected $casts = [
-        'established_on' => 'date',
+        'established_on' => 'date:Y-m-d',
         'financial_impact' => 'decimal:2',
     ];
 

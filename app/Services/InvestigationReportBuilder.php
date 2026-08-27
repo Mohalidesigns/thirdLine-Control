@@ -7,6 +7,8 @@ use App\Models\ControlException;
 use App\Models\Incident;
 use App\Models\Investigation;
 use App\Models\InvestigationActivity;
+use App\Models\InvestigationReport;
+use App\Models\InvestigationTeamMember;
 use App\Models\ReportDefinition;
 use App\Models\ReportRun;
 use App\Models\SpeakUpCase;
@@ -87,6 +89,40 @@ class InvestigationReportBuilder
         }
 
         return $run;
+    }
+
+    /**
+     * Render an ISSUED report from its frozen snapshot.
+     *
+     * Deliberately bypasses the once-only guard on generate(): that guard
+     * stops an investigator producing a second draft by pressing the
+     * button twice, and this is not that. The document handed to the
+     * engine comes from `snapshot`, so what gets rendered is what was
+     * approved — not what the case looks like at the moment of rendering.
+     */
+    public function renderSnapshot(InvestigationReport $report, User $user, string $format = 'pdf'): ReportRun
+    {
+        $investigation = $report->investigation;
+
+        if (! $report->snapshot) {
+            throw ValidationException::withMessages([
+                'report' => "{$report->report_number} has no frozen snapshot to render.",
+            ]);
+        }
+
+        return $this->reports->runWithDocument(
+            $this->definition($investigation),
+            $user,
+            $format,
+            $report->snapshot,
+            [
+                'investigation_id' => $investigation->id,
+                'reference' => $investigation->reference,
+                'report_number' => $report->report_number,
+                'version' => $report->version,
+                'issued' => true,
+            ],
+        );
     }
 
     public function hasReport(Investigation $investigation): bool
@@ -270,6 +306,50 @@ class InvestigationReportBuilder
         return trim($preamble."\n\n".(string) $investigation->background);
     }
 
+    /**
+     * Spec §5.3-2 / §7.2 — the investigating team, then the people the
+     * investigation named.
+     *
+     * The team was missing from this section entirely: a report that names
+     * subjects and outcomes without saying who reached them is not a
+     * defensible document. It is keyed by user id on the way out because
+     * the lead reaches this method twice — once as a team member with
+     * `role = 'lead'`, once through the denormalised
+     * `lead_investigator_id` — and the reference implementation prints
+     * that person on two consecutive lines.
+     *
+     * @return array<int, array<int, string>>
+     */
+    private function teamRows(Investigation $investigation): array
+    {
+        $members = $investigation->teamMembers()->with('user:id,name')->get()
+            ->filter(fn (InvestigationTeamMember $member) => $member->user !== null)
+            ->keyBy('user_id');
+
+        // The convenience column, only if it names somebody the team table
+        // does not already carry.
+        if ($investigation->lead_investigator_id && ! $members->has($investigation->lead_investigator_id)) {
+            if ($lead = $investigation->leadInvestigator) {
+                $synthetic = new InvestigationTeamMember(['user_id' => $lead->id, 'role' => 'lead']);
+                $synthetic->setRelation('user', $lead);
+                $members->put($lead->id, $synthetic);
+            }
+        }
+
+        return $members
+            ->sortBy(fn (InvestigationTeamMember $member) => $member->role === 'lead' ? 0 : 1)
+            ->map(fn (InvestigationTeamMember $member) => [
+                $member->user->name,
+                'Investigation team',
+                $this->humanise($member->role),
+                '—',
+                '—',
+                '—',
+            ])
+            ->values()
+            ->all();
+    }
+
     private function parties(Investigation $investigation): array
     {
         $interviews = $investigation->activities()
@@ -292,9 +372,21 @@ class InvestigationReportBuilder
 
         return $this->table('parties', [
             'Name', 'Type', 'Role in case', 'Department', 'Outcome', 'Interviewed',
-        ], $rows, 'Every person, account or process this investigation named.');
+        ], [...$this->teamRows($investigation), ...$rows],
+            'The investigating team, then every person, account or process this investigation named.');
     }
 
+    /**
+     * Spec §5.3-4 / §7.4 — two different timelines, both of which belong
+     * in the report, separately labelled.
+     *
+     * The narrative is the investigator's account of when the INCIDENT
+     * happened. The table below it is the case-handling diary: when the
+     * INVESTIGATION did things. Rendering only the diary — which is what
+     * this method used to do, and what the reference implementation does —
+     * silently drops a narrative the create and edit forms both collect
+     * and the database has been storing all along.
+     */
     private function chronology(Investigation $investigation): array
     {
         $rows = $investigation->activities()
@@ -309,7 +401,13 @@ class InvestigationReportBuilder
             ])
             ->all();
 
-        return $this->table('chronology', ['When', 'Type', 'What happened', 'By'], $rows);
+        $narrative = trim((string) $investigation->chronology);
+
+        $caption = $narrative !== ''
+            ? $narrative."\n\nCase handling timeline — what the investigation did, and when."
+            : 'Case handling timeline — what the investigation did, and when.';
+
+        return $this->table('chronology', ['When', 'Type', 'What happened', 'By'], $rows, $caption);
     }
 
     private function findingsOfFact(Investigation $investigation): array

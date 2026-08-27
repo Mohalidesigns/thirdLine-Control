@@ -30,11 +30,30 @@ const DATE_FORMAT_OPTIONS = {
     'YYYY-MM-DD': { year: 'numeric', month: '2-digit', day: '2-digit' },
 };
 
+/**
+ * A calendar date has no instant, so it must not be converted between
+ * timezones. `2026-07-28` names the 28th everywhere; parsing it with
+ * `new Date()` yields UTC midnight, and rendering that in a timezone
+ * behind UTC shows the 27th. Date-only values are therefore formatted
+ * from their own parts, and only true timestamps are localised.
+ */
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
 export function formatDate(value) {
     if (!value) return '—';
+    const options = DATE_FORMAT_OPTIONS[localisation.date_format] ?? DATE_FORMAT_OPTIONS['DD MMM YYYY'];
+
+    if (typeof value === 'string' && DATE_ONLY.test(value)) {
+        const [year, month, day] = value.split('-').map(Number);
+        // UTC parts + a UTC render: the calendar date survives intact.
+        return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString(localisation.locale, {
+            ...options,
+            timeZone: 'UTC',
+        });
+    }
+
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return '—';
-    const options = DATE_FORMAT_OPTIONS[localisation.date_format] ?? DATE_FORMAT_OPTIONS['DD MMM YYYY'];
     return date.toLocaleDateString(localisation.locale, { ...options, timeZone: localisation.timezone });
 }
 
