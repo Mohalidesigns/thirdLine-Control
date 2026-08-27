@@ -164,6 +164,18 @@ class RolePermissionSeeder extends Seeder
             'archive investigations', 'view all investigations',
             'view confidential-investigations',
             'manage investigation-consequences', 'view investigation-dashboard',
+            // Spec §5.3 — the report review chain. Three permissions, not
+            // the four the specification lists: its `review_ghic` and
+            // `approve` name the SAME transition (at the GHIC review node
+            // the available action is "Approve"), so this is one
+            // permission named for the act rather than the node.
+            //
+            // They are separate from 'complete investigations' on purpose.
+            // Completing a case is the investigator's act; reviewing and
+            // issuing the report on it must be available to people who
+            // could not have run the investigation themselves.
+            'review investigation-reports', 'approve investigation-reports',
+            'issue investigation-reports',
             // Speak Up reporter metadata (CR). Dotted names on purpose —
             // they mirror the CR's specification and read as one family.
             // Tier 1 ('view_basic') is device/geo-coarse signals only;
@@ -212,6 +224,11 @@ class RolePermissionSeeder extends Seeder
             // disciplinary act, and holding the platform keys must never
             // put anyone inside that chain (R2).
             'manage investigation-consequences',
+            // Spec §5.3, same rule: the report review chain is a sign-off
+            // chain. The administrator can see that a report exists and
+            // where it has got to; they do not move it.
+            'review investigation-reports', 'approve investigation-reports',
+            'issue investigation-reports',
         ]));
 
         // Installing regulatory content packs changes platform-wide data, so
@@ -234,7 +251,38 @@ class RolePermissionSeeder extends Seeder
             // of control reaches a case the same way everyone else does —
             // by being named on it (11.4).
             'view all cases',
+            // Spec §5.3 — the head of control is the MANAGER reviewer on an
+            // investigation report ('review investigation-reports', which
+            // this role keeps). Approval and issue belong to the Group
+            // Head Internal Control below, so that the chain is three
+            // people rather than one person twice.
+            'approve investigation-reports', 'issue investigation-reports',
         ]));
+
+        /**
+         * Spec §2.10 — the Group Head Internal Control.
+         *
+         * This is the specification's CAE-equivalent: the authority that
+         * approves and issues an investigation report, and the level at
+         * which a confidential case opens.
+         *
+         * Deliberately NOT a role check anywhere in the query layer. The
+         * role exists because the specification names it and a tenant
+         * needs somewhere to put the person; every gate that matters keys
+         * on the permissions it holds, per this codebase's standing rule
+         * that a role name alone never widens a query. A tenant that keeps
+         * these duties elsewhere moves the permissions and nothing breaks.
+         */
+        Role::findOrCreate('Group Head Internal Control', 'web')->syncPermissions([
+            'view investigations', 'view all investigations',
+            'view confidential-investigations', 'view investigation-dashboard',
+            'assign investigations', 'complete investigations', 'archive investigations',
+            // The two acts that make this role what it is.
+            'approve investigation-reports', 'issue investigation-reports',
+            // Sight of the wider control picture the report sits in.
+            'view controls', 'view exceptions',
+            'view improvements', 'view dashboards', 'export reports',
+        ]);
 
         Role::findOrCreate('Control Officer', 'web')->syncPermissions([
             'view controls', 'create controls', 'edit controls',

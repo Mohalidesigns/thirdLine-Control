@@ -6,6 +6,7 @@ import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
 import RelationshipsPanel from '@/Components/RelationshipsPanel';
+import RichTextEditor from '@/Components/RichTextEditor';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import SeverityBadge from '@/Components/SeverityBadge';
@@ -36,6 +37,7 @@ export default function Show({
     origin = null,
     links = [],
     reports = [],
+    reportVersions = [],
     hasReport = false,
     options = {},
     users = [],
@@ -67,7 +69,9 @@ export default function Show({
         subject_type: 'staff', name: '', user_id: '', staff_id: '', account_number: '',
         department: '', position: '', role_in_case: 'primary_subject', notes: '',
         outcome: 'exonerated', outcome_rationale: '',
-    });
+    
+        outcome_rationale_rich: null,
+});
 
     const openOutcome = (subject) => {
         outcomeForm.setData({
@@ -82,7 +86,9 @@ export default function Show({
             notes: subject.notes ?? '',
             outcome: subject.outcome === 'pending' ? 'exonerated' : subject.outcome,
             outcome_rationale: subject.outcome_rationale ?? '',
-        });
+        
+            outcome_rationale_rich: subject.outcome_rationale_rich ?? null,
+});
         setDialog(`outcome:${subject.id}`);
     };
     const findingForm = useForm({
@@ -90,9 +96,9 @@ export default function Show({
         control_failure: '', recommendation: '', financial_impact: '', control_id: '',
     });
     const consequenceForm = useForm({ action_type: 'query_issued', investigation_subject_id: '', description: '', due_date: '' });
-    const decisionForm = useForm({ action: 'approve', rejection_reason: '', amount_recovered: '', implementation_note: '' });
+    const decisionForm = useForm({ action: 'approve', rejection_reason: '', amount_recovered: '', implementation_note: '' , implementation_note_rich: null, rejection_reason_rich: null});
     const activityForm = useForm({ activity_type: 'comment', title: '', description: '', activity_date: '' });
-    const archiveForm = useForm({ archive_reason: '' });
+    const archiveForm = useForm({ archive_reason: '' , archive_reason_rich: null});
     const improvementForm = useForm({ title: '', owner_id: '', due_at: '', priority: 'High' });
 
     const nextStatuses = (options.transitions ?? {})[investigation.status] ?? [];
@@ -472,9 +478,54 @@ export default function Show({
             )}
 
             {tab === 'report' && (
+                <>
+                {/* Spec §5.3 — the document under review, above the renders of it. */}
+                {reportVersions.length > 0 && (
+                    <div className="card mb-6">
+                        <div className="card-header">
+                            <h3 className="text-sm font-semibold">Report versions &amp; review</h3>
+                        </div>
+                        <DataTable
+                            columns={[
+                                {
+                                    field: 'report_number',
+                                    label: 'Report',
+                                    width: '13rem',
+                                    render: (row) => (
+                                        <Link
+                                            href={route('investigations.reports.show', [investigation.id, row.id])}
+                                            className="font-mono text-xs font-semibold text-[var(--color-primary)] hover:underline"
+                                        >
+                                            {row.report_number}
+                                        </Link>
+                                    ),
+                                },
+                                {
+                                    field: 'workflow_state',
+                                    label: 'Stage',
+                                    width: '14rem',
+                                    render: (row) => <StatusBadge status={humanise(row.workflow_state)} />,
+                                },
+                                { field: 'prepared_by', label: 'Prepared by', width: '12rem', render: (row) => row.prepared_by?.name ?? '—' },
+                                {
+                                    field: 'issue_date',
+                                    label: 'Issued',
+                                    render: (row) => (row.issue_date ? formatDate(row.issue_date) : '—'),
+                                },
+                            ]}
+                            data={reportVersions}
+                            emptyMessage="No report yet."
+                        />
+                        <div className="border-t border-gray-100 px-5 py-3 text-xs text-[var(--color-text-secondary)]">
+                            An issued report is fixed. Later changes to the case produce a new version rather than
+                            altering the one that was signed.
+                        </div>
+                    </div>
+                )}
+
                 <div className="card">
                     <div className="card-header">
-                        <h3 className="text-sm font-semibold">Investigation report</h3>
+                        <h3 className="text-sm font-semibold">Generated documents</h3>
                         {can.report && !hasReport && (
                             <button
                                 type="button"
@@ -501,6 +552,7 @@ export default function Show({
                         Regeneration is blocked once a run exists — issuing a new version is a deliberate act.
                     </div>
                 </div>
+                </>
             )}
 
             {/* ── Dialogs ────────────────────────────────────────────── */}
@@ -562,7 +614,12 @@ export default function Show({
                     <p className="text-sm text-[var(--color-text-secondary)]">
                         An archived investigation drops out of every list, count and KPI. That needs a reason on the record.
                     </p>
-                    <TextArea rows={3} className="block w-full" value={archiveForm.data.archive_reason} onChange={(e) => archiveForm.setData('archive_reason', e.target.value)} required />
+                    <RichTextEditor
+                        value={archiveForm.data.archive_reason_rich ?? archiveForm.data.archive_reason}
+                        onChange={(doc, plain) => archiveForm.setData((d) => ({ ...d, archive_reason: plain, archive_reason_rich: doc }))}
+                        tools="minimal"
+                        minHeight={90}
+                    />
                     <InputError message={archiveForm.errors.archive_reason} className="mt-1" />
                     <Actions onCancel={close} processing={archiveForm.processing} label="Archive" />
                 </form>
@@ -664,7 +721,12 @@ export default function Show({
                         </div>
                         <div>
                             <InputLabel value="Rationale" />
-                            <TextArea rows={4} className="mt-1 block w-full" value={outcomeForm.data.outcome_rationale} onChange={(e) => outcomeForm.setData('outcome_rationale', e.target.value)} required />
+                            <RichTextEditor
+                                value={outcomeForm.data.outcome_rationale_rich ?? outcomeForm.data.outcome_rationale}
+                                onChange={(doc, plain) => outcomeForm.setData((d) => ({ ...d, outcome_rationale: plain, outcome_rationale_rich: doc }))}
+                                tools="minimal"
+                                minHeight={104}
+                            />
                             <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
                                 An outcome recorded against a named person always carries its reason — a disciplinary panel will ask for it.
                             </p>
@@ -800,7 +862,12 @@ export default function Show({
                         {decisionForm.data.action === 'reject' && (
                             <div>
                                 <InputLabel value="Reason" />
-                                <TextArea rows={3} className="mt-1 block w-full" value={decisionForm.data.rejection_reason} onChange={(e) => decisionForm.setData('rejection_reason', e.target.value)} required />
+                                <RichTextEditor
+                                    value={decisionForm.data.rejection_reason_rich ?? decisionForm.data.rejection_reason}
+                                    onChange={(doc, plain) => decisionForm.setData((d) => ({ ...d, rejection_reason: plain, rejection_reason_rich: doc }))}
+                                    tools="minimal"
+                                    minHeight={90}
+                                />
                                 <InputError message={decisionForm.errors.rejection_reason} className="mt-1" />
                             </div>
                         )}
@@ -812,7 +879,12 @@ export default function Show({
                                 </div>
                                 <div>
                                     <InputLabel value="Note" />
-                                    <TextArea rows={3} className="mt-1 block w-full" value={decisionForm.data.implementation_note} onChange={(e) => decisionForm.setData('implementation_note', e.target.value)} />
+                                    <RichTextEditor
+                                        value={decisionForm.data.implementation_note_rich ?? decisionForm.data.implementation_note}
+                                        onChange={(doc, plain) => decisionForm.setData((d) => ({ ...d, implementation_note: plain, implementation_note_rich: doc }))}
+                                        tools="minimal"
+                                        minHeight={90}
+                                    />
                                 </div>
                             </>
                         )}

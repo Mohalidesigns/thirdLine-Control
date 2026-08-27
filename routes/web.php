@@ -55,6 +55,7 @@ use App\Http\Controllers\InvestigationDashboardController;
 use App\Http\Controllers\InvestigationEvidenceController;
 use App\Http\Controllers\InvestigationFindingController;
 use App\Http\Controllers\InvestigationReportController;
+use App\Http\Controllers\InvestigationReportWorkflowController;
 use App\Http\Controllers\InvestigationSubjectController;
 use App\Http\Controllers\LinkageController;
 use App\Http\Controllers\MetricController;
@@ -924,6 +925,14 @@ Route::middleware('auth')->group(function () {
         Route::post('cases/{case}/conclude', [CaseController::class, 'conclude'])->name('cases.conclude');
         Route::post('cases/{case}/close', [CaseController::class, 'close'])->name('cases.close');
         Route::post('cases/{case}/notes', [CaseController::class, 'storeNote'])->name('cases.notes.store');
+
+        // Spec §5.4 — the Speak Up follow-up surface: screening decision,
+        // acknowledgement to the reporter, and the follow-up log.
+        Route::post('cases/{case}/triage', [CaseController::class, 'triage'])->name('cases.triage');
+        Route::post('cases/{case}/acknowledge', [CaseController::class, 'acknowledge'])->name('cases.acknowledge');
+        Route::post('cases/{case}/follow-ups', [CaseController::class, 'storeFollowUp'])->name('cases.follow-ups.store');
+        Route::post('cases/{case}/follow-ups/{followUp}/complete', [CaseController::class, 'completeFollowUp'])
+            ->scopeBindings()->name('cases.follow-ups.complete');
         Route::post('cases/{case}/access', [CaseController::class, 'grantAccess'])->name('cases.access.grant');
         Route::delete('cases/{case}/access', [CaseController::class, 'revokeAccess'])->name('cases.access.revoke');
 
@@ -987,6 +996,22 @@ Route::middleware('auth')->group(function () {
             Route::post('activities', [InvestigationController::class, 'storeActivity'])->name('activities.store');
             Route::post('evidence', [InvestigationEvidenceController::class, 'store'])->name('evidence.store');
             Route::post('report', [InvestigationReportController::class, 'generate'])->name('report.generate');
+
+            // Spec §5.3 — the report review chain. Scoped binding: a report
+            // id belonging to another case resolves to 404 rather than
+            // being acted on under this investigation's authorisation.
+            Route::post('reports', [InvestigationReportWorkflowController::class, 'store'])->name('reports.store');
+
+            Route::scopeBindings()->group(function () {
+                Route::get('reports/{report}', [InvestigationReportWorkflowController::class, 'show'])
+                    ->name('reports.show');
+                Route::post('reports/{report}/advance', [InvestigationReportWorkflowController::class, 'advance'])
+                    ->name('reports.advance');
+                Route::post('reports/{report}/return', [InvestigationReportWorkflowController::class, 'returnToPreparer'])
+                    ->name('reports.return');
+                Route::post('reports/{report}/issue', [InvestigationReportWorkflowController::class, 'issue'])
+                    ->name('reports.issue');
+            });
 
             Route::middleware('permission:assign investigations')->group(function () {
                 Route::post('team', [InvestigationController::class, 'storeTeamMember'])->name('team.store');
