@@ -14,7 +14,6 @@ use App\Models\InvestigationFinding;
 use App\Models\InvestigationSubject;
 use App\Models\InvestigationTeamMember;
 use App\Models\SpeakUpCase;
-use App\Models\Tenant;
 use App\Models\User;
 use App\Services\EvidenceService;
 use App\Services\InvestigationReportBuilder;
@@ -57,6 +56,8 @@ use Illuminate\Support\Facades\Storage;
  */
 class InvestigationDemoSeeder extends Seeder
 {
+    use Concerns\ResolvesDemoTenant;
+
     /**
      * The pack's own fingerprint. Its presence means this seeder has run
      * here before; its absence means it has not, whatever else the register
@@ -66,7 +67,7 @@ class InvestigationDemoSeeder extends Seeder
 
     public function run(): void
     {
-        $tenant = Tenant::first();
+        $tenant = $this->demoTenant();
 
         if (! $tenant) {
             return;
