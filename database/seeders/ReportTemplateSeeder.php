@@ -3,18 +3,19 @@
 namespace Database\Seeders;
 
 use App\Models\ReportTemplate;
-use App\Models\Tenant;
 use Illuminate\Database\Seeder;
 
 class ReportTemplateSeeder extends Seeder
 {
+    use Concerns\ResolvesDemoTenant;
+
     /**
      * Three shipped defaults (Phase 4 req. 5). Layout lives in sections
      * data, per tenant, never hard-coded.
      */
     public function run(): void
     {
-        $tenant = Tenant::firstOrFail();
+        $tenant = $this->demoTenantOrFail();
 
         $defaults = [
             ['Standard Spot Check Report', 'Spot Check', [

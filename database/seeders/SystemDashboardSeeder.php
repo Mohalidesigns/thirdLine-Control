@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Dashboard;
-use App\Models\Tenant;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
@@ -17,6 +16,8 @@ use Spatie\Permission\Models\Role;
  */
 class SystemDashboardSeeder extends Seeder
 {
+    use Concerns\ResolvesDemoTenant;
+
     /**
      * name, slug, description, role, sort, widgets[]
      * Each widget: [type, title, source, x, y, w, h, config?]
@@ -169,7 +170,7 @@ class SystemDashboardSeeder extends Seeder
 
     public function run(): void
     {
-        $tenant = Tenant::first();
+        $tenant = $this->demoTenant();
 
         if (! $tenant) {
             return;

@@ -27,9 +27,11 @@ use Illuminate\Database\Seeder;
  */
 class Phase16DemoSeeder extends Seeder
 {
+    use Concerns\ResolvesDemoTenant;
+
     public function run(): void
     {
-        $tenant = Tenant::first();
+        $tenant = $this->demoTenant();
 
         if (! $tenant) {
             return;

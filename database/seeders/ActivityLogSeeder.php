@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Jobs\WriteAuditRecord;
 use App\Models\Control;
 use App\Models\ControlException;
-use App\Models\Tenant;
 use App\Models\User;
 use App\Support\AuditEventCatalog;
 use Illuminate\Database\Seeder;
@@ -24,9 +23,11 @@ use Illuminate\Support\Str;
  */
 class ActivityLogSeeder extends Seeder
 {
+    use Concerns\ResolvesDemoTenant;
+
     public function run(): void
     {
-        $tenant = Tenant::first();
+        $tenant = $this->demoTenant();
         if (! $tenant) {
             $this->command?->warn('ActivityLogSeeder skipped — no tenant seeded.');
 

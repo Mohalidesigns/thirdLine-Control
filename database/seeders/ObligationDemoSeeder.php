@@ -10,7 +10,6 @@ use App\Models\ObligationAssignment;
 use App\Models\OrganisationUnit;
 use App\Models\Regulator;
 use App\Models\RegulatoryChange;
-use App\Models\Tenant;
 use App\Models\User;
 use App\Services\ObligationService;
 use Illuminate\Database\Seeder;
@@ -24,9 +23,11 @@ use Illuminate\Database\Seeder;
  */
 class ObligationDemoSeeder extends Seeder
 {
+    use Concerns\ResolvesDemoTenant;
+
     public function run(): void
     {
-        $tenant = Tenant::first();
+        $tenant = $this->demoTenant();
 
         if (! $tenant) {
             return;
