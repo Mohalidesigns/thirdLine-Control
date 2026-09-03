@@ -33,7 +33,15 @@ jobs:
       # (syncPermissions() wipes migration-time grants), so a deploy that
       # only migrates leaves new feature flags, permissions and seeded
       # taxonomies missing — which is exactly how CR2-A shipped dark.
-      # These four are safe to re-run on every deploy.
+      # Every seeder here is safe to re-run on every deploy.
+      #
+      # Order matters for the last two: CR-03's checklist importer resolves
+      # each workbook row's frequency against the catalogue, so the
+      # frequencies must exist first, and it hangs the 167 functions on
+      # the head office desks and Branch Control that ControlStructureSeeder
+      # creates. The checklist seeder is guarded by the pack's source hash —
+      # a second run of the same workbook writes nothing. Without it, prod
+      # runs on the four demo test scripts while local shows 171.
       - name: Seed reference data (idempotent)
         run: |
           cd /var/www/control
@@ -41,5 +49,7 @@ jobs:
           /usr/bin/php artisan db:seed --class=FeatureFlagSeeder --force
           /usr/bin/php artisan db:seed --class=NotificationEventSeeder --force
           /usr/bin/php artisan db:seed --class=ControlStructureSeeder --force
+          /usr/bin/php artisan db:seed --class=ControlFrequencySeeder --force
+          /usr/bin/php artisan db:seed --class=ControlFunctionChecklistSeeder --force
           /usr/bin/php artisan permission:cache-reset
           chown -R www-data:www-data storage bootstrap/cache
