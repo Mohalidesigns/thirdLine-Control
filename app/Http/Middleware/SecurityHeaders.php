@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Vite;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -34,16 +35,20 @@ class SecurityHeaders
         }
 
         if (! $response->headers->has('Content-Security-Policy')) {
+            // While `npm run dev` is up, scripts, styles and assets come from
+            // the Vite dev server's own origin, which 'self' does not cover.
+            $vite = $this->viteDevOrigin();
+
             $response->headers->set('Content-Security-Policy', implode('; ', [
                 "default-src 'self'",
                 // Vite dev server needs ws + eval in local development only.
                 app()->environment('local')
-                    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+                    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'{$vite}"
                     : "script-src 'self' 'unsafe-inline'",
-                "style-src 'self' 'unsafe-inline'",
-                "img-src 'self' data: blob:",
-                "font-src 'self' data:",
-                app()->environment('local') ? "connect-src 'self' ws: wss:" : "connect-src 'self'",
+                "style-src 'self' 'unsafe-inline'{$vite}",
+                "img-src 'self' data: blob:{$vite}",
+                "font-src 'self' data:{$vite}",
+                app()->environment('local') ? "connect-src 'self' ws: wss:{$vite}" : "connect-src 'self'",
                 "frame-ancestors 'none'",
                 "base-uri 'self'",
                 "form-action 'self'",
@@ -51,5 +56,21 @@ class SecurityHeaders
         }
 
         return $response;
+    }
+
+    /**
+     * The Vite dev server origin, prefixed with a space for appending to a
+     * CSP directive — or '' outside local development or when Vite is not
+     * running hot, so built assets keep the strict same-origin policy.
+     */
+    private function viteDevOrigin(): string
+    {
+        if (! app()->environment('local') || ! Vite::isRunningHot()) {
+            return '';
+        }
+
+        $origin = trim((string) @file_get_contents(Vite::hotFile()));
+
+        return $origin === '' ? '' : ' '.$origin;
     }
 }
