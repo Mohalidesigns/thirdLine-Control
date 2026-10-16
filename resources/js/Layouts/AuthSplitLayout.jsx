@@ -133,7 +133,7 @@ export default function AuthSplitLayout({ title, subtitle, assurances = true, ch
                             className="max-h-11 max-w-[220px] object-contain"
                         />
                     ) : (
-                        <ApplicationLogo tone="light" size="sm" tagline="caps" />
+                        <ApplicationLogo tone="light" size="sm" />
                     )}
                 </div>
 
@@ -190,7 +190,7 @@ export default function AuthSplitLayout({ title, subtitle, assurances = true, ch
                                 className="max-h-12 max-w-[220px] object-contain"
                             />
                         ) : (
-                            <ApplicationLogo tone="dark" size="md" tagline="plain" />
+                            <ApplicationLogo tone="dark" size="md" />
                         )}
                     </div>
 

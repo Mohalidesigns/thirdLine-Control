@@ -289,13 +289,7 @@ export default function AuthenticatedLayout({ children }) {
                             )}
                         </>
                     ) : (
-                        <ApplicationLogo
-                            tone="light"
-                            size="sm"
-                            wordmark={!isCollapsed}
-                            tagline="caps"
-                            taglineText="Internal Control"
-                        />
+                        <ApplicationLogo tone="light" size="sm" wordmark={!isCollapsed} />
                     )}
                 </Link>
             </div>
