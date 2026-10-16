@@ -1,4 +1,5 @@
 import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
+import { X } from 'lucide-react';
 import { Fragment } from 'react';
 
 const MAX_WIDTHS = {
@@ -25,7 +26,7 @@ export default function Modal({ show = false, maxWidth = '2xl', closeable = true
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-[var(--color-primary-dark)]/60" />
+                    <div className="fixed inset-0 bg-gray-500/75" />
                 </TransitionChild>
 
                 <TransitionChild
@@ -39,8 +40,18 @@ export default function Modal({ show = false, maxWidth = '2xl', closeable = true
                 >
                     <DialogPanel className={`relative w-full transform overflow-hidden rounded-xl bg-white shadow-xl transition-all ${MAX_WIDTHS[maxWidth] ?? MAX_WIDTHS['2xl']}`}>
                         {title && (
-                            <div className="border-b border-gray-100 px-6 py-4">
-                                <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{title}</h3>
+                            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+                                <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+                                {closeable && (
+                                    <button
+                                        type="button"
+                                        onClick={close}
+                                        aria-label="Close"
+                                        className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                                    >
+                                        <X className="h-5 w-5" aria-hidden="true" />
+                                    </button>
+                                )}
                             </div>
                         )}
                         <div className="p-6">{children}</div>

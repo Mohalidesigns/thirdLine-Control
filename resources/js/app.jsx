@@ -1,4 +1,8 @@
 import './bootstrap';
+import '@fontsource/figtree/400.css';
+import '@fontsource/figtree/500.css';
+import '@fontsource/figtree/600.css';
+import '@fontsource/figtree/700.css';
 import '../css/app.css';
 
 import { createInertiaApp, router } from '@inertiajs/react';
@@ -65,6 +69,6 @@ createInertiaApp({
         createRoot(el).render(<App {...props} />);
     },
     progress: {
-        color: '#C9A227',
+        color: '#4B5563',
     },
 });

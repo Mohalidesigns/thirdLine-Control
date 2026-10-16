@@ -62,7 +62,7 @@ export default function ChartFrame({
                         <button
                             type="button"
                             onClick={() => setShowTable((value) => !value)}
-                            className="text-xs font-medium text-[var(--color-primary)] underline-offset-2 hover:underline"
+                            className="text-xs font-medium text-[var(--color-primary)] hover:underline"
                             aria-pressed={showTable}
                         >
                             {showTable ? 'Chart' : 'Table'}
@@ -87,7 +87,7 @@ export default function ChartFrame({
                             {series.map((entry) => (
                                 <li key={entry.key} className="flex items-center gap-1.5 text-xs" style={{ color: INK.muted }}>
                                     <span
-                                        className="inline-block h-2.5 w-2.5 rounded-sm"
+                                        className="inline-block h-3 w-3 rounded-full"
                                         style={{ background: entry.colour }}
                                         aria-hidden="true"
                                     />
@@ -113,14 +113,14 @@ export default function ChartFrame({
 function Shell({ title, subtitle, actions, children }) {
     return (
         <section className="card flex h-full flex-col">
-            <header className="flex items-start justify-between gap-3 border-b border-gray-100 px-5 py-3">
+            <header className="card-header gap-3">
                 <div className="min-w-0">
-                    <h3 className="truncate text-sm font-semibold text-[var(--color-text-primary)]">{title}</h3>
-                    {subtitle && <p className="truncate text-xs text-[var(--color-text-secondary)]">{subtitle}</p>}
+                    <h3 className="truncate text-sm font-semibold text-gray-800">{title}</h3>
+                    {subtitle && <p className="mt-0.5 truncate text-xs text-gray-500">{subtitle}</p>}
                 </div>
                 <div className="flex shrink-0 items-center gap-3">{actions}</div>
             </header>
-            <div className="flex-1 overflow-x-auto p-5">{children}</div>
+            <div className="card-body flex-1 overflow-x-auto">{children}</div>
         </section>
     );
 }

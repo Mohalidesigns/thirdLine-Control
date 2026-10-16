@@ -10,12 +10,9 @@
 | the same palette for the renderers that cannot read CSS — dompdf, PhpWord
 | and the PowerPoint writer. Change one, change the other.
 |
-| The categorical order is not cosmetic. It was validated for colour-vision
-| separation on the AEGIS card surface (#FFFFFF): worst adjacent pair
-| ΔE 9.1 under protanopia and 19.6 unsimulated, both above the gates. Three
-| slots sit below 3:1 contrast on white, which is why every chart in this
-| product ships a table view and direct labels — that relief is a
-| requirement, not a nicety.
+| The categorical order is the Atheris brand palette, shared with ThirdLine
+| so a chart reads the same in both products. Every chart ships a table
+| view and direct labels, so identity never rests on hue alone.
 |
 | Status tones are reserved: they mean good → critical and are never used
 | for series identity. They always travel with a text label, never colour
@@ -26,36 +23,36 @@
 return [
 
     'categorical' => [
-        1 => '#2A78D6', // blue
-        2 => '#EB6834', // orange
-        3 => '#1BAF7A', // aqua
-        4 => '#EDA100', // yellow
-        5 => '#E87BA4', // magenta
-        6 => '#008300', // green
-        7 => '#4A3AA7', // violet
-        8 => '#E34948', // red
+        1 => '#1A365D', // navy
+        2 => '#D4AF37', // gold
+        3 => '#2D7D46', // green
+        4 => '#C53030', // red
+        5 => '#319795', // teal
+        6 => '#DD6B20', // orange
+        7 => '#7C3AED', // violet
+        8 => '#94A3B8', // slate
     ],
 
-    /* One hue, light → dark. Magnitude only — never identity. */
+    /* One hue (brand navy), light → dark. Magnitude only — never identity. */
     'sequential' => [
-        '#CDE2FB', '#9EC5F4', '#6DA7EC', '#3987E5', '#256ABF', '#184F95', '#0D366B',
+        '#D9E2EF', '#B3C4DD', '#7F9AC0', '#4A6D9E', '#2A4E7E', '#1A365D', '#0F2340',
     ],
 
-    /* Ordered buckets (ageing bands, tiers): the light end still clears 2:1. */
-    'ordinal' => ['#86B6EF', '#5598E7', '#2A78D6', '#1C5CAB', '#104281'],
+    /* Ordered buckets (ageing bands, tiers). */
+    'ordinal' => ['#B3C4DD', '#7F9AC0', '#4A6D9E', '#1A365D', '#0F2340'],
 
     'status' => [
-        'good' => '#0CA30C',
-        'warning' => '#FAB219',
-        'serious' => '#EC835A',
-        'critical' => '#D03B3B',
-        'muted' => '#A0AEC0',
+        'good' => '#2D7D46',
+        'warning' => '#D97706',
+        'serious' => '#EA580C',
+        'critical' => '#DC2626',
+        'muted' => '#94A3B8',
     ],
 
     'ink' => [
         'primary' => '#2D3748',
-        'secondary' => '#718096',
-        'muted' => '#A0AEC0',
+        'secondary' => '#64748B',
+        'muted' => '#94A3B8',
         'grid' => '#E2E8F0',
         'surface' => '#FFFFFF',
     ],

@@ -10,7 +10,7 @@ import { INK, formatValue, markColour } from './palette';
  * every segment is direct-labelled in the key beside the ring, so identity
  * never rests on colour alone.
  */
-export default function DonutChart({ payload, size = 168, stroke = 26, onDrill }) {
+export default function DonutChart({ payload, size = 140, stroke = 28, onDrill }) {
     const { tip, handlers } = useTooltip();
 
     const categories = payload.categories ?? [];
@@ -29,8 +29,8 @@ export default function DonutChart({ payload, size = 168, stroke = 26, onDrill }
 
     const radius = (size - stroke) / 2;
     const circumference = 2 * Math.PI * radius;
-    // A 2px gap in the surface colour separates touching segments.
-    const gap = 2;
+    // Segments butt against each other, as on ThirdLine.
+    const gap = 0;
 
     let cumulative = 0;
 
@@ -78,16 +78,14 @@ export default function DonutChart({ payload, size = 168, stroke = 26, onDrill }
                     ))}
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl font-bold" style={{ color: INK.primary }}>
+                    <span className="text-xl font-bold" style={{ color: INK.primary }}>
                         {formatValue(payload.total ?? total, payload.unit, payload)}
                     </span>
-                    <span className="text-[10px] uppercase tracking-wide" style={{ color: INK.muted }}>
-                        Total
-                    </span>
+                    <span className="text-[10px] text-gray-500">Total</span>
                 </div>
             </div>
 
-            <ul className="min-w-[9rem] flex-1 space-y-1.5">
+            <ul className="min-w-[9rem] flex-1 space-y-2">
                 {categories.map((category, index) => (
                     <li key={category.key}>
                         <button
@@ -97,14 +95,14 @@ export default function DonutChart({ payload, size = 168, stroke = 26, onDrill }
                             {...handlers(`${category.label}: ${formatValue(values[index], payload.unit, payload)}`)}
                         >
                             <span
-                                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                                className="h-3 w-3 flex-shrink-0 rounded-full"
                                 style={{ background: markColour(series, index, 0) }}
                                 aria-hidden="true"
                             />
-                            <span className="flex-1 truncate" style={{ color: INK.muted }}>
+                            <span className="flex-1 truncate text-gray-600">
                                 {category.label}
                             </span>
-                            <span className="font-semibold tabular-nums" style={{ color: INK.primary }}>
+                            <span className="ml-auto font-semibold tabular-nums" style={{ color: INK.primary }}>
                                 {formatValue(values[index], payload.unit, payload)}
                             </span>
                         </button>

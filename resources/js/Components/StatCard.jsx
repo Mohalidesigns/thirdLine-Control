@@ -24,32 +24,32 @@ const LEGACY_TONES = {
 export default function StatCard({ title, value, subtitle, icon, tone, color, href, prominent = false }) {
     const resolvedTone = TONES[tone] ? tone : (LEGACY_TONES[color] ?? 'blue');
     const palette = TONES[resolvedTone];
-    // Calm tones keep the number dark; alarm tones stay loud.
-    const valueClass = ['red', 'amber'].includes(resolvedTone) && color !== undefined
-        ? palette.value
-        : 'text-[var(--color-text-primary)]';
+    // The number stays dark, as on ThirdLine — the tile carries the tone.
+    const valueClass = 'text-[var(--color-text-primary)]';
 
     // Every card carries a tile — a call site that names no icon falls
-    // back to the tone's default rather than rendering bare. It floats in
-    // the top-right corner so the title and value keep the full card width
-    // even in dense six-up grids; only the title's first lines dodge it.
+    // back to the tone's default rather than rendering bare.
     const resolvedIcon = icon ?? toneIcon(resolvedTone);
     const tile = (
-        <div className={`absolute end-4 top-4 flex h-11 w-11 items-center justify-center rounded-xl ${palette.tile}`}>
+        <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${palette.tile} ${palette.icon}`}>
             {isValidElement(resolvedIcon)
-                ? <span className={palette.icon}>{resolvedIcon}</span>
-                : (() => { const Icon = resolvedIcon; return <Icon className={`h-5 w-5 ${palette.icon}`} strokeWidth={1.8} aria-hidden="true" />; })()}
+                ? resolvedIcon
+                : (() => { const Icon = resolvedIcon; return <Icon className="h-5 w-5" aria-hidden="true" />; })()}
         </div>
     );
 
+    // ThirdLine's stat card: label, value and note on the left, the tinted
+    // icon tile top-right.
     const content = (
-        <div className={`stat-card relative h-full ${prominent ? 'border-l-4 border-l-[var(--color-error)]' : ''} ${href ? 'cursor-pointer' : ''}`}>
-            {tile}
-            <p className="min-h-11 pe-12 text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
-                {title}
-            </p>
-            <p className={`mt-2 text-3xl font-bold ${valueClass}`}>{value}</p>
-            {subtitle && <p className="mt-1 text-xs text-[var(--color-text-secondary)]">{subtitle}</p>}
+        <div className={`stat-card h-full ${prominent ? 'border-l-4 border-l-[var(--color-error)]' : ''} ${href ? 'cursor-pointer' : ''}`}>
+            <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-500">{title}</p>
+                    <p className={`mt-1 text-2xl font-bold ${valueClass}`}>{value}</p>
+                    {subtitle && <p className="mt-1 text-xs text-gray-500">{subtitle}</p>}
+                </div>
+                {tile}
+            </div>
         </div>
     );
 
