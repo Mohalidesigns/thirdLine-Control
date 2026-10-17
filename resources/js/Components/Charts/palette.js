@@ -49,7 +49,7 @@ export const INK = {
 /** Mark specs, fixed across every chart in the product. */
 export const MARKS = {
     barMaxThickness: 24,
-    barRadius: 4,
+    barRadius: 2,
     lineWidth: 2,
     markerRadius: 4,
     surfaceGap: 2,

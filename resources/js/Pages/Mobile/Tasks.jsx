@@ -83,6 +83,7 @@ export default function Tasks({ work, pushPublicKey }) {
 
             <div className="mx-auto w-full max-w-lg pb-24 md:max-w-3xl xl:max-w-6xl">
                 <PageHeader
+                    band={false}
                     title="My tasks"
                     subtitle={
                         total === 0

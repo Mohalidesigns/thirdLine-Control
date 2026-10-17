@@ -1,20 +1,14 @@
-import { TONES, iconFor, toneFor } from '@/utils/tones';
+import { TONES, toneFor } from '@/utils/tones';
 
 /**
- * Status pill: tinted background, matching text and a small leading icon,
- * all derived from the shared semantic tone mapping — pass any lifecycle,
- * rating, severity or classification word the app uses.
+ * Status pill, ThirdLine style: a tinted rounded-full chip with the word in
+ * the matching shade. The tone comes from the shared semantic mapping — pass
+ * any lifecycle, rating, severity or classification word the app uses.
  */
 export default function StatusBadge({ status, className = '' }) {
     if (!status) return <span className="text-gray-400">—</span>;
 
     const palette = TONES[toneFor(status)];
-    const Icon = iconFor(status);
 
-    return (
-        <span className={`badge gap-1 ${palette.badge} ${className}`}>
-            <Icon className="h-3 w-3 shrink-0" strokeWidth={2} aria-hidden="true" />
-            {status}
-        </span>
-    );
+    return <span className={`badge ${palette.badge} ${className}`}>{status}</span>;
 }

@@ -17,19 +17,19 @@ export default function StatTile({ payload, title, subtitle, hero = false }) {
     const body = (
         <div className="stat-card flex h-full flex-col justify-between">
             <div>
-                <p className="text-sm text-[var(--color-text-secondary)]">{title}</p>
-                {subtitle && <p className="text-xs text-[var(--color-text-secondary)]">{subtitle}</p>}
+                <p className="text-sm font-medium text-gray-500">{title}</p>
+                {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
             </div>
 
             <p
-                className={`mt-2 font-bold ${hero ? 'text-5xl' : 'text-3xl'}`}
-                style={{ color: tone ? STATUS[tone] ?? INK.primary : INK.primary }}
+                className={`mt-1 font-bold ${hero ? 'text-4xl' : 'text-2xl'}`}
+                style={{ color: INK.primary }}
             >
                 {value}
             </p>
 
             {payload.caption && (
-                <p className="mt-2 text-xs" style={{ color: INK.muted }}>
+                <p className="mt-1 text-xs text-gray-500">
                     {tone && (
                         <span
                             className="me-1.5 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-white"

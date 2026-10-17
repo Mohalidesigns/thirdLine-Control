@@ -24,13 +24,12 @@ export default function ProgressList({ payload, onDrill }) {
 
                 return (
                     <li key={category.key}>
-                        <div className="mb-1 flex items-baseline justify-between gap-3 text-xs">
+                        <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
                             <button
                                 type="button"
                                 disabled={!category.drill || onDrill === false}
                                 onClick={() => category.drill && router.visit(route(category.drill.route, category.drill.params))}
-                                className="truncate text-left underline-offset-2 enabled:hover:underline"
-                                style={{ color: INK.muted }}
+                                className="truncate text-left text-gray-600 underline-offset-2 enabled:hover:underline"
                             >
                                 {category.label}
                                 {category.note && <span className="ms-1 text-[10px]">({category.note})</span>}
@@ -39,7 +38,7 @@ export default function ProgressList({ payload, onDrill }) {
                                 {payload.unit === 'percent' ? `${value.toFixed(0)}%` : value.toLocaleString()}
                             </span>
                         </div>
-                        <span className="progress-bar block" style={{ background: 'var(--chart-ord-1)' }}>
+                        <span className="progress-bar block">
                             <span
                                 className="progress-bar-fill block"
                                 style={{ width: `${pct}%`, background: markColour(series, index, 0) }}

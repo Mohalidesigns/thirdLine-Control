@@ -13,7 +13,7 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Inter', ...defaultTheme.fontFamily.sans],
+                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
                 mono: ['Roboto Mono', ...defaultTheme.fontFamily.mono],
             },
             colors: {
@@ -34,12 +34,12 @@ export default {
                 },
                 primary: {
                     DEFAULT: '#1A365D',
-                    light: '#2A4E7E',
-                    dark: '#10223A',
+                    light: '#2A4A7F',
+                    dark: '#0F2340',
                 },
                 accent: {
-                    DEFAULT: '#C9A227',
-                    light: '#DBBA4E',
+                    DEFAULT: '#D4AF37',
+                    light: '#E2C458',
                 },
             },
         },

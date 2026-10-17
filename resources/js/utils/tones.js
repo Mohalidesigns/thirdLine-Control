@@ -21,13 +21,14 @@ import {
  *   violet   detective / advisory / draft-adjacent classifications
  *   slate    inactive / retired / not applicable
  */
+// Shades follow ThirdLine's tiles (x-50 / x-600) and badges (x-100 / x-700).
 export const TONES = {
-    emerald: { tile: 'bg-emerald-50', icon: 'text-emerald-600', badge: 'bg-emerald-100 text-emerald-800', value: 'text-emerald-600' },
-    blue: { tile: 'bg-blue-50', icon: 'text-blue-600', badge: 'bg-blue-100 text-blue-800', value: 'text-blue-600' },
-    amber: { tile: 'bg-amber-50', icon: 'text-amber-600', badge: 'bg-amber-100 text-amber-800', value: 'text-amber-600' },
-    red: { tile: 'bg-red-50', icon: 'text-red-600', badge: 'bg-red-100 text-red-800', value: 'text-red-600' },
-    violet: { tile: 'bg-violet-50', icon: 'text-violet-600', badge: 'bg-violet-100 text-violet-800', value: 'text-violet-600' },
-    slate: { tile: 'bg-slate-100', icon: 'text-slate-500', badge: 'bg-slate-100 text-slate-600', value: 'text-slate-500' },
+    emerald: { tile: 'bg-green-50', icon: 'text-green-600', badge: 'bg-green-100 text-green-700', value: 'text-green-600', dot: 'bg-green-500' },
+    blue: { tile: 'bg-blue-50', icon: 'text-blue-600', badge: 'bg-blue-100 text-blue-700', value: 'text-blue-600', dot: 'bg-blue-500' },
+    amber: { tile: 'bg-amber-50', icon: 'text-amber-600', badge: 'bg-yellow-100 text-yellow-800', value: 'text-amber-600', dot: 'bg-yellow-500' },
+    red: { tile: 'bg-red-50', icon: 'text-red-600', badge: 'bg-red-100 text-red-700', value: 'text-red-600', dot: 'bg-red-500' },
+    violet: { tile: 'bg-purple-50', icon: 'text-purple-600', badge: 'bg-purple-100 text-purple-700', value: 'text-purple-600', dot: 'bg-purple-500' },
+    slate: { tile: 'bg-gray-100', icon: 'text-gray-500', badge: 'bg-gray-100 text-gray-700', value: 'text-gray-500', dot: 'bg-gray-400' },
 };
 
 const STATE_TONES = {

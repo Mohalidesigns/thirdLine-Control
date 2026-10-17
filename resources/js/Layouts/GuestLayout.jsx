@@ -26,7 +26,7 @@ export default function GuestLayout({ children }) {
                         className="max-h-14 max-w-[220px] object-contain"
                     />
                 ) : (
-                    <ApplicationLogo tone="light" size="lg" tagline="caps" />
+                    <ApplicationLogo tone="light" size="lg" />
                 )}
                 {(branding?.logo_dark_url || branding?.logo_url) && branding?.product_name && (
                     <p className="text-xl font-bold tracking-wide text-white">{branding.product_name}</p>

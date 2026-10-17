@@ -1,10 +1,13 @@
 /*
+ * Figtree — the shared Atheris product face (matches ThirdLine). It is
+ * self-hosted through @fontsource/figtree (imported in app.jsx), so Vite
+ * bundles the woff2 files same-origin and the CSP/residency posture holds.
+ *
  * No third-party font import (DEF-023). The Google Fonts request was
  * blocked by our own CSP (style-src 'self') on every page load, so the
  * imported faces never rendered anyway — and requesting them at all
  * contradicts the residency posture (R5, no third-party origins). The
- * font stacks below start with Inter/Roboto Mono so a SELF-HOSTED copy
- * is picked up automatically if one is ever shipped.
+ * font stacks below start with a SELF-HOSTED face, never a CDN one.
  */
 
 @tailwind base;
@@ -34,13 +37,13 @@
     --navy-subtle: var(--navy-50);
 
     --color-primary: var(--navy-600);
-    /* Historical name — this is the hover/pressed shade of primary. */
-    --color-primary-light: var(--navy-700);
-    --color-primary-dark: var(--navy-800);
+    /* Hover shade of primary — lighter, as on ThirdLine. */
+    --color-primary-light: #2A4A7F;
+    --color-primary-dark: #0F2340;
     --color-secondary: #2D7D46;
     --color-secondary-light: #38A169;
-    --color-accent: #C9A227;
-    --color-accent-light: #DBBA4E;
+    --color-accent: #D4AF37;
+    --color-accent-light: #E2C458;
     --color-bg: #F7FAFC;
     --color-card: #FFFFFF;
     --color-text-primary: #2D3748;
@@ -50,79 +53,64 @@
     --color-info: #319795;
     --color-success: #2D7D46;
 
-    /* ── Brand mark ────────────────────────────────────────────────────
-       The SecondLine logo, consumed only by Components/ApplicationLogo.jsx.
-       These are fixed brand values and deliberately do NOT alias the
-       palette above: a tenant that recolours --color-primary recolours the
-       product, not the logo. A tenant with its own logo uploads it and the
-       mark is replaced wholesale. */
-    --logo-ring-outer: #5C7599;
-    --logo-ring-mid: #8FA6C4;
-    --logo-ring-inner: #DCE7F4;
-    --logo-core: #10223A;
-    --logo-check: #2FC4A8;
-    --logo-line: #B8D4F0;
 
     --sidebar-width: 260px;
     --sidebar-collapsed-width: 72px;
 
-    /* ── Chart palette (Phase 13) ──────────────────────────────────────
-       Validated for colour-vision separation against the AEGIS card
-       surface (#FFFFFF): worst adjacent pair ΔE 9.1 under protanopia and
-       19.6 unsimulated — both above the gates. The ORDER is the safety
-       mechanism, not decoration: slots are assigned in sequence and never
-       cycled, and colour follows the series, never its rank.
-
-       Three slots (3, 4, 5) sit below 3:1 contrast on white. That is legal
-       here only because every chart in this product ships a table view and
-       direct labels — the relief is a requirement, not a nicety.
+    /* ── Chart palette ─────────────────────────────────────────────────
+       The Atheris brand palette, shared with ThirdLine so a chart reads
+       the same in both products: navy, gold, green, red first, then the
+       supporting hues. Slots are assigned in order and never cycled, and
+       colour follows the series, never its rank. Every chart also ships a
+       table view and direct labels, so identity never rests on hue alone.
 
        config/charts.php mirrors these values for dompdf, PhpWord and the
        PowerPoint writer, which cannot read CSS. Change one, change both. */
-    --chart-1: #2A78D6;
-    --chart-2: #EB6834;
-    --chart-3: #1BAF7A;
-    --chart-4: #EDA100;
-    --chart-5: #E87BA4;
-    --chart-6: #008300;
-    --chart-7: #4A3AA7;
-    --chart-8: #E34948;
+    --chart-1: #1A365D;
+    --chart-2: #D4AF37;
+    --chart-3: #2D7D46;
+    --chart-4: #C53030;
+    --chart-5: #319795;
+    --chart-6: #DD6B20;
+    --chart-7: #7C3AED;
+    --chart-8: #94A3B8;
 
-    /* One hue, light → dark. Magnitude only, never identity. */
-    --chart-seq-1: #CDE2FB;
-    --chart-seq-2: #9EC5F4;
-    --chart-seq-3: #6DA7EC;
-    --chart-seq-4: #3987E5;
-    --chart-seq-5: #256ABF;
-    --chart-seq-6: #184F95;
-    --chart-seq-7: #0D366B;
+    /* One hue (brand navy), light → dark. Magnitude only, never identity. */
+    --chart-seq-1: #D9E2EF;
+    --chart-seq-2: #B3C4DD;
+    --chart-seq-3: #7F9AC0;
+    --chart-seq-4: #4A6D9E;
+    --chart-seq-5: #2A4E7E;
+    --chart-seq-6: #1A365D;
+    --chart-seq-7: #0F2340;
 
-    /* Ordered buckets (ageing bands, tiers). The light end still clears 2:1. */
-    --chart-ord-1: #86B6EF;
-    --chart-ord-2: #5598E7;
-    --chart-ord-3: #2A78D6;
-    --chart-ord-4: #1C5CAB;
-    --chart-ord-5: #104281;
+    /* Ordered buckets (ageing bands, tiers). */
+    --chart-ord-1: #B3C4DD;
+    --chart-ord-2: #7F9AC0;
+    --chart-ord-3: #4A6D9E;
+    --chart-ord-4: #1A365D;
+    --chart-ord-5: #0F2340;
 
-    /* Reserved state scale. Never used for series identity, and never
-       carried by colour alone — every status mark ships with its label. */
-    --chart-good: #0CA30C;
-    --chart-warning: #FAB219;
-    --chart-serious: #EC835A;
-    --chart-critical: #D03B3B;
-    --chart-muted: #A0AEC0;
+    /* Reserved state scale — ThirdLine's severity colours. Never used for
+       series identity, and never carried by colour alone. */
+    --chart-good: #2D7D46;
+    --chart-warning: #D97706;
+    --chart-serious: #EA580C;
+    --chart-critical: #DC2626;
+    --chart-muted: #94A3B8;
 
-    /* Chrome. Gridlines are solid hairlines one step off the surface —
-       never dashed, which reads as "threshold" when it is just a grid. */
+    /* Chrome. Solid hairline grid, slate axis labels. */
     --chart-surface: #FFFFFF;
     --chart-grid: #E2E8F0;
     --chart-axis: #CBD5E0;
     --chart-ink: #2D3748;
-    --chart-ink-muted: #718096;
+    --chart-ink-muted: #64748B;
+    /* Unfilled track of rings, gauges and meters. */
+    --chart-track: #E2E8F0;
 }
 
 body {
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    font-family: 'Figtree', ui-sans-serif, system-ui, sans-serif;
     background-color: var(--color-bg);
     color: var(--color-text-primary);
 }
@@ -136,45 +124,77 @@ body {
     background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: rgba(113, 128, 150, 0.4);
+    background: #CBD5E0;
     border-radius: 3px;
 }
+::-webkit-scrollbar-thumb:hover {
+    background: #A0AEC0;
+}
 .sidebar-scroll::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.2);
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Icons: ThirdLine draws Heroicons outline at a 1.5 stroke. Lucide shares
+   the 24px outline grid, so pinning its stroke to 1.5 gives the same
+   weight everywhere without touching each call site. */
+svg.lucide {
+    stroke-width: 1.5;
 }
 
 @layer components {
+    /* ── Mirrors ThirdLine's component layer one-for-one. ─────────── */
+
+    /* Sidebar */
+    .sidebar-nav-item {
+        @apply flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200;
+    }
+    .sidebar-nav-item.active {
+        @apply border-l-[3px] border-[var(--color-accent)] bg-white/10 text-white;
+    }
+    .sidebar-nav-item:not(.active) {
+        @apply text-white/70 hover:bg-white/5 hover:text-white;
+    }
+
     /* Surfaces */
     .card {
-        @apply rounded-xl border border-gray-100 bg-white shadow-sm transition-all duration-200;
+        @apply rounded-xl border border-gray-100 bg-white shadow-sm;
     }
     .card-header {
         @apply flex items-center justify-between border-b border-gray-100 px-6 py-4;
     }
+    .card-title {
+        @apply text-sm font-semibold text-gray-800;
+    }
     .card-body {
-        @apply p-5;
+        @apply px-6 py-4;
     }
     .stat-card {
         @apply rounded-xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md;
     }
 
-    /* Page structure */
+    /* Page structure — the header sits on a white band under the top bar. */
+    .page-header-band {
+        @apply -mx-4 -mt-4 mb-6 border-b border-gray-100 bg-white px-4 py-4 sm:-mx-6 sm:-mt-6 sm:px-6;
+    }
     .page-header {
-        @apply mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between;
+        @apply flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between;
     }
     .page-title {
-        @apply text-2xl font-bold text-[var(--navy-800)];
+        @apply text-2xl font-bold text-[var(--color-text-primary)];
     }
 
     /* Buttons */
     .btn-primary {
-        @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--color-primary-light)] focus:outline-none focus:ring-2 focus:ring-navy-400/40 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+        @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--color-primary-light)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
     }
     .btn-secondary {
-        @apply inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-navy-400/40 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+        @apply inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-[var(--color-primary)] transition-colors duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
     }
     .btn-success {
-        @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--color-success)] px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--color-secondary-light)] focus:outline-none focus:ring-2 focus:ring-[var(--color-success)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+        @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--color-secondary)] px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--color-secondary-light)] focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
     }
     .btn-danger {
         @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--color-error)] px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-[var(--color-error)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
@@ -194,7 +214,7 @@ body {
         @apply bg-orange-100 text-orange-800;
     }
     .badge-medium {
-        @apply bg-amber-100 text-amber-800;
+        @apply bg-yellow-100 text-yellow-800;
     }
     .badge-low {
         @apply bg-green-100 text-green-800;
@@ -205,30 +225,30 @@ body {
         @apply bg-gray-100 text-gray-700;
     }
     .badge-status-pending {
-        @apply bg-blue-100 text-blue-800;
+        @apply bg-blue-100 text-blue-700;
     }
     .badge-status-active {
-        @apply bg-green-100 text-green-800;
+        @apply bg-green-100 text-green-700;
     }
     .badge-status-completed {
-        @apply bg-purple-100 text-purple-800;
+        @apply bg-purple-100 text-purple-700;
     }
     .badge-status-overdue {
-        @apply bg-red-100 text-red-800;
+        @apply bg-red-100 text-red-700;
     }
 
     /* Tables */
     .data-table {
-        @apply min-w-full divide-y divide-gray-200 text-sm;
+        @apply w-full text-left text-sm;
     }
     .data-table thead th {
-        @apply bg-[var(--navy-50)] px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[var(--navy-800)];
+        @apply border-b border-gray-200 bg-gray-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500;
     }
     .data-table tbody td {
-        @apply px-4 py-3 align-middle text-gray-700;
+        @apply border-b border-gray-100 px-4 py-3 align-middle;
     }
     .data-table tbody tr {
-        @apply border-b border-gray-100 transition-colors duration-200 hover:bg-gray-50;
+        @apply transition-colors duration-150 hover:bg-gray-50;
     }
 
     /* Forms */
@@ -236,38 +256,53 @@ body {
         @apply mb-1 block text-sm font-medium text-gray-700;
     }
     .form-input {
-        @apply block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-[var(--navy-500)] focus:ring-[var(--navy-400)];
+        @apply block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)];
     }
     .form-select {
-        @apply block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-[var(--navy-500)] focus:ring-[var(--navy-400)];
+        @apply block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)];
     }
 
-    /* Filter bar */
+    /* Filter bar — tinted panel, borderless ringed fields, tiny caps labels.
+       ThirdLine's names (filter-group/-label/-input/-select/-reset) and the
+       older filter-bar-* names render identically. */
     .filter-bar {
-        @apply mb-6 rounded-xl border border-gray-100 bg-white p-4 shadow-sm;
+        @apply mb-6 rounded-xl border border-gray-200 bg-gray-50/80 px-5 py-4;
     }
     .filter-bar-inner {
-        @apply flex flex-wrap items-end gap-3;
+        @apply flex flex-wrap items-end gap-4;
+    }
+    .filter-group,
+    .filter-bar-group {
+        @apply flex min-w-0 flex-col gap-1.5;
+    }
+    .filter-group.flex-1 {
+        flex: 1 1 0%;
     }
     .filter-bar-group {
-        @apply flex min-w-[160px] flex-col;
+        @apply min-w-[160px];
     }
+    .filter-label,
     .filter-bar-label {
-        @apply mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500;
+        @apply text-[10px] font-semibold uppercase tracking-wider text-gray-400;
     }
-    .filter-bar-input {
-        @apply rounded-lg border-gray-300 text-sm shadow-sm focus:border-[var(--navy-500)] focus:ring-[var(--navy-400)];
-    }
+    .filter-input,
+    .filter-bar-input,
+    .filter-select,
     .filter-bar-select {
-        @apply rounded-lg border-gray-300 text-sm shadow-sm focus:border-[var(--navy-500)] focus:ring-[var(--navy-400)];
+        @apply w-full rounded-lg border-0 bg-white px-3 py-2.5 text-sm text-gray-700 shadow-sm ring-1 ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-[var(--color-primary)];
     }
+    .filter-select,
+    .filter-bar-select {
+        @apply pr-10;
+    }
+    .filter-reset,
     .filter-bar-reset {
-        @apply text-sm font-medium text-[var(--color-primary)] underline-offset-2 hover:underline;
+        @apply whitespace-nowrap rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-gray-600 ring-1 ring-gray-200 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-800;
     }
 
     /* Progress */
     .progress-bar {
-        @apply h-2 w-full overflow-hidden rounded-full bg-gray-100;
+        @apply h-2 w-full overflow-hidden rounded-full bg-gray-200;
     }
     .progress-bar-fill {
         @apply h-full rounded-full transition-all duration-500;
