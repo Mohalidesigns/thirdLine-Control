@@ -30,6 +30,7 @@ use App\Http\Controllers\CsaCampaignController;
 use App\Http\Controllers\CsaResponseController;
 use App\Http\Controllers\DashboardBuilderController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DashboardHomeController;
 use App\Http\Controllers\DataSourceController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EntityController;
@@ -618,6 +619,8 @@ Route::middleware('auth')->group(function () {
         Route::middleware('permission:manage dashboards')->group(function () {
             Route::get('dashboards/new', [DashboardBuilderController::class, 'create'])->name('dashboards.create');
             Route::post('dashboards', [DashboardBuilderController::class, 'store'])->name('dashboards.store');
+            // Reporting → Dashboards: the board each role lands on.
+            Route::put('dashboards/home/{role}', [DashboardHomeController::class, 'update'])->name('dashboards.home.update');
         });
 
         Route::middleware('permission:view dashboards')

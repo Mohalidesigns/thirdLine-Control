@@ -8,55 +8,65 @@ import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 // performance budget on a mid-range Android over 4G (R6).
 const Widget = lazy(() => import('@/Components/Charts/Widget'));
 
-export default function Show({ dashboard, widgets = [], available = [], can = {} }) {
+/**
+ * One dashboard, in two contexts:
+ *  - `home` — the /dashboard landing board for the viewer's role. Display
+ *    only: no switcher, no edit or duplicate, no shipped-board notice. What
+ *    it shows is configured in Reporting → Dashboards.
+ *  - otherwise — a board opened from Reporting → Dashboards, where the
+ *    configuration actions live.
+ */
+export default function Show({ dashboard, widgets = [], available = [], can = {}, home = false }) {
     const { lowBandwidth } = usePage().props;
 
     return (
         <AuthenticatedLayout header={dashboard.name}>
             <Head title={dashboard.name} />
 
-            <PageHeader
-                title={dashboard.name}
-                subtitle={dashboard.description}
-                actions={
-                    <>
-                        {available.length > 1 && (
-                            <select
-                                className="form-select w-56"
-                                value={dashboard.slug}
-                                onChange={(event) => router.visit(route('dashboards.show', event.target.value))}
-                                aria-label="Switch dashboard"
-                            >
-                                {available.map((item) => (
-                                    <option key={item.slug} value={item.slug}>
-                                        {item.name}
-                                    </option>
-                                ))}
-                            </select>
-                        )}
-                        <Link href={route('dashboards.index')} className="btn-secondary">
-                            All dashboards
-                        </Link>
-                        {can.update && (
-                            <Link href={route('dashboards.edit', dashboard.slug)} className="btn-primary">
-                                Edit layout
-                            </Link>
-                        )}
-                        {!can.update && can.duplicate && (
-                            <Link
-                                href={route('dashboards.duplicate', dashboard.slug)}
-                                method="post"
-                                as="button"
-                                className="btn-primary"
-                            >
-                                Duplicate to edit
-                            </Link>
-                        )}
-                    </>
-                }
-            />
+            {home ? (
+                <PageHeader title={dashboard.name} subtitle={dashboard.description} />
+            ) : (
+                <PageHeader
+                    title={dashboard.name}
+                    subtitle={dashboard.description}
+                    breadcrumbs={[{ label: 'Reporting' }, { label: 'Dashboards', href: route('dashboards.index') }, { label: dashboard.name }]}
+                    actions={
+                        <>
+                            {available.length > 1 && (
+                                <select
+                                    className="form-select w-56"
+                                    value={dashboard.slug}
+                                    onChange={(event) => router.visit(route('dashboards.show', event.target.value))}
+                                    aria-label="Switch dashboard"
+                                >
+                                    {available.map((item) => (
+                                        <option key={item.slug} value={item.slug}>
+                                            {item.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+                            {can.update && (
+                                <Link href={route('dashboards.edit', dashboard.slug)} className="btn-primary">
+                                    Edit layout
+                                </Link>
+                            )}
+                            {!can.update && can.duplicate && (
+                                <Link
+                                    href={route('dashboards.duplicate', dashboard.slug)}
+                                    method="post"
+                                    as="button"
+                                    className="btn-primary"
+                                >
+                                    Duplicate to edit
+                                </Link>
+                            )}
+                        </>
+                    }
+                />
+            )}
 
-            {dashboard.is_system && can.manage && (
+            {!home && dashboard.is_system && can.manage && (
                 <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
                     This is a shipped dashboard and is read-only. Duplicate it to make a version you can edit.
                 </p>
@@ -66,9 +76,14 @@ export default function Show({ dashboard, widgets = [], available = [], can = {}
                 <div className="card">
                     <div className="card-body text-center">
                         <p className="text-sm text-[var(--color-text-secondary)]">
-                            This dashboard has no widgets yet.
+                            {home ? 'Nothing has been configured for your dashboard yet.' : 'This dashboard has no widgets yet.'}
                         </p>
-                        {can.update && (
+                        {home && can.manage && (
+                            <Link href={route('dashboards.index')} className="btn-primary mt-4">
+                                Configure in Reporting
+                            </Link>
+                        )}
+                        {!home && can.update && (
                             <Link href={route('dashboards.edit', dashboard.slug)} className="btn-primary mt-4">
                                 Add the first widget
                             </Link>

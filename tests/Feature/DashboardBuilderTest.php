@@ -16,6 +16,7 @@ use Database\Seeders\SystemDashboardSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class DashboardBuilderTest extends TestCase
@@ -383,5 +384,75 @@ class DashboardBuilderTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn ($page) => $page->component('Dashboards/Show'));
+    }
+
+    public function test_the_landing_dashboard_is_display_only(): void
+    {
+        $this->seed(SystemDashboardSeeder::class);
+
+        $this->actingAs($this->cfh)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Dashboards/Show')
+                ->where('home', true)
+                ->missing('available')
+                ->missing('can.update')
+                ->missing('can.duplicate'));
+    }
+
+    public function test_a_role_lands_on_the_dashboard_assigned_in_reporting(): void
+    {
+        $this->seed(SystemDashboardSeeder::class);
+        $board = Dashboard::where('slug', 'executive-board')->firstOrFail();
+        $officerRole = Role::findByName('Control Officer', 'web');
+
+        $this->actingAs($this->cfh)
+            ->put(route('dashboards.home.update', $officerRole), ['dashboard_id' => $board->id])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('dashboard_home_assignments', [
+            'tenant_id' => $this->tenant->id, 'role_id' => $officerRole->id, 'dashboard_id' => $board->id,
+        ]);
+
+        $this->actingAs($this->officer)
+            ->get(route('dashboard'))
+            ->assertInertia(fn ($page) => $page
+                ->component('Dashboards/Show')
+                ->where('dashboard.slug', 'executive-board'));
+
+        // Clearing the assignment drops the row.
+        $this->actingAs($this->cfh)
+            ->put(route('dashboards.home.update', $officerRole), ['dashboard_id' => null])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseMissing('dashboard_home_assignments', ['role_id' => $officerRole->id]);
+    }
+
+    public function test_a_home_dashboard_must_be_shared_with_the_role(): void
+    {
+        $ownerRole = Role::findByName('Control Owner', 'web');
+        $board = Dashboard::create([
+            'tenant_id' => $this->tenant->id, 'name' => 'Head only', 'slug' => 'head-only',
+            'owner_id' => $this->cfh->id, 'visibility' => 'role',
+            'role_ids' => [Role::findByName('Control Function Head', 'web')->id],
+        ]);
+
+        $this->actingAs($this->cfh)
+            ->put(route('dashboards.home.update', $ownerRole), ['dashboard_id' => $board->id])
+            ->assertSessionHasErrors('dashboard_id');
+
+        $this->assertDatabaseCount('dashboard_home_assignments', 0);
+    }
+
+    public function test_assigning_home_dashboards_needs_the_publish_permission(): void
+    {
+        $this->seed(SystemDashboardSeeder::class);
+        $board = Dashboard::where('slug', 'executive-board')->firstOrFail();
+        $this->assertFalse($this->officer->can('publish dashboards'));
+
+        $this->actingAs($this->officer)
+            ->put(route('dashboards.home.update', Role::findByName('Control Officer', 'web')), ['dashboard_id' => $board->id])
+            ->assertForbidden();
     }
 }

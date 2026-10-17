@@ -69,4 +69,13 @@ class DashboardPolicy
     {
         return $user->can('publish dashboards') && ! $dashboard->is_system;
     }
+
+    /**
+     * Choosing the board a whole role lands on is publishing to that role,
+     * so it needs both the right to compose and the right to publish.
+     */
+    public function assignHome(User $user): bool
+    {
+        return $user->can('manage dashboards') && $user->can('publish dashboards');
+    }
 }

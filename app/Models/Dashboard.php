@@ -42,6 +42,13 @@ class Dashboard extends Model
         return $this->belongsTo(User::class, 'owner_id');
     }
 
+    /** Whether every holder of this role may open the board. */
+    public function isVisibleToRole(int $roleId): bool
+    {
+        return $this->visibility === 'tenant'
+            || ($this->visibility === 'role' && in_array($roleId, $this->role_ids ?? [], false));
+    }
+
     public function widgets(): HasMany
     {
         return $this->hasMany(DashboardWidget::class)->orderBy('sort_order');
@@ -69,10 +76,27 @@ class Dashboard extends Model
         });
     }
 
-    /** The board this user lands on: their role default, else the first visible. */
+    /**
+     * The board this user lands on: the board assigned to one of their roles
+     * in Reporting, else the seeded role default, else the first visible.
+     */
     public static function defaultFor(User $user): ?self
     {
         $roleIds = $user->roles->pluck('id')->all();
+
+        // An assignment made in Reporting → Dashboards wins over the seeded
+        // role default. It still has to be a board this user may open.
+        $assigned = DashboardHomeAssignment::query()
+            ->whereIn('role_id', $roleIds ?: [0])
+            ->pluck('dashboard_id');
+
+        if ($assigned->isNotEmpty()) {
+            $home = static::query()->visibleTo($user)->whereKey($assigned)->orderBy('sort_order')->first();
+
+            if ($home) {
+                return $home;
+            }
+        }
 
         return static::query()
             ->visibleTo($user)
