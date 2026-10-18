@@ -1,15 +1,17 @@
 /**
  * The Fortis Internal Control brand mark.
  *
- * Served from public/images/brand as pre-sized PNGs (cut from the master
- * artwork in public/Fortis). The wordmark already carries the
- * "INTERNAL CONTROL" line, so no separate tagline is drawn. A tenant that
+ * Served from public/images/brand as SVGs built from the master artwork in
+ * public/atheris-fortis, with the text converted to outlines so the logo
+ * renders without the Space Grotesk / JetBrains Mono web fonts. The
+ * wordmark already carries the "INTERNAL CONTROL" line, so no separate
+ * tagline is drawn. A tenant that
  * uploads its own logo replaces this whole component at the layout level.
  */
 
 const LOGOS = {
-    light: { full: '/images/brand/fortis-logo-light.png', mark: '/images/brand/fortis-mark-light.png' },
-    dark: { full: '/images/brand/fortis-logo.png', mark: '/images/brand/fortis-mark.png' },
+    light: { full: '/images/brand/fortis-logo-light.svg', mark: '/images/brand/fortis-mark-light.svg' },
+    dark: { full: '/images/brand/fortis-logo.svg', mark: '/images/brand/fortis-mark.svg' },
 };
 
 const SIZES = {
