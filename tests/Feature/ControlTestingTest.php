@@ -5,16 +5,19 @@ namespace Tests\Feature;
 use App\Models\CheckItem;
 use App\Models\Control;
 use App\Models\ControlException;
+use App\Models\OrganisationUnit;
 use App\Models\RatingMatrixEntry;
 use App\Models\Tenant;
 use App\Models\TestInstance;
 use App\Models\TestScript;
 use App\Models\User;
+use App\Notifications\ExceptionRaisedNotification;
 use App\Services\TestingService;
 use Carbon\CarbonImmutable;
 use Database\Seeders\RatingMatrixSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
@@ -145,6 +148,41 @@ class ControlTestingTest extends TestCase
         $instance->update(['status' => 'In Progress']);
         $service->submit($instance, [], $this->tester);
         $this->assertSame(1, ControlException::withoutGlobalScopes()->where('source_id', $instance->id)->count());
+    }
+
+    public function test_checklist_exception_goes_to_the_business_owner_not_the_tester(): void
+    {
+        Notification::fake();
+
+        $head = User::factory()->create(['tenant_id' => $this->tenant->id]);
+        $unit = OrganisationUnit::withoutGlobalScopes()->create([
+            'tenant_id' => $this->tenant->id,
+            'name' => 'Operations',
+            'type' => 'Department',
+            'head_user_id' => $head->id,
+        ]);
+
+        // Imported checklists are "owned" by the officer who performs them.
+        $this->control->update([
+            'is_control_function' => true,
+            'owner_id' => $this->tester->id,
+            'unit_id' => $unit->id,
+        ]);
+
+        $service = app(TestingService::class);
+        $instance = $this->makeInstance();
+        [$item1, $item2] = $this->script->checkItems;
+        $service->recordResult($instance, $item1->id, 'Fail', 'Tickets missing', $this->tester);
+        $service->recordResult($instance, $item2->id, 'Pass', null, $this->tester);
+        $service->submit($instance, [], $this->tester);
+
+        $exception = ControlException::withoutGlobalScopes()->where('source_id', $instance->id)->sole();
+
+        $this->assertSame($head->id, $exception->owner_id);
+        $this->assertSame($unit->id, $exception->unit_id);
+        $this->assertSame('Assigned', $exception->status);
+        Notification::assertSentTo($head, ExceptionRaisedNotification::class);
+        Notification::assertNotSentTo($this->tester, ExceptionRaisedNotification::class);
     }
 
     // ── FR-3.9: locked after sign-off ────────────────────────────────

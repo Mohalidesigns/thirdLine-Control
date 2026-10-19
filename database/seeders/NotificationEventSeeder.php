@@ -203,6 +203,14 @@ class NotificationEventSeeder extends Seeder
         // closure. The issue notice is NOT user-configurable: a department
         // cannot mute an exception addressed to it.
         [
+            'key' => 'exception.raised',
+            'label' => 'Exception raised against you',
+            'description' => 'A failed test check, spot-check finding or other source raised a control exception that you own or are responsible for. Not muteable: an unseen exception is an unremediated one.',
+            'category' => 'exceptions',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => false,
+        ],
+        [
             'key' => 'exception.escalation.issued',
             'label' => 'Exception issued to your department',
             'description' => 'The control function has issued a control exception to you for a formal departmental response.',

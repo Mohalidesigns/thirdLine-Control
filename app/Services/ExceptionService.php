@@ -8,9 +8,11 @@ use App\Models\Finding;
 use App\Models\MonitoringFinding;
 use App\Models\MonitoringRule;
 use App\Models\MonitoringRun;
+use App\Models\OrganisationUnit;
 use App\Models\SodViolation;
 use App\Models\TestInstance;
 use App\Models\User;
+use App\Notifications\ExceptionRaisedNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
@@ -43,6 +45,18 @@ class ExceptionService
         }
 
         $control = $instance->control;
+        $entity = $instance->controlEntity ?? $control->homeEntity;
+        $unitId = $control->unit_id ?? $entity?->organisation_unit_id;
+
+        // A departmental checklist is "owned" by the officer who performs
+        // it, so its exception belongs to the business side being tested —
+        // never back to the tester, who cannot remediate their own finding.
+        $ownerId = $this->resolveOwner(
+            $control->is_control_function
+                ? [$entity?->owner_id, $this->unitHeadId($unitId), $control->owner_id]
+                : [$control->owner_id, $entity?->owner_id, $this->unitHeadId($unitId)],
+            $failed->tested_by,
+        );
 
         $prior = ControlException::withoutGlobalScopes()
             ->where('control_id', $control->id)
@@ -62,12 +76,12 @@ class ExceptionService
             'title' => 'Failed check: '.str($failed->checkItem->question)->limit(120),
             'description' => $failed->comment,
             'severity' => $failed->checkItem->default_severity_on_fail,
-            'owner_id' => $control->owner_id,
-            'unit_id' => $control->unit_id,
+            'owner_id' => $ownerId,
+            'unit_id' => $unitId,
             'raised_by' => $failed->tested_by,
             'date_raised' => now()->toDateString(),
             'target_closure_date' => now()->addDays($this->defaultClosureDays($failed->checkItem->default_severity_on_fail))->toDateString(),
-            'status' => $control->owner_id ? 'Assigned' : 'Open',
+            'status' => $ownerId ? 'Assigned' : 'Open',
             'is_recurring' => (bool) $prior,
             'recurrence_of_exception_id' => $prior?->id,
         ]));
@@ -85,6 +99,16 @@ class ExceptionService
         }
 
         $spotCheck = $finding->spotCheck;
+        $control = $finding->control;
+        $unitId = $spotCheck->unit_id ?? $control?->unit_id;
+
+        // The party the checker named on the finding owns it first; the
+        // control's owner only when it is a business owner, not an officer.
+        $ownerId = $this->resolveOwner([
+            $finding->responsible_party_id,
+            $control?->is_control_function ? null : $control?->owner_id,
+            $this->unitHeadId($unitId),
+        ], $spotCheck->conducted_by);
 
         return $this->notifyRaised(ControlException::create([
             'tenant_id' => $spotCheck->tenant_id,
@@ -95,14 +119,14 @@ class ExceptionService
             'title' => 'Spot check finding: '.str($finding->observation)->limit(120),
             'description' => $finding->observation,
             'severity' => $finding->severity,
-            'owner_id' => $finding->control?->owner_id,
+            'owner_id' => $ownerId,
             'responsible_party_id' => $finding->responsible_party_id,
-            'unit_id' => $spotCheck->unit_id,
+            'unit_id' => $unitId,
             'raised_by' => $spotCheck->conducted_by,
             'date_raised' => now()->toDateString(),
             'target_closure_date' => $finding->target_date?->toDateString()
                 ?? now()->addDays($this->defaultClosureDays($finding->severity))->toDateString(),
-            'status' => $finding->control?->owner_id ? 'Assigned' : 'Open',
+            'status' => $ownerId ? 'Assigned' : 'Open',
         ]));
     }
 
@@ -243,7 +267,43 @@ class ExceptionService
     {
         app(ControlStructureService::class)->notifySharedExceptionRaised($exception);
 
+        $recipients = User::withoutGlobalScopes()
+            ->whereIn('id', array_filter([$exception->owner_id, $exception->responsible_party_id]))
+            ->where('id', '!=', $exception->raised_by ?? 0)
+            ->where('is_active', true)
+            ->get();
+
+        try {
+            app(NotificationDispatcher::class)->send(
+                $recipients, 'exception.raised', new ExceptionRaisedNotification($exception),
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Exception raised notification failed', [
+                'exception_id' => $exception->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
         return $exception;
+    }
+
+    /** First candidate that is set and is not the person who raised it. */
+    private function resolveOwner(array $candidates, ?int $raisedBy): ?int
+    {
+        foreach ($candidates as $id) {
+            if ($id && $id !== $raisedBy) {
+                return $id;
+            }
+        }
+
+        return null;
+    }
+
+    private function unitHeadId(?int $unitId): ?int
+    {
+        return $unitId
+            ? OrganisationUnit::withoutGlobalScopes()->whereKey($unitId)->value('head_user_id')
+            : null;
     }
 
     public function assign(ControlException $exception, User $assignee, User $actor): ControlException

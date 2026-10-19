@@ -40,6 +40,17 @@
                 "--strictPort"
             ],
             "port": 5174
+        },
+        {
+            "name": "secondline-queue",
+            "runtimeExecutable": "php",
+            "runtimeArgs": [
+                "artisan",
+                "queue:work",
+                "--tries=3",
+                "--sleep=3"
+            ],
+            "port": 0
         }
     ]
 }
