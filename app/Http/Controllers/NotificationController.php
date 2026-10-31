@@ -52,6 +52,7 @@ class NotificationController extends Controller
             isset($data['escalation_id']) => redirect()->route('exception-manager.show', $data['escalation_id']),
             isset($data['exception_id']) => redirect()->route('exceptions.show', $data['exception_id']),
             isset($data['test_instance_id']) => redirect()->route('test-instances.show', $data['test_instance_id']),
+            isset($data['control_id']) => redirect()->route('controls.show', $data['control_id']),
             default => redirect()->route('notifications.index'),
         };
     }
