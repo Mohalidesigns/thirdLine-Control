@@ -299,6 +299,16 @@ class ExceptionService
             ->get();
     }
 
+    /** The people answerable for remediating — never the person who acted. */
+    private function ownerAndResponsible(ControlException $exception, User $actor)
+    {
+        return User::withoutGlobalScopes()
+            ->whereIn('id', array_filter([$exception->owner_id, $exception->responsible_party_id]))
+            ->where('id', '!=', $actor->id)
+            ->where('is_active', true)
+            ->get();
+    }
+
     /** Fire-and-log, like notifyRaised — a notification hiccup never blocks the decision. */
     private function notifyDecision(iterable $recipients, string $eventKey, ExceptionDecisionNotification $notification): void
     {
@@ -437,6 +447,12 @@ class ExceptionService
 
         app(IntegrationService::class)->publishException($exception);
 
+        $this->notifyDecision(
+            $this->ownerAndResponsible($exception, $verifier),
+            'exception.closed',
+            new ExceptionDecisionNotification($exception, ExceptionDecisionNotification::CLOSED, $verifier->name, $verification['verification_method']),
+        );
+
         return $exception;
     }
 
@@ -445,6 +461,12 @@ class ExceptionService
     {
         $this->transition($exception, 'In Progress');
         $exception->logActivity('Verification', 'Remediated', 'In Progress', 'Verification failed: '.$reason);
+
+        $this->notifyDecision(
+            $this->ownerAndResponsible($exception, $verifier),
+            'exception.verification_failed',
+            new ExceptionDecisionNotification($exception, ExceptionDecisionNotification::VERIFICATION_FAILED, $verifier->name, $reason),
+        );
 
         return $exception;
     }
@@ -477,11 +499,7 @@ class ExceptionService
         }
 
         $this->notifyDecision(
-            User::withoutGlobalScopes()
-                ->whereIn('id', array_filter([$exception->owner_id, $exception->responsible_party_id]))
-                ->where('id', '!=', $approver->id)
-                ->where('is_active', true)
-                ->get(),
+            $this->ownerAndResponsible($exception, $approver),
             'exception.extension.decided',
             new ExceptionDecisionNotification($exception, ExceptionDecisionNotification::EXTENSION_DECIDED, $approver->name, $reason, $newDate ?: null, $approved),
         );

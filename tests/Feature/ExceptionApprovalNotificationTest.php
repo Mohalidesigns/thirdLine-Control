@@ -121,6 +121,42 @@ class ExceptionApprovalNotificationTest extends TestCase
             fn ($n) => $n->kind === ExceptionDecisionNotification::REMEDIATED);
     }
 
+    public function test_closing_tells_the_owner_it_is_done(): void
+    {
+        $this->exception->update(['status' => 'Remediated']);
+
+        $this->actingAs($this->cfh)
+            ->post(route('exceptions.close', $this->exception), ['verification_method' => 'Re-performed on a sample'])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('Verified-Closed', $this->exception->fresh()->status);
+        Notification::assertSentTo($this->owner, ExceptionDecisionNotification::class,
+            fn ($n) => $n->kind === ExceptionDecisionNotification::CLOSED);
+        Notification::assertNotSentTo($this->cfh, ExceptionDecisionNotification::class);
+    }
+
+    public function test_failed_verification_sends_the_owner_back_to_work(): void
+    {
+        $this->exception->update(['status' => 'Remediated']);
+
+        $this->actingAs($this->cfh)
+            ->post(route('exceptions.fail-verification', $this->exception), ['reason' => 'Sample still shows self-approval'])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('In Progress', $this->exception->fresh()->status);
+        Notification::assertSentTo($this->owner, ExceptionDecisionNotification::class,
+            fn ($n) => $n->kind === ExceptionDecisionNotification::VERIFICATION_FAILED);
+    }
+
+    public function test_an_escalation_notification_opens_the_escalation_screen(): void
+    {
+        $id = $this->storeNotification($this->owner, ['escalation_id' => 42]);
+
+        $this->actingAs($this->owner)
+            ->get(route('notifications.open', $id))
+            ->assertRedirect(route('exception-manager.show', 42));
+    }
+
     public function test_opening_a_notification_marks_it_read_and_lands_on_the_exception(): void
     {
         $id = $this->storeNotification($this->owner);
@@ -141,12 +177,12 @@ class ExceptionApprovalNotificationTest extends TestCase
         $this->assertNull($this->owner->notifications()->find($id)->read_at);
     }
 
-    private function storeNotification(User $user): string
+    private function storeNotification(User $user, array $data = []): string
     {
         return $user->notifications()->create([
             'id' => (string) Str::uuid(),
             'type' => ExceptionDecisionNotification::class,
-            'data' => ['exception_id' => $this->exception->id, 'summary' => 'Test'],
+            'data' => ['exception_id' => $this->exception->id, 'summary' => 'Test', ...$data],
         ])->id;
     }
 }

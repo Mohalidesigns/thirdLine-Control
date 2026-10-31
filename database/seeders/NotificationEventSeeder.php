@@ -235,6 +235,22 @@ class NotificationEventSeeder extends Seeder
             'is_user_configurable' => false,
         ],
         [
+            'key' => 'exception.closed',
+            'label' => 'Exception closed',
+            'description' => 'The control function has verified your remediation and closed the exception.',
+            'category' => 'exceptions',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => true,
+        ],
+        [
+            'key' => 'exception.verification_failed',
+            'label' => 'Exception verification failed',
+            'description' => 'The control function could not verify your remediation; the exception is back In Progress. Not muteable: the exception needs your action again.',
+            'category' => 'exceptions',
+            'default_channels' => ['in_app', 'email'],
+            'is_user_configurable' => false,
+        ],
+        [
             'key' => 'exception.escalation.issued',
             'label' => 'Exception issued to your department',
             'description' => 'The control function has issued a control exception to you for a formal departmental response.',
