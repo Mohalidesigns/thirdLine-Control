@@ -12,6 +12,7 @@ use App\Models\OrganisationUnit;
 use App\Models\SodViolation;
 use App\Models\TestInstance;
 use App\Models\User;
+use App\Notifications\ExceptionDecisionNotification;
 use App\Notifications\ExceptionRaisedNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -287,6 +288,31 @@ class ExceptionService
         return $exception;
     }
 
+    /** The control function heads who decide and verify — never the person who acted. */
+    private function controlFunctionHeads(ControlException $exception, User $actor)
+    {
+        return User::withoutGlobalScopes()
+            ->where('tenant_id', $exception->tenant_id)
+            ->role('Control Function Head')
+            ->where('id', '!=', $actor->id)
+            ->where('is_active', true)
+            ->get();
+    }
+
+    /** Fire-and-log, like notifyRaised — a notification hiccup never blocks the decision. */
+    private function notifyDecision(iterable $recipients, string $eventKey, ExceptionDecisionNotification $notification): void
+    {
+        try {
+            app(NotificationDispatcher::class)->send($recipients, $eventKey, $notification);
+        } catch (\Throwable $e) {
+            Log::warning('Exception decision notification failed', [
+                'exception_id' => $notification->exception->id,
+                'event' => $eventKey,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     /** First candidate that is set and is not the person who raised it. */
     private function resolveOwner(array $candidates, ?int $raisedBy): ?int
     {
@@ -341,6 +367,12 @@ class ExceptionService
         ]);
 
         $exception->logActivity('Status Change', $from, 'Remediated', $note);
+
+        $this->notifyDecision(
+            $this->controlFunctionHeads($exception, $user),
+            'exception.remediated',
+            new ExceptionDecisionNotification($exception, ExceptionDecisionNotification::REMEDIATED, $user->name, $note),
+        );
 
         return $exception;
     }
@@ -421,6 +453,12 @@ class ExceptionService
     {
         $exception->logActivity('Extension Request', $exception->target_closure_date?->toDateString(), $newDate, $reason);
 
+        $this->notifyDecision(
+            $this->controlFunctionHeads($exception, $owner),
+            'exception.extension.requested',
+            new ExceptionDecisionNotification($exception, ExceptionDecisionNotification::EXTENSION_REQUESTED, $owner->name, $reason, $newDate),
+        );
+
         return $exception;
     }
 
@@ -437,6 +475,16 @@ class ExceptionService
         } else {
             $exception->logActivity('Extension Decision', null, null, 'Declined: '.$reason);
         }
+
+        $this->notifyDecision(
+            User::withoutGlobalScopes()
+                ->whereIn('id', array_filter([$exception->owner_id, $exception->responsible_party_id]))
+                ->where('id', '!=', $approver->id)
+                ->where('is_active', true)
+                ->get(),
+            'exception.extension.decided',
+            new ExceptionDecisionNotification($exception, ExceptionDecisionNotification::EXTENSION_DECIDED, $approver->name, $reason, $newDate ?: null, $approved),
+        );
 
         return $exception;
     }

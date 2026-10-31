@@ -38,6 +38,21 @@ class NotificationController extends Controller
         ]);
     }
 
+    /** Opening a notification reads it, then lands on what it is about. */
+    public function open(Request $request, string $notification): RedirectResponse
+    {
+        $notification = $request->user()->notifications()->findOrFail($notification);
+        $notification->markAsRead();
+
+        $data = $notification->data ?? [];
+
+        return match (true) {
+            isset($data['exception_id']) => redirect()->route('exceptions.show', $data['exception_id']),
+            isset($data['test_instance_id']) => redirect()->route('test-instances.show', $data['test_instance_id']),
+            default => redirect()->route('notifications.index'),
+        };
+    }
+
     public function markAllRead(Request $request): RedirectResponse
     {
         $request->user()->unreadNotifications->markAsRead();

@@ -7,12 +7,9 @@ import { formatDateTime } from '@/utils';
 import { Head, Link, router } from '@inertiajs/react';
 
 export default function Index({ notifications }) {
-    const linkFor = (notification) => {
-        const data = notification.data ?? {};
-        if (data.exception_id) return route('exceptions.show', data.exception_id);
-        if (data.test_instance_id) return route('test-instances.show', data.test_instance_id);
-        return null;
-    };
+    // Every notification opens through the server so it is marked read; one
+    // with nothing to link to returns here.
+    const linkFor = (notification) => route('notifications.open', notification.id);
 
     return (
         <AuthenticatedLayout header="Notifications">
@@ -51,7 +48,7 @@ export default function Index({ notifications }) {
 
                             return (
                                 <li key={notification.id}>
-                                    {href ? <Link href={href} className="block hover:bg-gray-50">{body}</Link> : body}
+                                    <Link href={href} className="block hover:bg-gray-50">{body}</Link>
                                 </li>
                             );
                         })}

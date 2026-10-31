@@ -146,6 +146,17 @@ class ControlException extends Model
         return in_array($this->status, self::OPEN_STATUSES, true);
     }
 
+    /** The latest extension request, if no decision has been recorded since. */
+    public function pendingExtensionRequest(): ?ExceptionActivity
+    {
+        $latest = $this->activities()
+            ->whereIn('activity_type', ['Extension Request', 'Extension Decision'])
+            ->reorder('id', 'desc')
+            ->first();
+
+        return $latest?->activity_type === 'Extension Request' ? $latest : null;
+    }
+
     public function scopeOpen(Builder $query): Builder
     {
         return $query->whereIn('status', self::OPEN_STATUSES);
