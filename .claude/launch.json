@@ -42,6 +42,16 @@
             "port": 5174
         },
         {
+            "name": "secondline-build-watch",
+            "runtimeExecutable": "npx",
+            "runtimeArgs": [
+                "vite",
+                "build",
+                "--watch"
+            ],
+            "port": 0
+        },
+        {
             "name": "secondline-queue",
             "runtimeExecutable": "php",
             "runtimeArgs": [
