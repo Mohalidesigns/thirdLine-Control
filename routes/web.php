@@ -1165,6 +1165,7 @@ Route::middleware('auth')->group(function () {
             Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('admin.users.reset-password');
             Route::post('users/{user}/suspend', [UserController::class, 'suspend'])->name('admin.users.suspend');
             Route::post('users/{user}/reactivate', [UserController::class, 'reactivate'])->name('admin.users.reactivate');
+            Route::post('users/{user}/reset-mfa', [UserController::class, 'resetMfa'])->name('admin.users.reset-mfa');
         });
 
         // CR-01: exception routing + SLA config. Its own permission, held by

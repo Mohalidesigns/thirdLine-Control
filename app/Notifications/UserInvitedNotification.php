@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -11,7 +12,7 @@ use Illuminate\Notifications\Notification;
  * password. The link is a signed URL with a hard expiry — an invitation that
  * outlives a week is a stale credential waiting in an inbox.
  */
-class UserInvitedNotification extends Notification
+class UserInvitedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 

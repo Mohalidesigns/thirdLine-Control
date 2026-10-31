@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -11,7 +12,7 @@ use Illuminate\Notifications\Notification;
  * same signed set-password flow as invitations — one code path, one expiry
  * policy, one audit surface.
  */
-class PasswordResetLinkNotification extends Notification
+class PasswordResetLinkNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
