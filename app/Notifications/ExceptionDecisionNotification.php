@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\ControlException;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Carbon;
 
 /**
  * The approval hand-offs of an exception's lifecycle: the owner asks for
@@ -42,7 +43,7 @@ class ExceptionDecisionNotification extends PreferenceRoutedNotification
             self::EXTENSION_REQUESTED => $mail
                 ->line("{$this->actorName} has asked to move the target closure date of {$ref}.")
                 ->line('Current target: '.($this->exception->target_closure_date?->toFormattedDateString() ?? '—'))
-                ->line('Requested date: '.($this->newDate ?? '—'))
+                ->line('Requested date: '.$this->formattedNewDate())
                 ->line('Reason: '.str($this->note)->limit(300)),
             self::EXTENSION_DECIDED => $mail
                 ->line("{$this->actorName} has ".($this->approved ? 'approved' : 'declined')." your extension request on {$ref}.")
@@ -75,6 +76,12 @@ class ExceptionDecisionNotification extends PreferenceRoutedNotification
             'url' => route('exceptions.show', $this->exception->id),
             'summary' => $this->headline().': '.str($this->exception->title)->limit(120),
         ];
+    }
+
+    /** Same format as the current target, so the two dates read side by side. */
+    private function formattedNewDate(): string
+    {
+        return $this->newDate ? Carbon::parse($this->newDate)->toFormattedDateString() : '—';
     }
 
     private function headline(): string

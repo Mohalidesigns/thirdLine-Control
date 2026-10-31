@@ -33,8 +33,8 @@ class ControlApprovalNotification extends PreferenceRoutedNotification
 
         $mail = match ($this->kind) {
             self::SUBMITTED => $mail
-                ->line("{$this->actorName} has submitted control {$ref} (v{$this->control->current_version}) for approval.")
-                ->line('You cannot approve a control you created yourself.'),
+                ->line("{$this->actorName} has submitted control {$ref} (v{$this->control->current_version}) for your approval.")
+                ->line('Review it, then approve it or return it to draft with a reason.'),
             self::RETURNED => $mail
                 ->line("{$this->actorName} has returned control {$ref} to draft.")
                 ->line('Reason: '.str($this->note)->limit(500))
