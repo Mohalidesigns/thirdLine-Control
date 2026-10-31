@@ -9,12 +9,14 @@ use App\Models\EscalationEvent;
 use App\Models\EscalationMatrix;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Notifications\CampaignOpenedNotification;
 use App\Services\AttestationService;
 use App\Services\CsaService;
 use App\Services\EscalationService;
 use Database\Seeders\FeatureFlagSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
@@ -92,6 +94,40 @@ class AttestationTest extends TestCase
         $user->assignRole($role);
 
         return $user;
+    }
+
+    public function test_reopening_a_campaign_does_not_invite_respondents_again(): void
+    {
+        Notification::fake();
+        $service = app(CsaService::class);
+
+        $service->close($this->campaign);
+        $service->open($this->campaign->fresh());
+
+        Notification::assertNotSentTo([$this->staff, $this->officer], CampaignOpenedNotification::class);
+    }
+
+    public function test_opening_a_campaign_invites_each_respondent(): void
+    {
+        Notification::fake();
+        $service = app(CsaService::class);
+
+        $campaign = $service->createCampaign([
+            'name' => 'Q4 branch self-assessment',
+            'campaign_type' => 'csa',
+            'closes_at' => now()->addDays(14),
+            'scope_definition' => ['assignments' => [['respondent_id' => $this->staff->id]]],
+        ], $this->officer);
+        $service->syncQuestions($campaign->activeQuestionnaire(), [
+            ['question_text' => 'Were all reconciliations done?', 'response_type' => 'yes_no', 'is_required' => true],
+        ]);
+        $service->approveCampaign($campaign, $this->cfh);
+        $service->open($campaign->fresh());
+
+        $response = $campaign->responses()->where('respondent_id', $this->staff->id)->firstOrFail();
+        Notification::assertSentTo($this->staff, CampaignOpenedNotification::class,
+            fn ($n) => $n->toArray($this->staff)['url'] === route('csa-responses.show', $response->id));
+        Notification::assertNotSentTo($this->officer, CampaignOpenedNotification::class);
     }
 
     public function test_attestation_snapshots_the_exact_text_and_context(): void

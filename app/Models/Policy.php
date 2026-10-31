@@ -117,6 +117,16 @@ class Policy extends Model
         return $this->hasMany(PolicySection::class)->orderBy('sequence');
     }
 
+    /**
+     * Read as `attestation_text` by the attestation registry, which signs
+     * and displays that field first — so a policy is attested on its full
+     * sections, not only its one-line description.
+     */
+    public function getAttestationTextAttribute(): string
+    {
+        return $this->attestationText();
+    }
+
     public function exceptions(): HasMany
     {
         return $this->hasMany(PolicyException::class);

@@ -125,7 +125,7 @@ function toolsFor(preset) {
  * The one rich-text input for every long-form field.
  *
  *   <RichTextEditor value={doc | json-string | plain-string}
- *                   onChange={(doc, plainText) => …}   // debounced ~400ms
+ *                   onChange={(doc, plainText) => …}   // debounced ~400ms, flushed on blur
  *                   tools="default | minimal | full" />
  *
  * Exposes an imperative save() via ref for forms that submit on click and
@@ -189,10 +189,20 @@ const RichTextEditor = forwardRef(function RichTextEditor(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [readOnly, tools]);
 
+    // Pressing a submit button moves focus out of the editor before its
+    // click fires, so flushing here lands the last keystrokes in the form
+    // data in time — no form has to remember to call save() first.
+    const flushOnLeave = (e) => {
+        if (readOnly || e.currentTarget.contains(e.relatedTarget)) return;
+        clearTimeout(debounceRef.current);
+        emit().catch(() => {});
+    };
+
     return (
         <div
             id={id}
             ref={holderRef}
+            onBlur={flushOnLeave}
             style={{ minHeight }}
             className={`rich-text-editor form-input ${readOnly ? 'pointer-events-auto bg-gray-50' : ''}`}
         />

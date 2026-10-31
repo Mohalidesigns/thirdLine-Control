@@ -10,7 +10,9 @@ use App\Models\CsaQuestion;
 use App\Models\CsaQuestionnaire;
 use App\Models\CsaResponse;
 use App\Models\User;
+use App\Notifications\CampaignOpenedNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -96,9 +98,40 @@ class CsaService
         }
 
         $this->transition($campaign, 'Open', ['opens_at' => $campaign->opens_at ?? now()]);
+
+        // Reopening a closed campaign must not invite people a second time.
+        $alreadyInvited = $campaign->responses()->pluck('id');
         $this->generateResponses($campaign);
+        $this->inviteRespondents($campaign, $alreadyInvited->all());
 
         return $campaign;
+    }
+
+    /** Fire-and-log — a notification hiccup never blocks opening the campaign. */
+    private function inviteRespondents(CsaCampaign $campaign, array $exceptResponseIds): void
+    {
+        $responses = $campaign->responses()
+            ->whereNotIn('id', $exceptResponseIds)
+            ->with(['respondent', 'campaign'])
+            ->get();
+
+        foreach ($responses as $response) {
+            if (! $response->respondent?->is_active) {
+                continue;
+            }
+
+            try {
+                app(NotificationDispatcher::class)->send(
+                    $response->respondent, 'campaign.opened', new CampaignOpenedNotification($response),
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Campaign invitation failed', [
+                    'campaign_id' => $campaign->id,
+                    'response_id' => $response->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
     }
 
     public function close(CsaCampaign $campaign): CsaCampaign
