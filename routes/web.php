@@ -323,7 +323,9 @@ Route::middleware('auth')->group(function () {
     Route::post('controls/{control}/assess', [ControlController::class, 'assess'])->name('controls.assess');
 
     // ── Risk register & mapping ──────────────────────────────────────
-    Route::middleware('role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager')->group(function () {
+    // Control Owners are let through so a named risk or treatment owner can
+    // reach their own records; RiskPolicy / RiskTreatmentPolicy decide the rest.
+    Route::middleware('role:System Administrator|Control Function Head|Control Officer|Executive Viewer|Line Manager|Control Owner')->group(function () {
         // Static segments first so they are not captured as a {risk}.
         Route::get('risks/gaps', [RiskController::class, 'gaps'])->name('risks.gaps');
 

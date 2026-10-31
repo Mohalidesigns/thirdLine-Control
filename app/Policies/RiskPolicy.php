@@ -41,12 +41,14 @@ class RiskPolicy
     }
 
     /**
-     * Publishing a high-scoring assessment — the checker side. The
-     * assessment-level SoD check (assessor ≠ approver) lives in
-     * RiskAssessmentService and applies with no admin bypass (R2).
+     * Publishing a high-scoring assessment — the checker side. The risk's
+     * named second-line reviewer may review it as well as holders of the
+     * permission. The assessment-level SoD check (assessor ≠ approver)
+     * lives in RiskAssessmentService and applies with no admin bypass (R2).
      */
     public function review(User $user, Risk $risk): bool
     {
-        return $user->can('review risk-assessments');
+        return $user->can('review risk-assessments')
+            || ($risk->second_line_reviewer_id !== null && $risk->second_line_reviewer_id === $user->id);
     }
 }

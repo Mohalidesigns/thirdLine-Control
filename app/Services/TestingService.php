@@ -18,7 +18,7 @@ class TestingService
 {
     public function __construct(
         private ExceptionService $exceptionService,
-        private ResidualRiskService $residualRiskService,
+        private RiskAssessmentService $riskAssessments,
         private FrequencyResolver $frequencies,
     ) {}
 
@@ -321,7 +321,7 @@ class TestingService
             'approved_at' => now(),
         ]);
 
-        $this->residualRiskService->recomputeForControl($rating->control);
+        $this->riskAssessments->recomputeForControl($rating->control);
 
         $instance = $rating->testInstance->setRelation('effectivenessRating', $rating);
         $this->notify($this->usersExcept([$rating->rated_by, $rating->control?->owner_id], $approver), 'testing.rating.published',

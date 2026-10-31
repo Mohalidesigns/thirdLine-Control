@@ -2,14 +2,17 @@
 
 namespace App\Services;
 
+use App\Models\Control;
 use App\Models\Risk;
 use App\Models\RiskAssessment;
 use App\Models\RiskAssessmentScale;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Notifications\RiskAssessmentNotification;
 use App\Support\LossSimulator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -219,7 +222,9 @@ class RiskAssessmentService
             'likelihood_level' => $likelihoodLevel,
             'impact_level' => $impactLevel,
             'likelihood_rationale' => $data['likelihood_rationale'] ?? null,
+            'likelihood_rationale_rich' => $data['likelihood_rationale_rich'] ?? null,
             'impact_rationale' => $data['impact_rationale'] ?? null,
+            'impact_rationale_rich' => $data['impact_rationale_rich'] ?? null,
             'score' => $score,
             'rating' => $this->bandFor($score, $tenantId),
             'financial_impact_minor' => $data['financial_impact_minor'] ?? null,
@@ -254,6 +259,10 @@ class RiskAssessmentService
     public function submitForReview(RiskAssessment $assessment): RiskAssessment
     {
         $this->transition($assessment, 'Pending Review');
+
+        $assessor = $assessment->assessor()->withoutGlobalScopes()->first();
+        $this->notify($this->reviewersFor($assessment), 'risk.assessment.review.requested',
+            new RiskAssessmentNotification($assessment, RiskAssessmentNotification::SUBMITTED, $assessor?->name ?? 'An assessor'));
 
         return $assessment;
     }
@@ -293,13 +302,35 @@ class RiskAssessmentService
 
         $this->applyToRisk($assessment);
 
+        $risk = $assessment->risk()->withoutGlobalScopes()->first();
+        $this->notify($this->usersExcept([$assessment->assessed_by, $risk?->risk_owner_id], $approver), 'risk.assessment.published',
+            new RiskAssessmentNotification($assessment, RiskAssessmentNotification::PUBLISHED, $approver->name));
+
         return $assessment;
     }
 
+    /**
+     * Returning is not approving: the reviewer and reason are kept on the
+     * assessment (not in approved_by) so the assessor sees why in the
+     * history and can revise it.
+     */
     public function reject(RiskAssessment $assessment, User $approver, string $reason): RiskAssessment
     {
-        $this->transition($assessment, 'Rejected', ['approved_by' => $approver->id, 'approved_at' => now()]);
+        if ($assessment->assessed_by === $approver->id) {
+            throw ValidationException::withMessages([
+                'approval' => 'You cannot review an assessment you made.',
+            ]);
+        }
+
+        $this->transition($assessment, 'Rejected', [
+            'return_reason' => $reason,
+            'returned_by' => $approver->id,
+            'returned_at' => now(),
+        ]);
         $assessment->auditAction('rejected', null, ['by' => $approver->id, 'reason' => $reason]);
+
+        $this->notify($this->usersExcept([$assessment->assessed_by], $approver), 'risk.assessment.returned',
+            new RiskAssessmentNotification($assessment, RiskAssessmentNotification::RETURNED, $approver->name, $reason));
 
         return $assessment;
     }
@@ -341,6 +372,18 @@ class RiskAssessmentService
     }
 
     // ── Residual, on top of the phase 0-6 engine ─────────────────────
+
+    /**
+     * A published rating or compensating control changed what a control
+     * contributes: re-score every risk it mitigates through
+     * recomputeResidual, so a manual residual is respected and the grid
+     * cell, band and appetite flag move with the score.
+     */
+    public function recomputeForControl(Control $control): void
+    {
+        $control->risks()->withoutGlobalScopes()->get()
+            ->each(fn (Risk $risk) => $this->recomputeResidual($risk));
+    }
 
     /**
      * The control-driven residual stays with ResidualRiskService — its
@@ -433,6 +476,46 @@ class RiskAssessmentService
         ]);
 
         return $result;
+    }
+
+    // ── Notifications ────────────────────────────────────────────────
+
+    /** The control function heads plus the risk's named second-line reviewer — never the assessor. */
+    private function reviewersFor(RiskAssessment $assessment)
+    {
+        $risk = $assessment->risk()->withoutGlobalScopes()->first();
+
+        return User::withoutGlobalScopes()
+            ->where('tenant_id', $assessment->tenant_id)
+            ->where(fn ($q) => $q
+                ->whereHas('roles', fn ($r) => $r->where('name', 'Control Function Head'))
+                ->when($risk?->second_line_reviewer_id, fn ($w, $id) => $w->orWhere('id', $id)))
+            ->where('id', '!=', $assessment->assessed_by)
+            ->where('is_active', true)
+            ->get();
+    }
+
+    private function usersExcept(array $ids, User $actor)
+    {
+        return User::withoutGlobalScopes()
+            ->whereIn('id', array_filter($ids))
+            ->where('id', '!=', $actor->id)
+            ->where('is_active', true)
+            ->get();
+    }
+
+    /** Fire-and-log — a notification hiccup never blocks the assessment workflow. */
+    private function notify(iterable $recipients, string $eventKey, RiskAssessmentNotification $notification): void
+    {
+        try {
+            app(NotificationDispatcher::class)->send($recipients, $eventKey, $notification);
+        } catch (\Throwable $e) {
+            Log::warning('Risk assessment notification failed', [
+                'risk_assessment_id' => $notification->assessment->id,
+                'event' => $eventKey,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     private function transition(RiskAssessment $assessment, string $to, array $extra = []): void

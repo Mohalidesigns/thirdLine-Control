@@ -25,7 +25,7 @@ class RiskAssessment extends Model
 
     protected $fillable = [
         'tenant_id', 'risk_id', 'assessment_type', 'assessed_at', 'assessed_by',
-        'approved_by', 'approved_at', 'status',
+        'approved_by', 'approved_at', 'return_reason', 'returned_by', 'returned_at', 'status',
         'likelihood_level', 'impact_level', 'likelihood_rationale', 'impact_rationale',
         'score', 'rating', 'financial_impact_minor', 'currency',
         'loss_min_minor', 'loss_likely_minor', 'loss_max_minor', 'likelihood_percent',
@@ -40,6 +40,7 @@ class RiskAssessment extends Model
     protected $casts = [
         'assessed_at' => 'datetime',
         'approved_at' => 'datetime',
+        'returned_at' => 'datetime',
         'simulated_at' => 'datetime',
         'likelihood_level' => 'integer',
         'impact_level' => 'integer',
@@ -69,6 +70,11 @@ class RiskAssessment extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function returner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'returned_by');
     }
 
     public function scopePublished(Builder $query): Builder
