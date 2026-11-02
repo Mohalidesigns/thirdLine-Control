@@ -321,6 +321,11 @@ class UserController extends Controller
     /** CSV export of the current tenant's users. */
     public function export(Request $request): StreamedResponse
     {
+        $this->audit->record('users_exported', $request->user(), null, [
+            'format' => 'csv',
+            'filters' => array_filter($request->only(['search', 'status', 'role'])),
+        ]);
+
         $users = User::where('tenant_id', $request->user()->tenant_id)
             ->with(['roles:id,name', 'unit:id,name'])
             ->orderBy('name')->get();

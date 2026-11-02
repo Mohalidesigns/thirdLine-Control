@@ -39,12 +39,21 @@ class ReportDefinitionPolicy
 
     public function approve(User $user, ReportDefinition $definition): bool
     {
-        return $user->can('approve report-definitions') && $definition->owner_id !== $user->id;
+        return $user->can('approve report-definitions')
+            && $definition->owner_id !== $user->id
+            && $definition->last_edited_by !== $user->id;
     }
 
-    /** Running a report reads live data — export, not design, is the gate. */
+    /**
+     * Running a report reads live data — export, not design, is the gate —
+     * but only an approved definition runs, and only for someone who could
+     * open the classification it carries.
+     */
     public function run(User $user, ReportDefinition $definition): bool
     {
-        return $user->can('export reports') && $definition->is_active;
+        return $user->can('export reports')
+            && $definition->is_active
+            && $definition->isApproved()
+            && $definition->isOpenTo($user);
     }
 }

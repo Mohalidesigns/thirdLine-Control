@@ -9,6 +9,9 @@ use App\Models\ReportDefinition;
 use App\Models\ReportSchedule;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Reports\ChartSvg;
+use App\Reports\Engines\HtmlEngine;
+use App\Reports\ReportSectionResolver;
 use App\Services\ReportDesignerService;
 use App\Support\CronSchedule;
 use Database\Seeders\FeatureFlagSeeder;
@@ -191,12 +194,33 @@ class ReportDesignerTest extends TestCase
 
         $designer->updateDefinition($definition, [
             'sections' => [['type' => 'cover', 'title' => 'Cover'], ['type' => 'narrative', 'title' => 'New']],
-        ]);
+        ], $this->officer);
 
         $definition->refresh();
 
         $this->assertNull($definition->approved_at, 'Changing the layout must withdraw the approval.');
         $this->assertSame(2, $definition->version_no);
+    }
+
+    public function test_distribution_and_trend_charts_render_as_embedded_graphics_with_their_table_twin(): void
+    {
+        $definition = ReportDefinition::withoutGlobalScopes()->where('code', 'BOARD-PACK')->firstOrFail();
+
+        $document = app(ReportSectionResolver::class)->resolve($definition, $this->cfh);
+        $html = app(HtmlEngine::class)->render($document);
+
+        $this->assertStringContainsString('data:image/svg+xml;base64,', $html);
+        $this->assertStringContainsString('Report no.', $html);
+        $this->assertStringContainsString('<table class="data">', $html, 'Every chart keeps its table view.');
+
+        $svg = ChartSvg::donut([
+            ['label' => 'Critical', 'value' => 3, 'colour' => '#DC2626'],
+            ['label' => 'High', 'value' => 1, 'colour' => '#EA580C'],
+        ], 'Findings');
+
+        $this->assertStringContainsString('75%', $svg);
+        $this->assertStringContainsString('FINDINGS', $svg);
+        $this->assertStringContainsString('<polygon', $svg);
     }
 
     // ── Scheduling and distribution ──────────────────────────────────────

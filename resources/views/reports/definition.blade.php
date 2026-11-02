@@ -14,6 +14,14 @@
      */
     $ordinal = array_values($palette['ordinal']);
 
+    $sliceColour = function (array $series, int $index) use ($categorical, $statusTones, $ordinal) {
+        if (! empty($series['tones'][$index])) {
+            return $statusTones[$series['tones'][$index]] ?? $statusTones['muted'];
+        }
+
+        return ! empty($series['ordinal']) ? $ordinal[$index % count($ordinal)] : $categorical[$index % count($categorical)];
+    };
+
     $barColour = function (array $series, int $index) use ($categorical, $statusTones, $ordinal) {
         // A severity or rating scale keeps its reserved status tone; an
         // ordered scale (ageing bands) takes the one-hue ordinal ramp so the
@@ -33,16 +41,29 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>{{ $document['title'] }}</title>
+    <title>{{ $document['title'] ?? '' }}</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: DejaVu Sans, sans-serif; font-size: 10px; color: #2D3748; margin: 0; }
-        .band { background: {{ $brandPrimary }}; color: #fff; padding: 16px 24px; }
-        .band h1 { margin: 0; font-size: 15px; }
+        .band { background: {{ $brandPrimary }}; color: #fff; padding: 22px 28px 20px; }
+        .band table { border-collapse: collapse; }
+        .band td.logo { width: 30px; height: 30px; text-align: center; vertical-align: middle; border-radius: 6px; background: {{ $brandAccent }}; color: {{ $brandPrimary }}; font-size: 11px; font-weight: bold; }
+        .band .brand { font-size: 12px; font-weight: bold; padding-left: 10px; }
+        .band .tag { font-size: 7px; letter-spacing: 1.6px; color: #A9B8D0; padding-left: 10px; text-transform: uppercase; }
+        .band .goldrule { height: 2px; background: {{ $brandAccent }}; margin: 16px 0 16px; }
+        .band .kicker { font-size: 8px; letter-spacing: 1.8px; color: {{ $brandAccent }}; text-transform: uppercase; }
+        .band h1 { margin: 5px 0 12px; font-size: 20px; line-height: 1.2; }
+        .band .bandmeta td { padding-right: 26px; vertical-align: top; }
+        .band .bandmeta .k { font-size: 7px; letter-spacing: 1.2px; color: #A9B8D0; text-transform: uppercase; }
+        .band .bandmeta .v { font-size: 10px; font-weight: bold; margin-top: 2px; }
         .band p { margin: 3px 0 0; font-size: 8.5px; color: {{ $brandAccent }}; text-transform: uppercase; letter-spacing: 1px; }
-        .meta { padding: 8px 24px; background: #F7FAFC; border-bottom: 1px solid #E2E8F0; font-size: 8.5px; color: #718096; }
-        .content { padding: 14px 24px 40px; }
-        h2 { font-size: 12px; color: {{ $brandPrimary }}; border-bottom: 2px solid {{ $brandAccent }}; padding-bottom: 4px; margin: 16px 0 8px; }
+        .infogrid { width: 100%; border-collapse: collapse; border: 1px solid #E2E8F0; margin: 16px 0 0; }
+        .infogrid td { width: 33.33%; padding: 9px 12px; border: 1px solid #E2E8F0; vertical-align: top; }
+        .infogrid .k { font-size: 7px; letter-spacing: 1px; color: #718096; text-transform: uppercase; }
+        .infogrid .v { font-size: 10px; font-weight: bold; color: {{ $brandPrimary }}; margin-top: 3px; }
+        .figure { margin: 4px 0 8px; text-align: center; }
+        .content { padding: 4px 28px 44px; }
+        h2 { font-size: 11px; letter-spacing: 0.8px; text-transform: uppercase; color: {{ $brandPrimary }}; border-left: 4px solid {{ $brandAccent }}; padding: 1px 0 1px 8px; margin: 20px 0 9px; }
         p.body { margin: 0 0 8px; line-height: 1.5; }
         table.data { width: 100%; border-collapse: collapse; margin: 6px 0 12px; }
         table.data th { background: {{ $brandPrimary }}; color: #fff; text-align: left; padding: 5px 6px; font-size: 8px; text-transform: uppercase; }
@@ -61,7 +82,8 @@
         /* KPI row */
         .kpi { width: 100%; border-collapse: separate; border-spacing: 6px 0; margin-bottom: 10px; }
         .kpi td { background: #F7FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 9px 10px; vertical-align: top; }
-        .kpi .value { font-size: 19px; font-weight: bold; color: {{ $brandPrimary }}; }
+        .kpi td { text-align: center; }
+        .kpi .value { font-size: 22px; font-weight: bold; color: {{ $brandPrimary }}; }
         .kpi .label { font-size: 7.5px; text-transform: uppercase; color: #718096; letter-spacing: 0.4px; }
         .kpi .caption { font-size: 7.5px; color: #A0AEC0; margin-top: 2px; }
 
@@ -81,25 +103,56 @@
         .rule .role { color: #718096; font-size: 8px; }
         .break { page-break-after: always; }
         .note { font-size: 8px; color: #A0AEC0; margin: 2px 0 10px; }
-        .footer { position: fixed; bottom: 0; left: 0; right: 0; padding: 6px 24px; font-size: 7.5px; color: #A0AEC0; border-top: 1px solid #E2E8F0; }
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; padding: 6px 28px; font-size: 7.5px; color: #A0AEC0; border-top: 1px solid #E2E8F0; }
     </style>
 </head>
 <body>
-@php $hasCover = collect($document['sections'])->contains(fn ($s) => $s['type'] === 'cover'); @endphp
+@php $hasCover = false; @endphp
 
 @unless ($hasCover)
+    @php
+        $brandName = $branding?->product_name ?? $document['header']['title'] ?? config('app.name');
+        $initials = collect(preg_split('/[\s\-—]+/', (string) $brandName))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('');
+        $typeLabel = str_replace('_', ' ', $document['report_type'] ?? 'management');
+    @endphp
     <div class="band">
         @if (! empty($branding?->report_header_html))
             {!! $branding->report_header_html !!}
         @else
-            <h1>{{ $branding?->product_name ?? $document['header']['title'] ?? config('app.name') }} — {{ $document['title'] }}</h1>
-            <p>{{ $document['header']['subtitle'] ?? $document['context']['tenant'] }}</p>
+            <table>
+                <tr>
+                    <td class="logo">{{ $initials }}</td>
+                    <td>
+                        <div class="brand">{{ $brandName }}</div>
+                        <div class="tag">{{ $document['header']['subtitle'] ?? $document['context']['tenant'] ?? '' }}</div>
+                    </td>
+                </tr>
+            </table>
+            <div class="goldrule"></div>
+            <div class="kicker">{{ $typeLabel }} report</div>
+            <h1>{{ $document['title'] ?? '' }}</h1>
+            <table class="bandmeta">
+                <tr>
+                    <td><div class="k">Report no.</div><div class="v">{{ $document['code'] ?? '—' }}</div></td>
+                    <td><div class="k">Issue date</div><div class="v">{{ $document['generated_at'] ?? '' }}</div></td>
+                    <td><div class="k">Version</div><div class="v">v{{ $document['version'] ?? 1 }}</div></td>
+                </tr>
+            </table>
         @endif
     </div>
-    <div class="meta">
-        {{ $document['context']['period'] }} · {{ $document['context']['entity'] }} ·
-        generated {{ $document['generated_at'] }} by {{ $document['generated_by'] }} ·
-        {{ $document['confidentiality'] }}
+    <div class="content" style="padding-bottom: 0;">
+        <table class="infogrid">
+            <tr>
+                <td><div class="k">Entity</div><div class="v">{{ $document['context']['entity'] ?? '—' }}</div></td>
+                <td><div class="k">Period</div><div class="v">{{ $document['context']['period'] ?? '—' }}</div></td>
+                <td><div class="k">Classification</div><div class="v">{{ $document['confidentiality'] ?? '' }}</div></td>
+            </tr>
+            <tr>
+                <td><div class="k">Prepared by</div><div class="v">{{ $document['generated_by'] ?? '—' }}</div></td>
+                <td><div class="k">Organisation</div><div class="v">{{ $document['context']['tenant'] ?? '—' }}</div></td>
+                <td><div class="k">Framework</div><div class="v">{{ $document['context']['framework'] ?? '—' }}</div></td>
+            </tr>
+        </table>
     </div>
 @endunless
 
@@ -108,22 +161,7 @@
         @switch($section['type'])
 
             @case('cover')
-                <div class="cover">
-                    <h1>{{ $section['title'] }}</h1>
-                    @if ($section['subtitle'])
-                        <div class="sub">{{ $section['subtitle'] }}</div>
-                    @endif
-                    <table>
-                        @foreach ($section['fields'] as $field)
-                            <tr>
-                                <td class="label">{{ $field['label'] }}</td>
-                                <td>{{ $field['value'] }}</td>
-                            </tr>
-                        @endforeach
-                    </table>
-                    <div class="classification">{{ $document['confidentiality'] }}</div>
-                </div>
-                <div class="break"></div>
+                {{-- The cover's facts (entity, period, author, classification) live in the header band and info grid. --}}
                 @break
 
             @case('toc')
@@ -182,7 +220,46 @@
                     $max = $max ?: 1;
                 @endphp
 
-                @if (count($series) > 1)
+                @php
+                    $chartType = $section['chart_type'] ?? 'bar';
+                    $labels = array_map(fn ($c) => (string) $c['label'], $categories);
+                    $unit = $payload['unit'] ?? '';
+                    $svg = null;
+
+                    if (count($categories) && count($series)) {
+                        if (in_array($chartType, ['pie', 'donut'], true)) {
+                            $first = $series[0];
+                            $svg = \App\Reports\ChartSvg::donut(
+                                array_map(fn ($label, $i) => [
+                                    'label' => $label,
+                                    'value' => $first['values'][$i] ?? 0,
+                                    'colour' => $sliceColour($first, $i),
+                                ], $labels, array_keys($labels)),
+                                $first['label'] ?? 'Total',
+                            );
+                        } elseif (in_array($chartType, ['column', 'histogram', 'stacked_column'], true)) {
+                            $svg = \App\Reports\ChartSvg::columns($labels, array_map(fn ($one, $n) => [
+                                'label' => $one['label'],
+                                'values' => $one['values'],
+                                'colours' => array_map(fn ($i) => count($series) > 1
+                                    ? $categorical[((($one['slot'] ?? $n + 1) - 1) % count($categorical))]
+                                    : $sliceColour($one, $i), array_keys($labels)),
+                            ], $series, array_keys($series)), $unit);
+                        } elseif ($chartType === 'line') {
+                            $svg = \App\Reports\ChartSvg::lines($labels, array_map(fn ($one, $n) => [
+                                'label' => $one['label'],
+                                'values' => $one['values'],
+                                'colour' => $categorical[((($one['slot'] ?? $n + 1) - 1) % count($categorical))],
+                            ], $series, array_keys($series)), $unit);
+                        }
+                    }
+                @endphp
+
+                @if ($svg)
+                    <div class="figure"><img src="{{ \App\Reports\ChartSvg::dataUri($svg) }}" style="width: 100%;" alt="{{ $section['title'] }}"></div>
+                @endif
+
+                @if (! $svg && count($series) > 1)
                     <p class="legend">
                         @foreach ($series as $one)
                             <span>
@@ -192,7 +269,7 @@
                     </p>
                 @endif
 
-                @if (count($categories))
+                @if (! $svg && count($categories))
                     <table class="chart">
                         @foreach ($categories as $index => $category)
                             @foreach ($series as $seriesIndex => $one)
@@ -257,7 +334,7 @@
     @if (! empty($branding?->report_footer_html))
         {!! $branding->report_footer_html !!}
     @else
-        {{ $document['footer']['text'] ?? $document['confidentiality'] }} — {{ $document['context']['tenant'] }}
+        {{ $document['footer']['text'] ?? $document['confidentiality'] }} — {{ $document['context']['tenant'] ?? '—' }}
     @endif
 </div>
 </body>

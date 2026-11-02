@@ -44,6 +44,13 @@ class RunScheduledReports extends Command
             // running as a privileged system identity would do exactly that.
             $actor = $schedule->creator;
 
+            if ($schedule->definition && ! $schedule->definition->isApproved()) {
+                $this->warn("Skipping '{$schedule->name}' — its report definition is awaiting approval.");
+                $this->markRun($schedule, 'Skipped');
+
+                continue;
+            }
+
             if (! $actor || ! $schedule->definition) {
                 $this->warn("Skipping '{$schedule->name}' — no creator or definition to run it as.");
                 $this->markRun($schedule, 'Skipped');

@@ -106,7 +106,7 @@ export default function Library({ definitions, filters = {}, types = [], can = {
                             field: 'approved_at',
                             label: 'Approval',
                             render: (definition) => (
-                                <StatusBadge status={definition.approved_at ? 'Approved' : 'Draft'} />
+                                <StatusBadge status={definition.approved_at || definition.is_system ? 'Approved' : 'Awaiting approval'} />
                             ),
                         },
                         {

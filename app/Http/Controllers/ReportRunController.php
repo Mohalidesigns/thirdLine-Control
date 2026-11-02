@@ -23,6 +23,7 @@ class ReportRunController extends Controller
 
         return Inertia::render('Reports/Runs', [
             'runs' => ReportRun::query()
+                ->whereHas('definition', fn ($q) => $q->openTo($request->user()))
                 ->with(['definition:id,code,name,confidentiality', 'requester:id,name', 'schedule:id,name'])
                 ->when($request->status, fn ($q, $s) => $q->where('status', $s))
                 ->when($request->report_definition_id, fn ($q, $d) => $q->where('report_definition_id', $d))
@@ -31,7 +32,7 @@ class ReportRunController extends Controller
                 ->withQueryString(),
             'filters' => $request->only(['status', 'report_definition_id']),
             'statuses' => ReportRun::STATUSES,
-            'definitions' => ReportDefinition::orderBy('name')->get(['id', 'name']),
+            'definitions' => ReportDefinition::openTo($request->user())->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -70,6 +71,8 @@ class ReportRunController extends Controller
     public function download(Request $request, ReportRun $run): StreamedResponse
     {
         $this->authorize('viewAny', ReportDefinition::class);
+
+        abort_unless($run->definition?->isOpenTo($request->user()), 403, 'You may not open material at this classification.');
 
         abort_unless($run->isDownloadable(), 410, 'This report is no longer available for download.');
 

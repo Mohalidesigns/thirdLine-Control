@@ -100,9 +100,15 @@ export default function Definition({ definition, runs, parameterOptions = {}, ca
                             </select>
                         </label>
 
-                        <button type="submit" className="btn-primary w-full" disabled={form.processing || !can.run}>
-                            {form.processing ? 'Generating…' : 'Generate'}
-                        </button>
+                        {definition.approved_at || definition.is_system ? (
+                            <button type="submit" className="btn-primary w-full" disabled={form.processing || !can.run}>
+                                {form.processing ? 'Generating…' : 'Generate'}
+                            </button>
+                        ) : (
+                            <p className="text-sm font-medium text-[var(--color-text-secondary)]">
+                                Awaiting approval. This report can be run once someone other than its author and last editor approves it.
+                            </p>
+                        )}
 
                         <p className="text-xs text-[var(--color-text-secondary)]">
                             Classification: <strong>{definition.confidentiality}</strong>. Distribution is filtered
