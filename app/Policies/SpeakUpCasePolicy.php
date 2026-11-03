@@ -39,7 +39,8 @@ class SpeakUpCasePolicy
     {
         return $case->grantsAccessTo($user)
             && $user->can('investigate cases')
-            && $case->status !== 'Closed';
+            && $case->status !== 'Closed'
+            && $case->reporter_id !== $user->id;
     }
 
     public function assess(User $user, SpeakUpCase $case): bool
@@ -51,7 +52,8 @@ class SpeakUpCasePolicy
     {
         return $case->grantsAccessTo($user)
             && ($case->lead_investigator_id === $user->id || $user->can('investigate cases'))
-            && $case->status !== 'Closed';
+            && $case->status !== 'Closed'
+            && $case->reporter_id !== $user->id;
     }
 
     /** The reporter of a case never decides its outcome (R2). */
@@ -84,12 +86,16 @@ class SpeakUpCasePolicy
     {
         return $case->grantsAccessTo($user)
             && $user->can('close cases')
+            && $case->reporter_id !== $user->id
             && in_array($case->status, ['Substantiated', 'Unsubstantiated', 'Referred', 'Assessed', 'Received'], true);
     }
 
+    /** Reporters follow their case; they never decide who else sees it. */
     public function manageAccess(User $user, SpeakUpCase $case): bool
     {
-        return $case->grantsAccessTo($user);
+        return $case->grantsAccessTo($user)
+            && $user->can('investigate cases')
+            && $case->reporter_id !== $user->id;
     }
 
     /** Privileged notes stay with the lead investigator and legal counsel. */

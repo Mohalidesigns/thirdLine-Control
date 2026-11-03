@@ -81,7 +81,7 @@ class WhistleblowingController extends Controller
         $result = $this->cases->open([
             'case_type' => 'whistleblowing',
             'title' => $validated['title'],
-            'description' => $validated['description'],
+            'description' => $this->describe($validated),
             'confidentiality' => 'Highly Restricted',
             'severity' => 'High',
             'channel' => 'web',
@@ -106,6 +106,17 @@ class WhistleblowingController extends Controller
             ->with('reporterToken', $result['token'])
             ->with('caseRef', $result['case']->case_ref)
             ->with('success', 'Your report has been received.');
+    }
+
+    /** Keep the optional form fields the case has no column for. */
+    private function describe(array $validated): string
+    {
+        $header = array_filter([
+            ! empty($validated['concern_type']) ? 'Concern type: '.$validated['concern_type'] : null,
+            ! empty($validated['entity_hint']) ? 'Area or unit: '.$validated['entity_hint'] : null,
+        ]);
+
+        return $header === [] ? $validated['description'] : implode("\n", $header)."\n\n".$validated['description'];
     }
 
     /**
