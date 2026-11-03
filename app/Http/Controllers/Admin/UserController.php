@@ -7,9 +7,12 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\OrganisationUnit;
 use App\Models\User;
+use App\Notifications\AccountChangedNotification;
 use App\Notifications\PasswordResetLinkNotification;
 use App\Notifications\UserInvitedNotification;
 use App\Services\AuditTrailService;
+use App\Services\MfaService;
+use App\Services\UserAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
@@ -36,7 +39,10 @@ class UserController extends Controller
 
     private const RESET_VALID_HOURS = 24;
 
-    public function __construct(private AuditTrailService $audit) {}
+    public function __construct(
+        private AuditTrailService $audit,
+        private UserAccessService $access,
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -78,6 +84,7 @@ class UserController extends Controller
     public function store(StoreUserRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+        $this->access->assertNoAdminConflict($validated['roles']);
 
         $user = new User([
             'tenant_id' => $request->user()->tenant_id,
@@ -106,6 +113,7 @@ class UserController extends Controller
         $user->save();
         $user->syncRoles($validated['roles']);
         $this->audit->record('roles-updated', $user, ['roles' => []], ['roles' => $validated['roles']]);
+        $this->access->userCreated($request->user(), $user, $validated['roles']);
 
         if ($validated['password_mode'] === 'invite') {
             $this->sendInvite($user, $request->user()->name);
@@ -122,6 +130,8 @@ class UserController extends Controller
 
         $validated = $request->validated();
         $rolesBefore = $user->roles->pluck('name')->values()->all();
+        $emailBefore = $user->email;
+        $this->access->assertCanAssign($request->user(), $user, $rolesBefore, $validated['roles']);
         $this->guardLastAdministrator($user, $validated['roles']);
 
         // Attribute changes are audited by the Auditable trait; the role
@@ -140,6 +150,14 @@ class UserController extends Controller
         if ($rolesBefore !== array_values($validated['roles'])) {
             $this->audit->record('roles-updated', $user,
                 ['roles' => $rolesBefore], ['roles' => array_values($validated['roles'])]);
+        }
+
+        $this->access->rolesChanged($request->user(), $user, $rolesBefore, array_values($validated['roles']));
+
+        // The credential fingerprint covers the email, so any invite or
+        // reset link sent to the old address stops working here.
+        if (strcasecmp($emailBefore, $user->email) !== 0) {
+            $this->access->emailChanged($request->user(), $user, $emailBefore);
         }
 
         return back()->with('success', "{$user->name} updated.");
@@ -176,9 +194,10 @@ class UserController extends Controller
             ]);
         }
 
-        // Refreshing the invite timestamp is bookkeeping, not an edit — the
-        // named 'invite-resent' record below is the audit entry.
-        $user->forceFill(['invited_at' => now()])->saveQuietly();
+        // A fresh placeholder password changes the credential fingerprint,
+        // so the link in the earlier invitation stops working. Bookkeeping,
+        // not an edit — the named 'invite-resent' record is the audit entry.
+        $user->forceFill(['invited_at' => now(), 'password' => Str::random(40)])->saveQuietly();
         $this->sendInvite($user, $request->user()->name);
         $this->audit->record('invite-resent', $user, null, ['email' => $user->email]);
 
@@ -203,7 +222,10 @@ class UserController extends Controller
     public function suspend(Request $request, User $user): RedirectResponse
     {
         $this->assertSameTenant($request, $user);
-        $this->suspendOne($request, $user);
+
+        if ($this->suspendOne($request, $user)) {
+            $this->access->accountChanged($request->user(), $user, AccountChangedNotification::SUSPENDED);
+        }
 
         return back()->with('success', "{$user->name} suspended. They can no longer sign in.");
     }
@@ -212,10 +234,43 @@ class UserController extends Controller
     {
         $this->assertSameTenant($request, $user);
 
+        if ($user->is_active) {
+            return back()->with('success', "{$user->name} is already active.");
+        }
+
         // Audited by the Auditable trait as an is_active update.
         $user->update(['is_active' => true]);
+        $this->access->accountChanged($request->user(), $user, AccountChangedNotification::REACTIVATED);
 
         return back()->with('success', "{$user->name} reactivated.");
+    }
+
+    /**
+     * Clears a user's MFA enrolment when they have lost both their
+     * authenticator and recovery codes. They enrol again at next sign-in.
+     * Never your own — that goes through your own security settings.
+     */
+    public function resetMfa(Request $request, User $user, MfaService $mfa): RedirectResponse
+    {
+        $this->assertSameTenant($request, $user);
+
+        if ($user->id === $request->user()->id) {
+            throw ValidationException::withMessages([
+                'user' => 'Reset your own MFA from your security settings.',
+            ]);
+        }
+
+        if (! $user->hasMfaEnabled()) {
+            throw ValidationException::withMessages([
+                'user' => "{$user->name} has not set up MFA.",
+            ]);
+        }
+
+        $mfa->disable($user);
+        $this->audit->record('mfa-reset-by-admin', $user, null, ['by' => $request->user()->id]);
+        $this->access->accountChanged($request->user(), $user, AccountChangedNotification::MFA_RESET);
+
+        return back()->with('success', "MFA reset for {$user->name}. They will set it up again at next sign-in.");
     }
 
     /** Bulk assign-role / suspend over a selection from the list view. */
@@ -238,13 +293,14 @@ class UserController extends Controller
                 if ($validated['action'] === 'assign-role') {
                     $before = $user->roles->pluck('name')->values()->all();
                     if (! in_array($validated['role'], $before, true)) {
+                        $after = [...$before, $validated['role']];
+                        $this->access->assertCanAssign($request->user(), $user, $before, $after);
                         $user->assignRole($validated['role']);
-                        $this->audit->record('roles-updated', $user,
-                            ['roles' => $before],
-                            ['roles' => [...$before, $validated['role']]]);
+                        $this->audit->record('roles-updated', $user, ['roles' => $before], ['roles' => $after]);
+                        $this->access->rolesChanged($request->user(), $user, $before, $after);
                     }
-                } else {
-                    $this->suspendOne($request, $user);
+                } elseif ($this->suspendOne($request, $user)) {
+                    $this->access->accountChanged($request->user(), $user, AccountChangedNotification::SUSPENDED);
                 }
                 $done++;
             } catch (ValidationException) {
@@ -265,6 +321,11 @@ class UserController extends Controller
     /** CSV export of the current tenant's users. */
     public function export(Request $request): StreamedResponse
     {
+        $this->audit->record('users_exported', $request->user(), null, [
+            'format' => 'csv',
+            'filters' => array_filter($request->only(['search', 'status', 'role'])),
+        ]);
+
         $users = User::where('tenant_id', $request->user()->tenant_id)
             ->with(['roles:id,name', 'unit:id,name'])
             ->orderBy('name')->get();
@@ -287,7 +348,8 @@ class UserController extends Controller
         }, 'users-'.now()->format('Ymd-His').'.csv', ['Content-Type' => 'text/csv']);
     }
 
-    private function suspendOne(Request $request, User $user): void
+    /** @return bool whether the account was active and is now suspended */
+    private function suspendOne(Request $request, User $user): bool
     {
         if ($user->id === $request->user()->id) {
             throw ValidationException::withMessages([
@@ -296,13 +358,15 @@ class UserController extends Controller
         }
 
         if (! $user->is_active) {
-            return;
+            return false;
         }
 
         $this->guardLastAdministrator($user, []);
 
         // Audited by the Auditable trait as an is_active update.
         $user->update(['is_active' => false]);
+
+        return true;
     }
 
     private function sendInvite(User $user, string $invitedBy): void
@@ -316,15 +380,15 @@ class UserController extends Controller
     }
 
     /**
-     * Signed, expiring set-password link. The password-hash fragment makes
-     * the link single-use: once the password changes, the fragment no
+     * Signed, expiring set-password link. The credential fingerprint makes
+     * the link single-use: once the password or the email changes, it no
      * longer matches and the link dies even inside its signature window.
      */
     private function setPasswordUrl(User $user, \DateTimeInterface $expires): string
     {
         return URL::temporarySignedRoute('invite.accept', $expires, [
             'user' => $user->id,
-            'h' => substr(sha1((string) $user->password), 0, 16),
+            'h' => $user->credentialFingerprint(),
         ]);
     }
 
@@ -373,6 +437,7 @@ class UserController extends Controller
             'manager' => $user->manager ? ['id' => $user->manager->id, 'name' => $user->manager->name] : null,
             'roles' => $user->roles->pluck('name')->values(),
             'status' => $user->status(),
+            'mfa_enabled' => $user->hasMfaEnabled(),
             'last_login_at' => $user->last_login_at?->toIso8601String(),
         ];
     }

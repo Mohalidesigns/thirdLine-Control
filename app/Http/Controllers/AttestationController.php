@@ -7,6 +7,7 @@ use App\Models\Control;
 use App\Models\CsaCampaign;
 use App\Models\Document;
 use App\Models\Framework;
+use App\Models\Policy;
 use App\Services\AttestationService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -19,6 +20,7 @@ class AttestationController extends Controller
         'document' => Document::class,
         'control' => Control::class,
         'framework' => Framework::class,
+        'policy' => Policy::class,
     ];
 
     public function __construct(private AttestationService $attestationService) {}

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CompensatingControl;
 use App\Models\ControlException;
 use App\Rules\RichTextRule;
-use App\Services\ResidualRiskService;
+use App\Services\RiskAssessmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -14,7 +14,7 @@ use Inertia\Response;
 
 class CompensatingControlController extends Controller
 {
-    public function __construct(private ResidualRiskService $residualRiskService) {}
+    public function __construct(private RiskAssessmentService $riskAssessments) {}
 
     public function index(Request $request): Response
     {
@@ -80,7 +80,7 @@ class CompensatingControlController extends Controller
         ]);
 
         if ($compensatingControl->primaryControl) {
-            $this->residualRiskService->recomputeForControl($compensatingControl->primaryControl);
+            $this->riskAssessments->recomputeForControl($compensatingControl->primaryControl);
         }
 
         return back()->with('success', 'Compensating control approved and recognised in residual risk.');
@@ -93,7 +93,7 @@ class CompensatingControlController extends Controller
         $compensatingControl->update(['status' => 'Withdrawn']);
 
         if ($compensatingControl->primaryControl) {
-            $this->residualRiskService->recomputeForControl($compensatingControl->primaryControl);
+            $this->riskAssessments->recomputeForControl($compensatingControl->primaryControl);
         }
 
         return back()->with('warning', 'Compensating control withdrawn.');

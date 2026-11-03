@@ -15,8 +15,8 @@ use Inertia\Response;
 /**
  * The signed set-password flow shared by user invitations and
  * administrator-triggered password resets. The URL carries a temporary
- * signature plus a fragment of the current password hash, so a link dies
- * the moment the password changes — single use, even inside its window.
+ * signature plus a fingerprint of the current password and email, so a
+ * link dies the moment either changes — single use, even inside its window.
  */
 class SetPasswordController extends Controller
 {
@@ -70,7 +70,7 @@ class SetPasswordController extends Controller
         // The 'signed' middleware has already validated signature + expiry;
         // the hash fragment makes the link single-use.
         abort_unless(hash_equals(
-            substr(sha1((string) $user->password), 0, 16),
+            $user->credentialFingerprint(),
             (string) $request->query('h'),
         ), 403, 'This link has already been used or superseded.');
 

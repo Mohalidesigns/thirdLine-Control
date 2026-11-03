@@ -6,7 +6,9 @@ use App\Models\Risk;
 use App\Models\RiskAppetite;
 use App\Models\RiskCategory;
 use App\Models\User;
+use App\Notifications\RiskAppetiteNotification;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -29,9 +31,19 @@ class AppetiteService
         ]);
     }
 
-    public function submitForApproval(RiskAppetite $appetite): RiskAppetite
+    public function submitForApproval(RiskAppetite $appetite, ?User $actor = null): RiskAppetite
     {
         $this->transition($appetite, 'Pending Approval');
+
+        $approvers = User::withoutGlobalScopes()
+            ->where('tenant_id', $appetite->tenant_id)
+            ->role(['Control Function Head', 'Executive Viewer'])
+            ->whereNotIn('id', array_filter([$appetite->created_by, $actor?->id]))
+            ->where('is_active', true)
+            ->get();
+
+        $this->notify($approvers, 'risk.appetite.approval.requested',
+            new RiskAppetiteNotification($appetite, RiskAppetiteNotification::SUBMITTED, $actor?->name ?? 'The author'));
 
         return $appetite;
     }
@@ -58,6 +70,14 @@ class AppetiteService
         ]);
 
         $appetite->auditAction('approved', null, ['by' => $approver->id]);
+
+        $author = User::withoutGlobalScopes()
+            ->whereKey($appetite->created_by)
+            ->where('id', '!=', $approver->id)
+            ->where('is_active', true)
+            ->get();
+        $this->notify($author, 'risk.appetite.approved',
+            new RiskAppetiteNotification($appetite, RiskAppetiteNotification::APPROVED, $approver->name));
 
         // Only one Active statement per (entity, category) — approving this
         // one retires whatever it replaces.
@@ -101,6 +121,20 @@ class AppetiteService
             'status' => 'Draft',
             'created_by' => $author->id,
         ]);
+    }
+
+    /** Fire-and-log — a notification hiccup never blocks the appetite workflow. */
+    private function notify(iterable $recipients, string $eventKey, RiskAppetiteNotification $notification): void
+    {
+        try {
+            app(NotificationDispatcher::class)->send($recipients, $eventKey, $notification);
+        } catch (\Throwable $e) {
+            Log::warning('Risk appetite notification failed', [
+                'risk_appetite_id' => $notification->appetite->id,
+                'event' => $eventKey,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     private function markSuperseded(RiskAppetite $old, RiskAppetite $replacement): void
@@ -224,6 +258,15 @@ class AppetiteService
             ]);
 
             $this->escalationService->escalateAppetiteBreach($risk->refresh(), $appetite);
+
+            // The escalation matrix routes by role; the owner who has to act
+            // on the breach is told directly.
+            $owner = User::withoutGlobalScopes()
+                ->whereKey($risk->risk_owner_id)
+                ->where('is_active', true)
+                ->get();
+            $this->notify($owner, 'risk.appetite.breached',
+                new RiskAppetiteNotification($appetite, RiskAppetiteNotification::BREACHED, 'System', $risk));
         } else {
             $risk->auditAction('appetite_restored', null, ['appetite_id' => $appetite->id]);
         }

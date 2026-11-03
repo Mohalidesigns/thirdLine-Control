@@ -109,7 +109,7 @@ export default function Respond({ escalation, draft = null, evidence = [] }) {
                                 <InputLabel value="Root cause category" />
                                 <SelectInput value={form.data.root_cause_category} onChange={(e) => form.setData('root_cause_category', e.target.value)}>
                                     <option value="">— Select —</option>
-                                    {ROOT_CAUSE_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                                    {ROOT_CAUSE_CATEGORIES.map((c) => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
                                 </SelectInput>
                                 <InputError message={form.errors.root_cause_category} className="mt-1" />
                             </div>

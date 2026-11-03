@@ -38,6 +38,25 @@ class NotificationController extends Controller
         ]);
     }
 
+    /** Opening a notification reads it, then lands on what it is about. */
+    public function open(Request $request, string $notification): RedirectResponse
+    {
+        $notification = $request->user()->notifications()->findOrFail($notification);
+        $notification->markAsRead();
+
+        $data = $notification->data ?? [];
+
+        // An escalation notice is about the departmental loop (respond,
+        // review), which lives on its own screen, not on the exception.
+        return match (true) {
+            isset($data['escalation_id']) => redirect()->route('exception-manager.show', $data['escalation_id']),
+            isset($data['exception_id']) => redirect()->route('exceptions.show', $data['exception_id']),
+            isset($data['test_instance_id']) => redirect()->route('test-instances.show', $data['test_instance_id']),
+            isset($data['control_id']) => redirect()->route('controls.show', $data['control_id']),
+            default => redirect()->route('notifications.index'),
+        };
+    }
+
     public function markAllRead(Request $request): RedirectResponse
     {
         $request->user()->unreadNotifications->markAsRead();

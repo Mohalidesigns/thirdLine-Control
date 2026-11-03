@@ -184,9 +184,20 @@ export default function Show({ spotCheck, scopedControls = [], allControls = [],
                             <InputLabel value="Related control" />
                             <SelectInput value={findingForm.data.control_id ?? ''} onChange={(e) => findingForm.setData('control_id', e.target.value)}>
                                 <option value="">— None —</option>
-                                {allControls.map((control) => (
-                                    <option key={control.id} value={control.id}>{control.control_ref} — {control.title}</option>
-                                ))}
+                                {scopedControls.length > 0 && (
+                                    <optgroup label="In scope">
+                                        {scopedControls.map((control) => (
+                                            <option key={control.id} value={control.id}>{control.control_ref} — {control.title}</option>
+                                        ))}
+                                    </optgroup>
+                                )}
+                                <optgroup label={scopedControls.length > 0 ? 'Other controls' : 'All controls'}>
+                                    {allControls
+                                        .filter((control) => !scopedControls.some((scoped) => scoped.id === control.id))
+                                        .map((control) => (
+                                            <option key={control.id} value={control.id}>{control.control_ref} — {control.title}</option>
+                                        ))}
+                                </optgroup>
                             </SelectInput>
                         </div>
                     </div>

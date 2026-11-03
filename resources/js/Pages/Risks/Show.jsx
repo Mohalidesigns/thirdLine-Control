@@ -1,3 +1,5 @@
+import DangerButton from '@/Components/DangerButton';
+import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
@@ -7,13 +9,14 @@ import RelationshipsPanel from '@/Components/RelationshipsPanel';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import StatusBadge from '@/Components/StatusBadge';
+import TextArea from '@/Components/TextArea';
 import RichTextEditor from '@/Components/RichTextEditor';
 import RichTextViewer from '@/Components/RichTextViewer';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDate, formatMoney } from '@/utils';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 
 const BAND_CLASSES = {
@@ -33,8 +36,10 @@ export default function Show({
     users = [],
     can = {},
 }) {
-    const { features = [] } = usePage().props;
+    const { features = [], auth } = usePage().props;
     const [assessing, setAssessing] = useState(false);
+    const [revising, setRevising] = useState(null);
+    const [reviewing, setReviewing] = useState(null);
     const [treating, setTreating] = useState(false);
 
     const mapForm = useForm({ control_id: '', contribution_weight: 1 });
@@ -59,11 +64,21 @@ export default function Show({
                         {risk.risk_category ? ` · ${risk.risk_category.name}` : ''}
                     </span>
                 }
-                breadcrumbs={[{ label: 'Risk Register', href: route('risks.index') }, { label: risk.code }]}
+                breadcrumbs={[
+                    { label: 'Risk Register', href: can.register ? route('risks.index') : undefined },
+                    { label: risk.code },
+                ]}
                 actions={
                     <>
                         {features.includes('risk-assessments') && can.assess && (
-                            <PrimaryButton onClick={() => setAssessing(true)}><Plus className="h-4 w-4" strokeWidth={2} /> Assessment</PrimaryButton>
+                            <PrimaryButton
+                                onClick={() => {
+                                    setRevising(null);
+                                    setAssessing(true);
+                                }}
+                            >
+                                <Plus className="h-4 w-4" strokeWidth={2} /> Assessment
+                            </PrimaryButton>
                         )}
                         {features.includes('risk-treatments') && can.treat && (
                             <SecondaryButton type="button" onClick={() => setTreating(true)}>
@@ -90,7 +105,16 @@ export default function Show({
                     <PositionCard risk={risk} targetGap={targetGap} />
 
                     {features.includes('risk-assessments') && (
-                        <AssessmentHistory risk={risk} can={can} />
+                        <AssessmentHistory
+                            risk={risk}
+                            can={can}
+                            userId={auth?.user?.id}
+                            onReview={setReviewing}
+                            onRevise={(assessment) => {
+                                setRevising(assessment);
+                                setAssessing(true);
+                            }}
+                        />
                     )}
 
                     {features.includes('risk-treatments') && <TreatmentList risk={risk} />}
@@ -118,17 +142,19 @@ export default function Show({
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <StatusBadge status={control.status} />
-                                                <button
-                                                    type="button"
-                                                    className="text-xs text-[var(--color-error)] hover:underline"
-                                                    onClick={() =>
-                                                        router.delete(route('risks.controls.detach', [risk.id, control.id]), {
-                                                            preserveScroll: true,
-                                                        })
-                                                    }
-                                                >
-                                                    Unmap
-                                                </button>
+                                                {can.map && (
+                                                    <button
+                                                        type="button"
+                                                        className="text-xs text-[var(--color-error)] hover:underline"
+                                                        onClick={() =>
+                                                            router.delete(route('risks.controls.detach', [risk.id, control.id]), {
+                                                                preserveScroll: true,
+                                                            })
+                                                        }
+                                                    >
+                                                        Unmap
+                                                    </button>
+                                                )}
                                             </div>
                                         </li>
                                     ))}
@@ -139,7 +165,7 @@ export default function Show({
                                 </p>
                             )}
 
-                            {mappableControls.length > 0 && (
+                            {can.map && mappableControls.length > 0 && (
                                 <form onSubmit={attach} className="mt-4 flex flex-wrap items-end gap-3 border-t border-gray-100 pt-4">
                                     <div className="min-w-[260px] flex-1">
                                         <InputLabel value="Map a control" />
@@ -192,11 +218,14 @@ export default function Show({
             </div>
 
             <AssessmentModal
+                key={revising?.id ?? 'new'}
                 show={assessing}
                 onClose={() => setAssessing(false)}
                 risk={risk}
                 scales={scales}
+                from={revising}
             />
+            <ReviewModal assessment={reviewing} risk={risk} onClose={() => setReviewing(null)} />
             <TreatmentModal show={treating} onClose={() => setTreating(false)} risk={risk} users={users} />
         </AuthenticatedLayout>
     );
@@ -258,7 +287,7 @@ function PositionCard({ risk, targetGap }) {
     );
 }
 
-function AssessmentHistory({ risk, can }) {
+function AssessmentHistory({ risk, can, userId, onReview, onRevise }) {
     const assessments = risk.assessments ?? [];
 
     return (
@@ -278,10 +307,13 @@ function AssessmentHistory({ risk, can }) {
                                     <span className={`badge ${BAND_CLASSES[assessment.rating] ?? 'badge-status-draft'}`}>
                                         {assessment.score} · {assessment.rating}
                                     </span>
-                                    <StatusBadge status={assessment.status} />
+                                    <StatusBadge status={assessment.status === 'Rejected' ? 'Returned' : assessment.status} />
                                     <span className="text-xs text-gray-400">
                                         {formatDate(assessment.assessed_at)} by {assessment.assessor?.name ?? '—'}
                                         {assessment.period_label ? ` · ${assessment.period_label}` : ''}
+                                        {assessment.status === 'Published' && assessment.approver && assessment.approved_by !== assessment.assessed_by
+                                            ? ` · published by ${assessment.approver.name}`
+                                            : ''}
                                     </span>
                                 </div>
 
@@ -292,45 +324,162 @@ function AssessmentHistory({ risk, can }) {
                                     </p>
                                 )}
 
-                                {assessment.status === 'Pending Review' && can.review && (
-                                    <div className="mt-2 flex gap-2">
-                                        <button
-                                            type="button"
-                                            className="btn-success !px-2 !py-1 text-xs"
-                                            onClick={() =>
-                                                router.post(
-                                                    route('risks.assessments.publish', [risk.id, assessment.id]),
-                                                    {},
-                                                    { preserveScroll: true },
-                                                )
-                                            }
-                                        >
-                                            Publish
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="btn-danger !px-2 !py-1 text-xs"
-                                            onClick={() => {
-                                                const reason = window.prompt('Why is this assessment being returned?');
-                                                if (reason) {
-                                                    router.post(
-                                                        route('risks.assessments.reject', [risk.id, assessment.id]),
-                                                        { reason },
-                                                        { preserveScroll: true },
-                                                    );
-                                                }
-                                            }}
-                                        >
-                                            Return
-                                        </button>
+                                <AssessmentRationale assessment={assessment} />
+
+                                {assessment.status === 'Rejected' && (
+                                    <div className="mt-2 rounded-lg border-l-4 border-l-[var(--color-warning)] bg-orange-50 p-3 text-sm">
+                                        <p className="text-xs font-semibold text-[var(--color-text-secondary)]">
+                                            Returned by {assessment.returner?.name ?? '—'}
+                                            {assessment.returned_at ? ` on ${formatDate(assessment.returned_at)}` : ''}
+                                        </p>
+                                        <p className="mt-1 whitespace-pre-line">{assessment.return_reason ?? 'No reason recorded.'}</p>
+                                        {can.assess && (
+                                            <button
+                                                type="button"
+                                                className="btn-secondary mt-2 !px-2 !py-1 text-xs"
+                                                onClick={() => onRevise(assessment)}
+                                            >
+                                                Revise and record again
+                                            </button>
+                                        )}
                                     </div>
                                 )}
+
+                                {assessment.status === 'Pending Review' &&
+                                    (assessment.assessed_by === userId ? (
+                                        <p className="mt-2 text-xs text-[var(--color-text-secondary)]">
+                                            Awaiting second-line review. Someone other than you must publish or return it.
+                                        </p>
+                                    ) : (
+                                        can.review && (
+                                            <button
+                                                type="button"
+                                                className="btn-primary mt-2 !px-2 !py-1 text-xs"
+                                                onClick={() => onReview(assessment)}
+                                            >
+                                                Review
+                                            </button>
+                                        )
+                                    ))}
                             </li>
                         ))}
                     </ul>
                 )}
             </div>
         </div>
+    );
+}
+
+function AssessmentRationale({ assessment }) {
+    const dimensions = Object.entries(assessment.impact_dimensions ?? {}).filter(([, level]) => level);
+    const hasLikelihood = assessment.likelihood_rationale || assessment.likelihood_rationale_rich;
+    const hasImpact = assessment.impact_rationale || assessment.impact_rationale_rich;
+
+    if (!hasLikelihood && !hasImpact && !dimensions.length && !assessment.notes) {
+        return null;
+    }
+
+    return (
+        <div className="mt-2 space-y-1.5 text-sm">
+            <p className="text-xs text-[var(--color-text-secondary)]">
+                Likelihood {assessment.likelihood_level} × Impact {assessment.impact_level}
+                {dimensions.length > 0 && ` · ${dimensions.map(([name, level]) => `${name} ${level}`).join(', ')}`}
+            </p>
+            {hasLikelihood && (
+                <div>
+                    <span className="text-xs font-semibold text-[var(--color-text-secondary)]">Likelihood rationale</span>
+                    <RichTextViewer value={assessment.likelihood_rationale_rich} fallback={assessment.likelihood_rationale} />
+                </div>
+            )}
+            {hasImpact && (
+                <div>
+                    <span className="text-xs font-semibold text-[var(--color-text-secondary)]">Impact rationale</span>
+                    <RichTextViewer value={assessment.impact_rationale_rich} fallback={assessment.impact_rationale} />
+                </div>
+            )}
+            {assessment.notes && <p className="text-xs text-[var(--color-text-secondary)]">{assessment.notes}</p>}
+        </div>
+    );
+}
+
+function ReviewModal({ assessment, risk, onClose }) {
+    const form = useForm({ reason: '' });
+    // Keep the last assessment on screen while the dialog animates closed.
+    const [shown, setShown] = useState(assessment);
+
+    useEffect(() => {
+        if (assessment) setShown(assessment);
+    }, [assessment]);
+
+    const close = () => {
+        form.reset();
+        form.clearErrors();
+        onClose();
+    };
+
+    const send = (action) => {
+        form.post(route(`risks.assessments.${action}`, [risk.id, shown.id]), {
+            preserveScroll: true,
+            onSuccess: close,
+        });
+    };
+
+    const errors = Object.entries(form.errors).filter(([field]) => field !== 'reason');
+
+    return (
+        <Modal show={!!assessment} onClose={close} maxWidth="2xl" title={`Review ${risk.code} assessment`}>
+            {shown && (
+                <div className="space-y-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className="badge badge-status-draft capitalize">{shown.assessment_type}</span>
+                        <span className={`badge ${BAND_CLASSES[shown.rating] ?? 'badge-status-draft'}`}>
+                            {shown.score} · {shown.rating}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                            {formatDate(shown.assessed_at)} by {shown.assessor?.name ?? '—'}
+                        </span>
+                    </div>
+
+                    <AssessmentRationale assessment={shown} />
+
+                    <p className="text-sm text-[var(--color-text-secondary)]">
+                        Publishing makes this the risk&apos;s {shown.assessment_type} position and re-checks it against
+                        appetite. Returning sends it back to the assessor with your reason.
+                    </p>
+
+                    <div>
+                        <InputLabel value="Reason for returning" />
+                        <TextArea
+                            value={form.data.reason}
+                            onChange={(e) => form.setData('reason', e.target.value)}
+                            rows={3}
+                            placeholder="Required to return the assessment"
+                        />
+                        <InputError message={form.errors.reason} />
+                    </div>
+
+                    {errors.length > 0 && (
+                        <div className="rounded-lg border border-red-100 bg-red-50 p-3 text-sm text-[var(--color-error)]">
+                            {errors.map(([field, message]) => (
+                                <p key={field}>{message}</p>
+                            ))}
+                        </div>
+                    )}
+
+                    <div className="flex flex-wrap justify-end gap-2">
+                        <SecondaryButton type="button" onClick={close} disabled={form.processing}>
+                            Cancel
+                        </SecondaryButton>
+                        <DangerButton type="button" onClick={() => send('reject')} disabled={form.processing || !form.data.reason.trim()}>
+                            Return to assessor
+                        </DangerButton>
+                        <PrimaryButton type="button" onClick={() => send('publish')} disabled={form.processing}>
+                            Publish
+                        </PrimaryButton>
+                    </div>
+                </div>
+            )}
+        </Modal>
     );
 }
 
@@ -429,29 +578,36 @@ function AttributesCard({ risk }) {
     );
 }
 
-function AssessmentModal({ show, onClose, risk, scales }) {
+function currentQuarter() {
+    const now = new Date();
+
+    return `${now.getFullYear()}-Q${Math.floor(now.getMonth() / 3) + 1}`;
+}
+
+/** `from` is a returned assessment being revised: its scores and rationale prefill the form. */
+function AssessmentModal({ show, onClose, risk, scales, from = null }) {
     const likelihood = scales.likelihood ?? [];
     const impact = scales.impact ?? [];
     const dimensions = scales.dimensions ?? [];
 
     const form = useForm({
-        assessment_type: 'residual',
-        likelihood_level: risk.residual_likelihood ?? risk.inherent_likelihood ?? 3,
-        impact_level: risk.residual_impact ?? risk.inherent_impact ?? 3,
-        likelihood_rationale: '',
-        impact_rationale: '',
-        impact_dimensions: {},
-        confidence: 'Medium',
-        method: 'workshop',
-        period_label: '',
-        notes: '',
-        loss_min_minor: '',
-        loss_likely_minor: '',
-        loss_max_minor: '',
-        likelihood_percent: '',
-        currency: risk.loss_currency ?? 'NGN',
-        impact_rationale_rich: null,
-        likelihood_rationale_rich: null,
+        assessment_type: from?.assessment_type ?? 'residual',
+        likelihood_level: from?.likelihood_level ?? risk.residual_likelihood ?? risk.inherent_likelihood ?? 3,
+        impact_level: from?.impact_level ?? risk.residual_impact ?? risk.inherent_impact ?? 3,
+        likelihood_rationale: from?.likelihood_rationale ?? '',
+        impact_rationale: from?.impact_rationale ?? '',
+        impact_dimensions: from?.impact_dimensions ?? {},
+        confidence: from?.confidence ?? 'Medium',
+        method: from?.method === 'monte_carlo' ? 'workshop' : from?.method ?? 'workshop',
+        period_label: from?.period_label ?? '',
+        notes: from?.notes ?? '',
+        loss_min_minor: from?.loss_min_minor ?? '',
+        loss_likely_minor: from?.loss_likely_minor ?? '',
+        loss_max_minor: from?.loss_max_minor ?? '',
+        likelihood_percent: from?.likelihood_percent ?? '',
+        currency: from?.currency ?? risk.loss_currency ?? 'NGN',
+        impact_rationale_rich: from?.impact_rationale_rich ?? null,
+        likelihood_rationale_rich: from?.likelihood_rationale_rich ?? null,
     });
 
     const submit = (event) => {
@@ -466,8 +622,16 @@ function AssessmentModal({ show, onClose, risk, scales }) {
     };
 
     return (
-        <Modal show={show} onClose={onClose} maxWidth="4xl" title="Record a risk assessment">
+        <Modal show={show} onClose={onClose} maxWidth="4xl" title={from ? 'Revise the returned assessment' : 'Record a risk assessment'}>
             <form onSubmit={submit} className="space-y-4">
+                {from?.return_reason && (
+                    <div className="rounded-lg border-l-4 border-l-[var(--color-warning)] bg-orange-50 p-3 text-sm">
+                        <p className="text-xs font-semibold text-[var(--color-text-secondary)]">
+                            Returned by {from.returner?.name ?? '—'}
+                        </p>
+                        <p className="mt-1 whitespace-pre-line">{from.return_reason}</p>
+                    </div>
+                )}
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div>
                         <InputLabel value="Assessment" required />
@@ -607,7 +771,7 @@ function AssessmentModal({ show, onClose, risk, scales }) {
                     </div>
                     <div>
                         <InputLabel value="Period" />
-                        <TextInput value={form.data.period_label} onChange={(e) => form.setData('period_label', e.target.value)} placeholder="2026-Q3" />
+                        <TextInput value={form.data.period_label} onChange={(e) => form.setData('period_label', e.target.value)} placeholder={currentQuarter()} />
                     </div>
                 </div>
 

@@ -150,7 +150,7 @@ class UserAdministrationTest extends TestCase
 
         $url = URL::temporarySignedRoute('invite.accept', now()->addDay(), [
             'user' => $user->id,
-            'h' => substr(sha1((string) $user->password), 0, 16),
+            'h' => $user->credentialFingerprint(),
         ]);
 
         auth()->logout();
@@ -165,7 +165,7 @@ class UserAdministrationTest extends TestCase
         $this->assertSame('Active', $user->refresh()->status());
         $this->assertNotNull($user->invite_accepted_at);
 
-        // The password changed, so the hash fragment no longer matches —
+        // The password changed, so the fingerprint no longer matches —
         // the link is dead even inside its signature window.
         auth()->logout();
         $this->get($url)->assertForbidden();

@@ -1,9 +1,8 @@
 /**
  * The Fortis Internal Control brand mark.
  *
- * Served from public/images/brand as SVGs built from the master artwork in
- * public/atheris-fortis, with the text converted to outlines so the logo
- * renders without the Space Grotesk / JetBrains Mono web fonts. The
+ * Served from public/images/brand, copied from the brand artwork in
+ * public/Fortis-logo (text already outlined, so no web fonts are needed). The
  * wordmark already carries the "INTERNAL CONTROL" line, so no separate
  * tagline is drawn. A tenant that
  * uploads its own logo replaces this whole component at the layout level.

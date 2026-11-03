@@ -90,6 +90,10 @@ class ControlController extends Controller
             'functionGroupings' => Control::FUNCTION_GROUPINGS,
             'controlLevels' => Control::CONTROL_LEVELS,
             'implementationStatuses' => Control::IMPLEMENTATION_STATUSES,
+            // The checker's queue: what this user may approve (never their own, FR-1.8).
+            'awaitingMyApproval' => $user->hasRole('Control Function Head')
+                ? (clone $statsBase)->where('status', 'Pending Approval')->where('created_by', '!=', $user->id)->count()
+                : 0,
             'stats' => [
                 'total' => (clone $statsBase)->count(),
                 'designAdequate' => (clone $statsBase)->where('design_effectiveness', 'Adequate')->count(),
@@ -126,7 +130,7 @@ class ControlController extends Controller
         $this->authorize('view', $control);
 
         $control->load([
-            'category', 'process', 'unit', 'owner', 'creator', 'approver',
+            'category', 'process', 'unit', 'owner', 'creator', 'approver', 'returner:id,name',
             'versions.author', 'risks', 'testScripts.checkItems',
             // CR2-A: the structure panel and the stakeholders panel.
             'controlEntities.controlUnit:id,code,name',
@@ -217,11 +221,11 @@ class ControlController extends Controller
             ->with('success', "Control {$control->control_ref} amended (v{$control->current_version}).");
     }
 
-    public function submit(Control $control): RedirectResponse
+    public function submit(Request $request, Control $control): RedirectResponse
     {
         $this->authorize('update', $control);
 
-        $this->controlService->submitForApproval($control);
+        $this->controlService->submitForApproval($control, $request->user());
 
         return back()->with('success', 'Control submitted for approval.');
     }
@@ -241,7 +245,7 @@ class ControlController extends Controller
 
         $request->validate(['reason' => ['required', 'string', 'max:1000']]);
 
-        $this->controlService->reject($control, $request->string('reason'));
+        $this->controlService->reject($control, $request->string('reason'), $request->user());
 
         return back()->with('warning', 'Control returned to draft.');
     }

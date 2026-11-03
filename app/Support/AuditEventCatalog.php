@@ -85,6 +85,8 @@ class AuditEventCatalog
         'sso_login' => ['SSO Login', 'success'],
         'break_glass_login' => ['Break-Glass Login', 'warning'],
         'audit_log_exported' => ['Activity Log Exported', 'info'],
+        'report.exported' => ['Report Exported', 'info'],
+        'users_exported' => ['User List Exported', 'info'],
         'audit_log_archived' => ['Activity Log Archived', 'info'],
     ];
 

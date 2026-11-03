@@ -120,7 +120,7 @@ class RiskTreatmentController extends Controller
 
         match ($validated['action']) {
             'start' => $this->treatments->start($treatment),
-            'implement' => $this->treatments->markImplemented($treatment),
+            'implement' => $this->treatments->markImplemented($treatment, $request->user()),
             default => $this->treatments->recordProgress($treatment, (int) $validated['progress'], $validated['note'] ?? null),
         };
 

@@ -92,6 +92,7 @@ export default function Status({ result = null, notFound = false }) {
                                     onChange={(e) => reply.setData('message', e.target.value)}
                                     placeholder="Anything else the investigators should know."
                                 />
+                                {reply.errors.message && <p className="text-sm text-red-600">{reply.errors.message}</p>}
                                 <div className="flex justify-end">
                                     <button type="submit" className="btn-primary" disabled={reply.processing}>
                                         Send

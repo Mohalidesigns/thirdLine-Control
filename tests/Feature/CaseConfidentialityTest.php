@@ -554,4 +554,37 @@ class CaseConfidentialityTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page->has('notes', 2)->where('canSeePrivileged', true));
     }
+
+    public function test_a_reporter_with_investigate_rights_cannot_act_on_their_own_case(): void
+    {
+        $case = $this->openCase(false, $this->officer)['case'];
+
+        foreach (['update', 'assess', 'investigate', 'manageAccess'] as $ability) {
+            $this->assertFalse($this->officer->can($ability, $case), $ability);
+        }
+    }
+
+    public function test_a_lead_investigator_named_as_a_subject_is_refused(): void
+    {
+        $case = $this->openCase()['case'];
+
+        $this->expectException(ValidationException::class);
+
+        app(CaseService::class)->assess($case, $this->cfh, [
+            'severity' => 'High',
+            'confidentiality' => 'Highly Restricted',
+            'lead_investigator_id' => $this->officer->id,
+            'subject_persons' => [['name' => $this->officer->name]],
+        ]);
+    }
+
+    public function test_a_reporter_cannot_reply_to_a_closed_case(): void
+    {
+        ['case' => $case, 'token' => $token] = $this->openCase(true);
+        $case->update(['status' => 'Closed']);
+
+        $this->expectException(ValidationException::class);
+
+        app(CaseService::class)->replyWithToken($token, 'too late');
+    }
 }

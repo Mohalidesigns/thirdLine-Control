@@ -40,6 +40,27 @@
                 "--strictPort"
             ],
             "port": 5174
+        },
+        {
+            "name": "secondline-build-watch",
+            "runtimeExecutable": "npx",
+            "runtimeArgs": [
+                "vite",
+                "build",
+                "--watch"
+            ],
+            "port": 0
+        },
+        {
+            "name": "secondline-queue",
+            "runtimeExecutable": "php",
+            "runtimeArgs": [
+                "artisan",
+                "queue:work",
+                "--tries=3",
+                "--sleep=3"
+            ],
+            "port": 0
         }
     ]
 }

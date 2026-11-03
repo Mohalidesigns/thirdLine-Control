@@ -6,6 +6,7 @@ use App\Models\ReportDefinition;
 use App\Models\ReportRun;
 use App\Models\ReportSchedule;
 use App\Models\User;
+use App\Notifications\ReportDefinitionNotification;
 use App\Notifications\ReportReadyNotification;
 use App\Reports\Engines\CsvEngine;
 use App\Reports\Engines\ExcelEngine;
@@ -69,12 +70,14 @@ class ReportDesignerService
         $definition = ReportDefinition::create($data + [
             'code' => $data['code'] ?? Str::upper(Str::random(3)).'-'.now()->format('ymdHis'),
             'owner_id' => $user->id,
+            'last_edited_by' => $user->id,
             'version_no' => 1,
             'is_system' => false,
             'is_active' => true,
         ]);
 
         $definition->auditAction('report_definition.created', null, ['code' => $definition->code]);
+        $this->notifyApprovers($definition, $user, 'created');
 
         return $definition;
     }
@@ -83,11 +86,12 @@ class ReportDesignerService
      * Editing a definition invalidates its approval. A report that was signed
      * off with three sections and now has five has not been signed off.
      */
-    public function updateDefinition(ReportDefinition $definition, array $data): ReportDefinition
+    public function updateDefinition(ReportDefinition $definition, array $data, User $editor): ReportDefinition
     {
         $before = $definition->only(['name', 'sections', 'parameters', 'output_formats', 'confidentiality']);
 
         $definition->fill($data);
+        $definition->last_edited_by = $editor->id;
 
         if ($definition->isDirty(['sections', 'parameters', 'output_formats', 'confidentiality', 'styling'])
             && $definition->approved_at !== null) {
@@ -98,6 +102,10 @@ class ReportDesignerService
 
         $definition->save();
         $definition->auditAction('report_definition.updated', $before, $definition->only(array_keys($before)));
+
+        if ($definition->approved_at === null) {
+            $this->notifyApprovers($definition, $editor, 'edited');
+        }
 
         return $definition;
     }
@@ -111,12 +119,19 @@ class ReportDesignerService
             ]);
         }
 
+        if ($definition->last_edited_by === $approver->id) {
+            throw ValidationException::withMessages([
+                'approval' => 'A report definition cannot be approved by the person who last edited it.',
+            ]);
+        }
+
         $definition->forceFill([
             'approved_by' => $approver->id,
             'approved_at' => now(),
         ])->save();
 
         $definition->auditAction('report_definition.approved', null, ['approved_by' => $approver->id]);
+        $this->notifyOwner($definition, $approver);
 
         return $definition;
     }
@@ -273,6 +288,7 @@ class ReportDesignerService
         $recipients = $schedule->recipients ?? [];
 
         return User::query()
+            ->where('tenant_id', $schedule->tenant_id)
             ->where('is_active', true)
             ->where(function ($query) use ($recipients) {
                 $query->whereIn('id', array_filter($recipients['user_ids'] ?? []));
@@ -286,10 +302,44 @@ class ReportDesignerService
 
     private function mayReceive(User $user, ReportDefinition $definition): bool
     {
-        return match ($definition->confidentiality) {
-            'Board' => $user->hasAnyRole(['Executive Viewer', 'Control Function Head', 'System Administrator']),
-            'Confidential' => $user->can('export reports'),
-            default => $user->can('view dashboards'),
-        };
+        return $definition->isOpenTo($user);
+    }
+
+    /** Fire-and-log — a notification hiccup never blocks the definition workflow. */
+    private function notifyApprovers(ReportDefinition $definition, User $actor, string $what): void
+    {
+        $approvers = User::withoutGlobalScopes()
+            ->where('tenant_id', $definition->tenant_id)
+            ->permission('approve report-definitions')
+            ->where('is_active', true)
+            ->whereNotIn('id', array_filter([$definition->owner_id, $definition->last_edited_by, $actor->id]))
+            ->get();
+
+        $this->notify($approvers, 'report.definition.approval.requested',
+            new ReportDefinitionNotification($definition, ReportDefinitionNotification::APPROVAL_REQUESTED, $actor->name, $what));
+    }
+
+    private function notifyOwner(ReportDefinition $definition, User $approver): void
+    {
+        $owner = User::withoutGlobalScopes()
+            ->whereKey($definition->owner_id)
+            ->where('is_active', true)
+            ->get();
+
+        $this->notify($owner, 'report.definition.approved',
+            new ReportDefinitionNotification($definition, ReportDefinitionNotification::APPROVED, $approver->name));
+    }
+
+    private function notify(iterable $recipients, string $eventKey, ReportDefinitionNotification $notification): void
+    {
+        try {
+            $this->dispatcher->send($recipients, $eventKey, $notification);
+        } catch (\Throwable $e) {
+            Log::warning('Report definition notification failed', [
+                'report_definition_id' => $notification->definition->id,
+                'event' => $eventKey,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

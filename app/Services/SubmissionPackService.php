@@ -10,6 +10,7 @@ use App\Notifications\SubmissionActionNotification;
 use App\Submissions\GeneratedPack;
 use App\Submissions\SubmissionPackRegistry;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -141,7 +142,7 @@ class SubmissionPackService
         ]);
 
         $pack->auditAction('submission.sent_for_review');
-        $this->notifyOwners($pack, 'is ready for review');
+        $this->notifyHolders($pack, 'review submissions', 'submission.review.requested', 'is ready for review', [$user->id, $pack->generated_by]);
 
         return $pack;
     }
@@ -174,6 +175,7 @@ class SubmissionPackService
             ]);
 
             $pack->auditAction('submission.returned', null, ['reviewer' => $reviewer->id, 'notes' => $notes]);
+            $this->notifyUsers([$pack->generated_by], $pack, 'submission.returned', 'has been returned to you', $notes);
 
             return $pack;
         }
@@ -185,7 +187,7 @@ class SubmissionPackService
         ]);
 
         $pack->auditAction('submission.reviewed', null, ['reviewer' => $reviewer->id]);
-        $this->notifyOwners($pack, 'has been reviewed and is waiting for approval');
+        $this->notifyHolders($pack, 'approve submissions', 'submission.approval.requested', 'has been reviewed and is waiting for approval', [$pack->generated_by, $reviewer->id]);
 
         return $pack;
     }
@@ -228,6 +230,7 @@ class SubmissionPackService
             'approver' => $approver->id,
             'checksum' => $pack->checksum,
         ]);
+        $this->notifyHolders($pack, 'file submissions', 'submission.approved', 'has been approved and is ready to file', [$approver->id]);
 
         return $pack;
     }
@@ -288,7 +291,7 @@ class SubmissionPackService
 
         $pack->update(['status' => 'Rejected', 'rejection_reason' => $reason]);
         $pack->auditAction('submission.rejected_by_regulator', null, ['reason' => $reason]);
-        $this->notifyOwners($pack, 'was rejected by the regulator and needs re-work');
+        $this->notifyHolders($pack, 'generate submissions', 'submission.awaiting-action', 'was rejected by the regulator and needs re-work', [$user->id]);
 
         return $pack;
     }
@@ -596,27 +599,44 @@ class SubmissionPackService
     }
 
     /**
-     * Everyone who could take the next step is told. The people who could
-     * not — the generator on a review request, for instance — are not
-     * excluded here: the gates refuse them, and telling them the pack moved
-     * is legitimate.
+     * Holders of the permission that takes the next step are told, never the
+     * people who just acted or who generated the pack: they cannot take it.
+     * Fire-and-log, so a notification hiccup never blocks the workflow.
      */
-    private function notifyOwners(SubmissionPack $pack, string $what): void
+    private function notifyHolders(SubmissionPack $pack, string $permission, string $eventKey, string $what, array $exceptIds): void
     {
-        $recipients = User::query()
+        $recipients = User::withoutGlobalScopes()
+            ->where('tenant_id', $pack->tenant_id)
+            ->permission($permission)
             ->where('is_active', true)
-            ->whereHas('roles', fn ($q) => $q->whereIn('name', ['Control Function Head', 'Control Officer']))
+            ->whereNotIn('id', array_filter($exceptIds))
             ->get();
 
-        if ($recipients->isEmpty()) {
-            return;
-        }
+        $this->send($recipients, $pack, $eventKey, $what);
+    }
 
-        $this->dispatcher->send(
-            $recipients,
-            'submission.awaiting-action',
-            new SubmissionActionNotification($pack, $what),
-        );
+    private function notifyUsers(array $ids, SubmissionPack $pack, string $eventKey, string $what, ?string $note = null): void
+    {
+        $recipients = User::withoutGlobalScopes()
+            ->where('tenant_id', $pack->tenant_id)
+            ->whereIn('id', array_filter($ids))
+            ->where('is_active', true)
+            ->get();
+
+        $this->send($recipients, $pack, $eventKey, $what, $note);
+    }
+
+    private function send(iterable $recipients, SubmissionPack $pack, string $eventKey, string $what, ?string $note = null): void
+    {
+        try {
+            $this->dispatcher->send($recipients, $eventKey, new SubmissionActionNotification($pack, $what, $note));
+        } catch (\Throwable $e) {
+            Log::warning('Submission pack notification failed', [
+                'pack_id' => $pack->id,
+                'event' => $eventKey,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /** Where an acknowledgement letter is stored, under the report disk. */

@@ -8,7 +8,9 @@ import Dropdown from '@/Components/Dropdown';
 import { visibleNavigation } from '@/config/navigation';
 import { Link, usePage } from '@inertiajs/react';
 import { Bell, ChevronDown, ChevronRight, ChevronsLeft, Menu, Search } from 'lucide-react';
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+
+const NOTIFICATION_POLL_MS = 30000;
 
 // Scroll offset is ephemeral, so it lives in sessionStorage; the collapsed
 // state and the per-group accordion state are lasting preferences, so they
@@ -203,6 +205,31 @@ export default function AuthenticatedLayout({ children }) {
     const [collapsed, setCollapsed] = useState(() => readStored('localStorage', SIDEBAR_COLLAPSED_KEY) === '1');
     const [mobileOpen, setMobileOpen] = useState(false);
 
+    // The shared prop only refreshes on navigation, so poll for alerts that
+    // arrive while the user sits on one page (skipped on low bandwidth and
+    // while the tab is hidden).
+    const [unread, setUnread] = useState(unreadNotifications ?? 0);
+    useEffect(() => setUnread(unreadNotifications ?? 0), [unreadNotifications]);
+    useEffect(() => {
+        if (lowBandwidth) {
+            return undefined;
+        }
+        const poll = () => {
+            if (document.visibilityState !== 'visible') {
+                return;
+            }
+            window.axios.get(route('notifications.latest'))
+                .then(({ data }) => setUnread(data.unread ?? 0))
+                .catch(() => {});
+        };
+        const timer = setInterval(poll, NOTIFICATION_POLL_MS);
+        document.addEventListener('visibilitychange', poll);
+        return () => {
+            clearInterval(timer);
+            document.removeEventListener('visibilitychange', poll);
+        };
+    }, [lowBandwidth]);
+
     const userRoles = auth?.roles ?? [];
     const groups = visibleNavigation({
         roles: userRoles,
@@ -360,13 +387,16 @@ export default function AuthenticatedLayout({ children }) {
                         <div className="flex items-center gap-3">
                             <Link
                                 href={route('notifications.index')}
-                                aria-label="Notifications"
-                                className="relative rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                                aria-label={unread > 0 ? `Notifications (${unread} unread)` : 'Notifications'}
+                                className={`relative rounded-lg p-2 transition-colors hover:bg-gray-100 ${unread > 0 ? 'text-[var(--color-error)]' : 'text-gray-500 hover:text-gray-700'}`}
                             >
-                                <Bell className={`h-5 w-5 ${unreadNotifications > 0 ? 'animate-bell-ring' : ''}`} aria-hidden="true" />
-                                {unreadNotifications > 0 && (
-                                    <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-error)] text-[10px] font-bold text-white">
-                                        {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                                <Bell className={`h-5 w-5 ${unread > 0 ? 'animate-bell-alert' : ''}`} aria-hidden="true" />
+                                {unread > 0 && (
+                                    <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5">
+                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--color-error)] opacity-60 motion-reduce:hidden" />
+                                        <span className="relative flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-error)] text-[10px] font-bold text-white">
+                                            {unread > 9 ? '9+' : unread}
+                                        </span>
                                     </span>
                                 )}
                             </Link>
@@ -410,7 +440,8 @@ export default function AuthenticatedLayout({ children }) {
                     </div>
                 </header>
 
-                <main className="flex-1 p-4 sm:p-6">{children}</main>
+                {/* Bottom padding keeps page actions clear of the floating assistant button. */}
+                <main className="flex-1 p-4 pb-24 sm:p-6 sm:pb-24">{children}</main>
             </div>
 
             <FlashNotification />

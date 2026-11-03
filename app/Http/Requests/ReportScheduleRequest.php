@@ -17,7 +17,9 @@ class ReportScheduleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'report_definition_id' => ['required', 'integer', 'exists:report_definitions,id'],
+            'report_definition_id' => ['required', 'integer', Rule::exists('report_definitions', 'id')->where(
+                fn ($q) => $q->where('is_system', true)->orWhereNotNull('approved_at'),
+            )],
             'name' => ['required', 'string', 'max:150'],
             // Five space-separated cron fields. Anything else is rejected at
             // the edge rather than failing silently at 03:00.

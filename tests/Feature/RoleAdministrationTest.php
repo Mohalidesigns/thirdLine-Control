@@ -188,9 +188,10 @@ class RoleAdministrationTest extends TestCase
 
     public function test_an_administrator_can_be_demoted_once_another_remains(): void
     {
-        $this->makeUser('admin2@test.local', 'System Administrator');
+        // By another administrator — nobody changes their own roles.
+        $admin2 = $this->makeUser('admin2@test.local', 'System Administrator');
 
-        $this->actingAs($this->admin)
+        $this->actingAs($admin2)
             ->put(route('admin.users.roles.update', $this->admin), ['roles' => ['Executive Viewer']])
             ->assertRedirect()
             ->assertSessionHasNoErrors();

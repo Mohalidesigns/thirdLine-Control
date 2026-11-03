@@ -225,6 +225,44 @@ class CaseService
         }
     }
 
+    /**
+     * Tell named people something happened on a case. The text carries the
+     * reference only (see notifyAllowlist), and a failure to send never
+     * blocks the case action itself.
+     *
+     * @param  iterable<int|null>  $userIds
+     */
+    private function tell(SpeakUpCase $case, iterable $userIds, string $eventKey, string $title, string $body, ?int $exceptId = null): void
+    {
+        $ids = collect($userIds)->filter()->map(fn ($id) => (int) $id)->unique()
+            ->reject(fn (int $id) => $id === $exceptId)->values();
+
+        $recipients = User::withoutGlobalScopes()->where('tenant_id', $case->tenant_id)->whereIn('id', $ids)->get();
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        try {
+            app(NotificationDispatcher::class)->send($recipients, $eventKey, new GovernanceClockNotification(
+                $title,
+                $body,
+                route('cases.show', $case),
+            ));
+        } catch (\Throwable $e) {
+            Log::error('Case notification failed', ['case' => $case->case_ref, 'event' => $eventKey, 'error' => $e->getMessage()]);
+        }
+    }
+
+    /** The people working the case: its allowlist minus the reporter. */
+    private function handlers(SpeakUpCase $case): array
+    {
+        return array_values(array_diff(
+            array_map('intval', $case->access_user_ids ?? []),
+            array_filter([$case->reporter_id]),
+        ));
+    }
+
     // ── Access control (11.4) ────────────────────────────────────────────
 
     /**
@@ -247,6 +285,8 @@ class CaseService
 
         $case->update(['access_user_ids' => $ids]);
         $case->auditAction('access-granted', null, ['grantee' => $grantee->id, 'granted_by' => $grantedBy->id]);
+        $this->tell($case, [$grantee->id], 'case.access_changed', 'You were added to a case',
+            "You have been given access to case {$case->case_ref}.", $grantedBy->id);
 
         return $case;
     }
@@ -272,6 +312,8 @@ class CaseService
 
         $case->update(['access_user_ids' => $ids]);
         $case->auditAction('access-revoked', null, ['user' => $user->id, 'revoked_by' => $revokedBy->id]);
+        $this->tell($case, [$user->id], 'case.access_changed', 'Your access to a case was removed',
+            "Your access to case {$case->case_ref} has been removed.", $revokedBy->id);
 
         return $case;
     }
@@ -286,6 +328,16 @@ class CaseService
 
     public function assess(SpeakUpCase $case, User $user, array $data): SpeakUpCase
     {
+        $previousLead = $case->lead_investigator_id;
+
+        if (! empty($data['lead_investigator_id'])) {
+            $this->assertLeadHasNoConflict(
+                $case,
+                User::withoutGlobalScopes()->findOrFail((int) $data['lead_investigator_id']),
+                $data['subject_persons'] ?? $case->subject_persons ?? [],
+            );
+        }
+
         $this->transition($case, 'Assessed', collect($data)->only([
             'severity', 'confidentiality', 'lead_investigator_id', 'entity_id', 'subject_persons',
         ])->all());
@@ -301,7 +353,39 @@ class CaseService
 
         $case->auditAction('assessed', null, ['by' => $user->id]);
 
+        if (! empty($data['lead_investigator_id']) && (int) $data['lead_investigator_id'] !== (int) $previousLead) {
+            $this->tell($case, [$data['lead_investigator_id']], 'case.assigned', 'You were assigned a case',
+                "You are the lead investigator on case {$case->case_ref}.", $user->id);
+        }
+
         return $case->fresh();
+    }
+
+    /**
+     * A lead must be able to investigate, must not be the reporter, and must
+     * not be a named subject of the concern.
+     *
+     * @param  array<int, array<string, mixed>>  $subjects
+     */
+    private function assertLeadHasNoConflict(SpeakUpCase $case, User $lead, array $subjects): void
+    {
+        $fail = fn (string $m) => throw ValidationException::withMessages(['lead_investigator_id' => $m]);
+
+        if (! $lead->can('investigate cases')) {
+            $fail('The lead investigator must hold the investigate cases permission.');
+        }
+
+        if ($case->reporter_id !== null && $case->reporter_id === $lead->id) {
+            $fail('The person who reported a case cannot lead its investigation.');
+        }
+
+        $name = mb_strtolower(trim($lead->name));
+
+        foreach ($subjects as $subject) {
+            if (mb_strtolower(trim((string) ($subject['name'] ?? ''))) === $name) {
+                $fail('The lead investigator is named as a subject of this case. Choose someone else.');
+            }
+        }
     }
 
     /**
@@ -386,6 +470,8 @@ class CaseService
         ]);
 
         $case->auditAction('follow_up.added', null, ['action' => $followUp->action]);
+        $this->tell($case, [$followUp->owner_id], 'case.follow_up', 'A case follow-up was assigned to you',
+            "A follow-up action was assigned to you on case {$case->case_ref}.", $user->id);
 
         return $followUp;
     }
@@ -447,6 +533,8 @@ class CaseService
 
         $this->transition($case, 'Under Investigation', ['investigation_plan' => $plan]);
         $case->auditAction('investigation-started', null, ['by' => $user->id]);
+        $this->tell($case, $this->handlers($case), 'case.progressed', 'A case moved to investigation',
+            "Case {$case->case_ref} is now under investigation.", $user->id);
 
         return $case->fresh();
     }
@@ -478,6 +566,8 @@ class CaseService
         ]);
 
         $case->auditAction('concluded', null, ['outcome' => $outcome, 'by' => $user->id]);
+        $this->tell($case, $this->handlers($case), 'case.progressed', 'A case was concluded',
+            "Case {$case->case_ref} was concluded as {$outcome}.", $user->id);
 
         return $case->fresh();
     }
@@ -486,6 +576,12 @@ class CaseService
     {
         $this->transition($case, 'Closed', ['closed_by' => $user->id, 'closed_at' => now()]);
         $case->auditAction('closed', null, ['note' => $note, 'by' => $user->id]);
+        $this->tell($case, $this->handlers($case), 'case.progressed', 'A case was closed',
+            "Case {$case->case_ref} has been closed.", $user->id);
+        // A confidential reporter has an account but no token; closure is the
+        // one thing they are always owed.
+        $this->tell($case, [$case->reporter_id], 'case.progressed', 'Your report has been closed',
+            "Your report {$case->case_ref} has been closed.", $user->id);
 
         // Reporter-metadata retention runs from closure (CR §6), so the
         // purge date stamped at capture is recomputed now.
@@ -584,6 +680,12 @@ class CaseService
             return null;
         }
 
+        if ($case->status === 'Closed') {
+            throw ValidationException::withMessages([
+                'message' => 'This case is closed and can no longer take replies.',
+            ]);
+        }
+
         $note = $case->notes()->create([
             'tenant_id' => $case->tenant_id,
             'author_id' => null,
@@ -593,6 +695,8 @@ class CaseService
         ]);
 
         $case->auditAction('reporter-replied');
+        $this->tell($case, $this->handlers($case), 'case.reporter_replied', 'A reporter has replied',
+            "The reporter of case {$case->case_ref} has added a message.");
 
         return $note;
     }

@@ -34,15 +34,17 @@ class SecurityHeaders
         }
 
         if (! $response->headers->has('Content-Security-Policy')) {
+            $vite = $this->viteDevOrigin();
+
             $response->headers->set('Content-Security-Policy', implode('; ', [
                 "default-src 'self'",
                 // Vite dev server needs ws + eval in local development only.
                 app()->environment('local')
-                    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+                    ? trim("script-src 'self' 'unsafe-inline' 'unsafe-eval' {$vite}")
                     : "script-src 'self' 'unsafe-inline'",
-                "style-src 'self' 'unsafe-inline'",
-                "img-src 'self' data: blob:",
-                "font-src 'self' data:",
+                trim("style-src 'self' 'unsafe-inline' {$vite}"),
+                trim("img-src 'self' data: blob: {$vite}"),
+                trim("font-src 'self' data: {$vite}"),
                 app()->environment('local') ? "connect-src 'self' ws: wss:" : "connect-src 'self'",
                 "frame-ancestors 'none'",
                 "base-uri 'self'",
@@ -51,5 +53,26 @@ class SecurityHeaders
         }
 
         return $response;
+    }
+
+    /**
+     * The running Vite dev server's origin (from public/hot), so `npm run dev`
+     * can serve modules from its own port. Local only; empty otherwise.
+     */
+    private function viteDevOrigin(): string
+    {
+        $hot = public_path('hot');
+
+        if (! app()->environment('local') || ! is_file($hot)) {
+            return '';
+        }
+
+        $parts = parse_url(trim((string) file_get_contents($hot)));
+
+        if (empty($parts['scheme']) || empty($parts['host'])) {
+            return '';
+        }
+
+        return $parts['scheme'].'://'.$parts['host'].(isset($parts['port']) ? ':'.$parts['port'] : '');
     }
 }

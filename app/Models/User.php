@@ -108,6 +108,17 @@ class User extends Authenticatable
         return $this->phone;
     }
 
+    /**
+     * Fragment carried by set-password links (invites and resets). It
+     * changes with the password or the sign-in email, so an outstanding
+     * link dies with either — a corrected address or a re-sent invite
+     * supersedes the link that went out before it.
+     */
+    public function credentialFingerprint(): string
+    {
+        return substr(sha1($this->password.'|'.strtolower((string) $this->email)), 0, 16);
+    }
+
     public function hasMfaEnabled(): bool
     {
         return $this->mfa_confirmed_at !== null && $this->mfa_secret !== null;

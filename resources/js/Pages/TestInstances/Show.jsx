@@ -1,4 +1,5 @@
 import ActivityTab from '@/Components/ActivityTab';
+import ConfirmDialog from '@/Components/ConfirmDialog';
 import EvidencePanel from '@/Components/EvidencePanel';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
@@ -9,6 +10,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import StatusBadge from '@/Components/StatusBadge';
 import RichTextEditor from '@/Components/RichTextEditor';
+import RichTextViewer from '@/Components/RichTextViewer';
 import TextArea from '@/Components/TextArea';
 import TextInput from '@/Components/TextInput';
 import FrequencyBadge from '@/Components/FrequencyBadge';
@@ -111,12 +113,17 @@ export default function Show({ instance, evidence = [], can = {}, checkItems = n
     const items = checkItems ?? instance.test_script?.check_items ?? [];
     const resultsByItem = Object.fromEntries((instance.check_results ?? []).map((r) => [r.check_item_id, r]));
     const answered = items.filter((item) => resultsByItem[item.id]?.result).length;
-    const editable = can.execute && ['Scheduled', 'In Progress', 'Reopened'].includes(instance.status);
+    // Results are recorded once the test is started — Start makes the
+    // performer the tester of record (FR-3.8).
+    const editable = can.execute && ['In Progress', 'Reopened'].includes(instance.status);
+    // A reviewer's return puts the test back In Progress with their notes.
+    const returned = instance.status === 'In Progress' && instance.reviewer_id && instance.review_notes;
 
     const [showSubmit, setShowSubmit] = useState(false);
     const [showReturn, setShowReturn] = useState(false);
     const [showReopen, setShowReopen] = useState(false);
     const [showRate, setShowRate] = useState(false);
+    const [showSignOff, setShowSignOff] = useState(false);
 
     const submitForm = useForm({
         population_size: instance.population_size ?? '',
@@ -169,11 +176,7 @@ export default function Show({ instance, evidence = [], can = {}, checkItems = n
                         )}
                         {can.review && (
                             <>
-                                <PrimaryButton
-                                    onClick={() => router.post(route('test-instances.review', instance.id), { approved: true })}
-                                >
-                                    Sign off
-                                </PrimaryButton>
+                                <PrimaryButton onClick={() => setShowSignOff(true)}>Sign off</PrimaryButton>
                                 <SecondaryButton onClick={() => setShowReturn(true)}>Return to tester</SecondaryButton>
                             </>
                         )}
@@ -196,6 +199,13 @@ export default function Show({ instance, evidence = [], can = {}, checkItems = n
                 branch and to one rhythm. Without saying which, a branch
                 officer's screen is ambiguous and an officer holding both
                 a daily and a monthly NOSTRO task cannot tell them apart. */}
+            {returned && (
+                <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    <p className="font-semibold">Returned to the tester by {instance.reviewer?.name ?? 'the reviewer'}</p>
+                    <p className="mt-1 whitespace-pre-line">{instance.review_notes}</p>
+                </div>
+            )}
+
             {scope.is_control_function && (
                 <div className="card mb-6">
                     <div className="card-body flex flex-wrap items-start gap-x-8 gap-y-3 text-sm">
@@ -273,7 +283,7 @@ export default function Show({ instance, evidence = [], can = {}, checkItems = n
                         canUpload={can.execute || can.review}
                     />
 
-                    {instance.review_notes && (
+                    {instance.review_notes && !returned && (
                         <div className="card border-l-4 border-l-[var(--color-info)]">
                             <div className="card-body">
                                 <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">Review notes</p>
@@ -328,6 +338,24 @@ export default function Show({ instance, evidence = [], can = {}, checkItems = n
                                     <span className="font-medium">Overall</span>
                                     <StatusBadge status={rating.overall_rating} />
                                 </p>
+                                {['design', 'operating'].map((dimension) =>
+                                    (rating[`${dimension}_rationale_rich`] || rating[`${dimension}_rationale`]) && (
+                                        <div key={dimension} className="border-t border-gray-100 pt-2">
+                                            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
+                                                {dimension === 'design' ? 'Design' : 'Operating'} rationale
+                                            </p>
+                                            <RichTextViewer
+                                                className="mt-0.5"
+                                                value={rating[`${dimension}_rationale_rich`]}
+                                                fallback={rating[`${dimension}_rationale`]}
+                                            />
+                                        </div>
+                                    ),
+                                )}
+                                <p className="border-t border-gray-100 pt-2 text-xs text-gray-500">
+                                    Proposed by {rating.rater?.name ?? '—'}
+                                    {rating.approver && ` · approved by ${rating.approver.name}`}
+                                </p>
                             </div>
                         </div>
                     )}
@@ -344,6 +372,19 @@ export default function Show({ instance, evidence = [], can = {}, checkItems = n
             </div>
 
             {/* Submit modal — sampling capture (FR-3.5) */}
+            <ConfirmDialog
+                show={showSignOff}
+                title={`Sign off ${instance.reference}?`}
+                message="The test is locked once signed off and published to ThirdLine. Changing it afterwards needs a formal, reasoned reopen."
+                confirmLabel="Sign off test"
+                variant="primary"
+                onConfirm={() => {
+                    router.post(route('test-instances.review', instance.id), { approved: true });
+                    setShowSignOff(false);
+                }}
+                onCancel={() => setShowSignOff(false)}
+            />
+
             <Modal show={showSubmit} onClose={() => setShowSubmit(false)} title="Submit for review" maxWidth="lg">
                 <form
                     onSubmit={(e) => {

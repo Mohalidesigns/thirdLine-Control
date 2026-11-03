@@ -108,7 +108,7 @@ class ReportDefinitionController extends Controller
         $this->authorize('update', $definition);
 
         $wasApproved = $definition->approved_at !== null;
-        $this->designer->updateDefinition($definition, $request->validated());
+        $this->designer->updateDefinition($definition, $request->validated(), $request->user());
 
         return back()->with('success', $wasApproved && $definition->approved_at === null
             ? 'Saved. Because the layout changed, the previous approval no longer stands.'

@@ -297,6 +297,8 @@ class PolicyService
             'opens_at' => now(),
             'closes_at' => now()->addDays(30),
             'scope_definition' => [
+                'attestable_type' => 'policy',
+                'attestable_id' => $policy->id,
                 'policy_id' => $policy->id,
                 'assignments' => array_map(fn (int $id) => ['respondent_id' => $id], $respondents),
             ],

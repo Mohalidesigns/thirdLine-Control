@@ -45,7 +45,7 @@ const STATE_TONES = {
     ],
     amber: [
         'attention', 'medium', 'due soon', 'partially effective', 'amber', 'warning', 'weak',
-        'contained', 'under investigation', 'under revision', 'awaiting customer', 'reopened', 'high',
+        'contained', 'under investigation', 'under revision', 'awaiting customer', 'reopened', 'returned', 'high',
     ],
     red: [
         'critical', 'ineffective', 'inadequate', 'overdue', 'failed', 'fail', 'breached', 'red',
