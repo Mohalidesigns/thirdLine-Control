@@ -1,0 +1,99 @@
+<?php
+
+namespace App\Notifications;
+
+use App\Models\ControlException;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Carbon;
+
+/**
+ * The approval hand-offs of an exception's lifecycle: the owner asks for
+ * more time or reports it remediated (to the control function), and the
+ * control function decides an extension, closes it, or fails verification
+ * (back to the owner).
+ */
+class ExceptionDecisionNotification extends PreferenceRoutedNotification
+{
+    public const EXTENSION_REQUESTED = 'extension_requested';
+
+    public const EXTENSION_DECIDED = 'extension_decided';
+
+    public const REMEDIATED = 'remediated';
+
+    public const CLOSED = 'closed';
+
+    public const VERIFICATION_FAILED = 'verification_failed';
+
+    public function __construct(
+        public ControlException $exception,
+        public string $kind,
+        public string $actorName,
+        public string $note,
+        public ?string $newDate = null,
+        public ?bool $approved = null,
+    ) {}
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        $ref = $this->exception->reference;
+
+        $mail = (new MailMessage)->subject($this->headline());
+
+        $mail = match ($this->kind) {
+            self::EXTENSION_REQUESTED => $mail
+                ->line("{$this->actorName} has asked to move the target closure date of {$ref}.")
+                ->line('Current target: '.($this->exception->target_closure_date?->toFormattedDateString() ?? '—'))
+                ->line('Requested date: '.$this->formattedNewDate())
+                ->line('Reason: '.str($this->note)->limit(300)),
+            self::EXTENSION_DECIDED => $mail
+                ->line("{$this->actorName} has ".($this->approved ? 'approved' : 'declined')." your extension request on {$ref}.")
+                ->line('Target closure: '.($this->exception->target_closure_date?->toFormattedDateString() ?? '—'))
+                ->line('Reason: '.str($this->note)->limit(300)),
+            self::CLOSED => $mail
+                ->line("{$this->actorName} has verified the remediation of {$ref} and closed it. No further action is needed.")
+                ->line('Verification: '.str($this->note)->limit(300)),
+            self::VERIFICATION_FAILED => $mail
+                ->line("{$this->actorName} could not verify the remediation of {$ref}. It is back In Progress and needs further work.")
+                ->line('Reason: '.str($this->note)->limit(300))
+                ->line('Target closure: '.($this->exception->target_closure_date?->toFormattedDateString() ?? '—')),
+            default => $mail
+                ->line("{$this->actorName} has marked {$ref} remediated. It now needs control function verification before it can close.")
+                ->line('Remediation note: '.str($this->note)->limit(300)),
+        };
+
+        return $mail
+            ->line('Exception: '.str($this->exception->title)->limit(200))
+            ->action('Open the exception', url(route('exceptions.show', $this->exception->id, false)));
+    }
+
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'type' => 'exception_'.$this->kind,
+            'title' => $this->headline(),
+            'exception_id' => $this->exception->id,
+            'reference' => $this->exception->reference,
+            'url' => route('exceptions.show', $this->exception->id),
+            'summary' => $this->headline().': '.str($this->exception->title)->limit(120),
+        ];
+    }
+
+    /** Same format as the current target, so the two dates read side by side. */
+    private function formattedNewDate(): string
+    {
+        return $this->newDate ? Carbon::parse($this->newDate)->toFormattedDateString() : '—';
+    }
+
+    private function headline(): string
+    {
+        $ref = $this->exception->reference;
+
+        return match ($this->kind) {
+            self::EXTENSION_REQUESTED => "Extension requested — {$ref}",
+            self::EXTENSION_DECIDED => 'Extension '.($this->approved ? 'approved' : 'declined')." — {$ref}",
+            self::CLOSED => "Exception closed — {$ref}",
+            self::VERIFICATION_FAILED => "Verification failed — {$ref}",
+            default => "Ready for verification — {$ref}",
+        };
+    }
+}

@@ -2,16 +2,21 @@
 
 namespace Tests\Feature;
 
+use App\Models\Attestation;
 use App\Models\CsaCampaign;
 use App\Models\Policy;
 use App\Models\PolicyException;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Notifications\CampaignOpenedNotification;
+use App\Services\AttestationService;
 use App\Services\PolicyService;
 use Database\Seeders\FeatureFlagSeeder;
 use Database\Seeders\GovernanceTaxonomySeeder;
+use Database\Seeders\NotificationEventSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
@@ -153,6 +158,54 @@ class PolicyLifecycleTest extends TestCase
         $policy = $this->draft(['requires_attestation' => true, 'attestation_frequency' => 'on_publication']);
 
         $this->assertStringContainsString('Declare anything over', $policy->fresh(['sections'])->attestationText());
+    }
+
+    private function publishedWithAttestation(): Policy
+    {
+        $policy = $this->draft(['requires_attestation' => true, 'attestation_frequency' => 'annual']);
+        $service = app(PolicyService::class);
+
+        $service->submitForApproval($policy->fresh(), $this->officer);
+        $service->approve($policy->fresh(), $this->cfh);
+
+        return $service->publish($policy->fresh(), $this->cfh);
+    }
+
+    public function test_a_published_policy_attestation_can_be_signed_from_the_attestations_page(): void
+    {
+        $campaign = CsaCampaign::find($this->publishedWithAttestation()->attestation_campaign_id);
+
+        $this->actingAs($this->owner)->get(route('attestations.index'))
+            ->assertInertia(fn ($page) => $page->where('outstanding.0.id', $campaign->id)
+                ->where('outstanding.0.subject.type', 'policy'));
+
+        $this->actingAs($this->owner)->post(route('attestations.store', $campaign), ['accepted' => true])
+            ->assertSessionHasNoErrors();
+
+        $attestation = Attestation::where('user_id', $this->owner->id)->firstOrFail();
+        $this->assertStringContainsString('Declare anything over', $attestation->attestation_text_snapshot);
+        $this->assertSame(1, substr_count($attestation->attestation_text_snapshot, 'Anti-Bribery and Corruption Policy'));
+        $this->assertSame('Submitted', $campaign->responses()->where('respondent_id', $this->owner->id)->value('status'));
+    }
+
+    public function test_a_campaign_opened_with_only_a_policy_id_still_resolves_its_policy(): void
+    {
+        $policy = $this->publishedWithAttestation();
+        $campaign = CsaCampaign::find($policy->attestation_campaign_id);
+        $campaign->update(['scope_definition' => ['policy_id' => $policy->id, 'assignments' => []]]);
+
+        $this->assertTrue($policy->is(app(AttestationService::class)->resolveSubject($campaign->fresh())));
+    }
+
+    public function test_publishing_invites_everyone_in_scope_to_attest(): void
+    {
+        $this->seed(NotificationEventSeeder::class);
+        Notification::fake();
+
+        $this->publishedWithAttestation();
+
+        Notification::assertSentTo($this->owner, CampaignOpenedNotification::class,
+            fn ($n) => $n->toArray($this->owner)['url'] === route('attestations.index'));
     }
 
     // ── Lifecycle and supersession ───────────────────────────────────

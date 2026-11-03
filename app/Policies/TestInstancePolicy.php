@@ -41,6 +41,13 @@ class TestInstancePolicy
             return false;
         }
 
+        // FR-3.4: the scheduler assigns a periodic test to the control
+        // owner, so whoever it is assigned to performs it whatever their
+        // role. SoD still bites at review, where the tester may not sign off.
+        if ($instance->assigned_tester_id === $user->id) {
+            return true;
+        }
+
         return $user->hasAnyRole(['Control Officer', 'Control Function Head'])
             && ($instance->assigned_tester_id === null || $instance->assigned_tester_id === $user->id);
     }

@@ -54,7 +54,9 @@ export default function ActivityTab({ alias, entityId }) {
                     <p className="text-xs text-[var(--color-text-secondary)]">{formatDateTime(entry.created_at)}</p>
                     {entry.after && Object.keys(entry.after).length > 0 && (
                         <p className="mt-1 break-all font-mono text-[11px] text-[var(--color-text-secondary)]">
+                            {/* *_rich keys are editor documents; their plain-text twin is shown instead. */}
                             {Object.entries(entry.after)
+                                .filter(([key]) => !key.endsWith('_rich'))
                                 .slice(0, 4)
                                 .map(([key, value]) => `${key}: ${typeof value === 'object' ? JSON.stringify(value) : value}`)
                                 .join(' · ')}

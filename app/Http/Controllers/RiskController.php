@@ -98,7 +98,7 @@ class RiskController extends Controller
             'owner:id,name', 'secondLineReviewer:id,name', 'riskCategory:id,name,code',
             'entity:id,name', 'process:id,name', 'appetite', 'parent:id,code,title',
             'controls.owner:id,name',
-            'assessments.assessor:id,name', 'assessments.approver:id,name',
+            'assessments.assessor:id,name', 'assessments.approver:id,name', 'assessments.returner:id,name',
             'treatments.owner:id,name', 'treatments.verifier:id,name', 'treatments.milestones.owner:id,name',
         ]);
 
@@ -134,6 +134,8 @@ class RiskController extends Controller
             'processes' => BusinessProcess::query()->orderBy('name')->get(['id', 'name']),
             'appetites' => RiskAppetite::query()->active()->get(['id', 'statement']),
             'can' => [
+                'register' => $request->user()->can('viewAny', Risk::class),
+                'map' => $request->user()->can('map', $risk),
                 'assess' => $request->user()->can('assess', $risk),
                 'review' => $request->user()->can('review', $risk),
                 'treat' => $request->user()->can('create', RiskTreatment::class),

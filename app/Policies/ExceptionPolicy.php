@@ -86,9 +86,12 @@ class ExceptionPolicy
             && ($exception->owner_id === $user->id || $exception->responsible_party_id === $user->id);
     }
 
+    /** Only an outstanding request can be decided — never a date move nobody asked for. */
     public function decideExtension(User $user, ControlException $exception): bool
     {
-        return $user->hasRole('Control Function Head');
+        return $user->hasRole('Control Function Head')
+            && $exception->isOpen()
+            && $exception->pendingExtensionRequest() !== null;
     }
 
     public function acceptRisk(User $user, ControlException $exception): bool

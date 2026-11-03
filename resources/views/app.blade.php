@@ -7,7 +7,9 @@
         <link rel="manifest" href="{{ route('pwa.manifest') }}" />
         <meta name="theme-color" content="#1A365D" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/images/brand/favicon-32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/images/brand/favicon-16.png" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         @routes
         @viteReactRefresh
         @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])

@@ -42,6 +42,7 @@ class ReportSectionResolver
 
         return [
             'code' => $definition->code,
+            'version' => $definition->version_no,
             'title' => $this->interpolate($definition->name, $context),
             'subtitle' => $this->interpolate($definition->description ?? '', $context),
             'report_type' => $definition->report_type,

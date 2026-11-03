@@ -28,7 +28,7 @@ class ReportScheduleController extends Controller
                 ->withCount('runs')
                 ->orderBy('name')
                 ->get(),
-            'definitions' => ReportDefinition::active()
+            'definitions' => ReportDefinition::active()->approved()
                 ->orderBy('name')
                 ->get(['id', 'code', 'name', 'output_formats', 'confidentiality']),
             'deliveryMethods' => ReportSchedule::DELIVERY_METHODS,
@@ -83,6 +83,8 @@ class ReportScheduleController extends Controller
     public function runNow(Request $request, ReportSchedule $schedule): RedirectResponse
     {
         $this->authorize('run', $schedule);
+
+        abort_unless($schedule->definition?->isApproved(), 422, 'This report definition is awaiting approval, so it cannot run.');
 
         $run = $this->designer->run(
             $schedule->definition,

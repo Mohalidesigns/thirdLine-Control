@@ -98,6 +98,15 @@ class CaseController extends Controller
         $case->load(['leadInvestigator:id,name', 'entity:id,name', 'closer:id,name',
             'incident:id,incident_ref,title', 'complaint:id,complaint_ref,subject']);
 
+        // A confidential reporter is on the allowlist so they can follow
+        // their case, but nobody else working it is told who they are.
+        $hideReporter = $case->reporter_id !== null && $case->reporter_id !== $request->user()->id;
+        $reporterId = $case->reporter_id;
+
+        if ($hideReporter) {
+            $case->makeHidden('reporter_id');
+        }
+
         $notes = $case->notes()
             ->when(! $canSeePrivileged, fn ($q) => $q->where('is_privileged', false))
             ->with('author:id,name')
@@ -132,7 +141,9 @@ class CaseController extends Controller
                 'opened_on' => $investigation->reported_date?->toDateString(),
             ] : null,
             'links' => $this->linkage->neighbours('case', $case->id),
-            'allowlist' => User::whereIn('id', $case->access_user_ids ?? [])->get(['id', 'name', 'email']),
+            'allowlist' => User::whereIn('id', $case->access_user_ids ?? [])
+                ->when($hideReporter, fn ($q) => $q->where('id', '!=', $reporterId))
+                ->get(['id', 'name', 'email']),
             'users' => User::tenantPicker()->get(['id', 'name']),
             'canSeePrivileged' => $canSeePrivileged,
             'metadataCaptured' => $metadataCaptured,

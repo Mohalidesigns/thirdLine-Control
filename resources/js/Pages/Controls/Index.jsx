@@ -28,6 +28,7 @@ export default function Index({
     controlLevels = [],
     implementationStatuses = [],
     stats = {},
+    awaitingMyApproval = 0,
 }) {
     const { auth } = usePage().props;
     const canCreate = auth.permissions.includes('create controls');
@@ -128,6 +129,17 @@ export default function Index({
                     </>
                 }
             />
+
+            {awaitingMyApproval > 0 && filters.status !== 'Pending Approval' && (
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+                    <span>
+                        {awaitingMyApproval} {awaitingMyApproval === 1 ? 'control is' : 'controls are'} awaiting your approval.
+                    </span>
+                    <Link href={route('controls.index', { status: 'Pending Approval' })} className="font-semibold underline">
+                        Review now
+                    </Link>
+                </div>
+            )}
 
             <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
                 <StatCard icon={Gauge} title="Total Controls" value={stats.total ?? 0} color="primary" />

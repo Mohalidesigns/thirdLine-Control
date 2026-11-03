@@ -53,11 +53,11 @@ class RiskAppetiteController extends Controller
         return back()->with('success', "Appetite statement drafted (v{$appetite->version_no}).");
     }
 
-    public function submit(RiskAppetite $appetite): RedirectResponse
+    public function submit(Request $request, RiskAppetite $appetite): RedirectResponse
     {
         $this->authorize('update', $appetite);
 
-        $this->appetiteService->submitForApproval($appetite);
+        $this->appetiteService->submitForApproval($appetite, $request->user());
 
         return back()->with('success', 'Appetite statement submitted for approval.');
     }

@@ -55,7 +55,8 @@ class TestInstanceController extends Controller
             'checkResults',
             'tester:id,name',
             'reviewer:id,name',
-            'effectivenessRating',
+            'effectivenessRating.rater:id,name',
+            'effectivenessRating.approver:id,name',
         ]);
 
         $user = auth()->user();

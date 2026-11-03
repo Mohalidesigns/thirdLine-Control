@@ -61,6 +61,7 @@ export default function Show({
 }) {
     const [tab, setTab] = useState('Overview');
     const [showRetire, setShowRetire] = useState(false);
+    const [showApprove, setShowApprove] = useState(false);
     const [showReject, setShowReject] = useState(false);
     const rejectForm = useForm({ reason: '' });
 
@@ -110,9 +111,7 @@ export default function Show({
                         )}
                         {can.approve && (
                             <>
-                                <PrimaryButton onClick={() => router.post(route('controls.approve', control.id))}>
-                                    Approve
-                                </PrimaryButton>
+                                <PrimaryButton onClick={() => setShowApprove(true)}>Approve</PrimaryButton>
                                 <SecondaryButton onClick={() => setShowReject(true)}>Return to draft</SecondaryButton>
                             </>
                         )}
@@ -127,6 +126,16 @@ export default function Show({
                     </>
                 }
             />
+
+            {control.status === 'Draft' && control.return_reason && (
+                <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    <p className="font-semibold">
+                        Returned to draft by {control.returner?.name ?? 'the control function'}
+                        {control.returned_at && ` · ${formatDateTime(control.returned_at)}`}
+                    </p>
+                    <p className="mt-1 whitespace-pre-line">{control.return_reason}</p>
+                </div>
+            )}
 
             <div className="mb-4 flex flex-wrap items-center gap-2">
                 <StatusBadge status={control.status} />
@@ -625,6 +634,19 @@ export default function Show({
                     </form>
                 </div>
             )}
+
+            <ConfirmDialog
+                show={showApprove}
+                title={`Approve ${control.control_ref}?`}
+                message={`Version ${control.current_version} becomes the active control and testing starts against it.`}
+                confirmLabel="Approve control"
+                variant="primary"
+                onConfirm={() => {
+                    router.post(route('controls.approve', control.id));
+                    setShowApprove(false);
+                }}
+                onCancel={() => setShowApprove(false)}
+            />
 
             <ConfirmDialog
                 show={showRetire}

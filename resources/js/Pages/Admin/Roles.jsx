@@ -4,7 +4,7 @@ import InputLabel from '@/Components/InputLabel';
 import PageHeader from '@/Components/PageHeader';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 function Checkbox({ checked, onChange, disabled = false }) {
@@ -40,7 +40,12 @@ function RoleCard({ role, permissionGroups }) {
         router.put(
             route('admin.roles.update', role.id),
             { permissions: selected },
-            { preserveScroll: true, onFinish: () => setSaving(false) },
+            {
+                preserveScroll: true,
+                // A refused change leaves the stored permissions, so show those.
+                onError: () => setSelected(role.permissions),
+                onFinish: () => setSaving(false),
+            },
         );
     };
 
@@ -59,7 +64,7 @@ function RoleCard({ role, permissionGroups }) {
             >
                 <div className="flex items-center gap-3">
                     <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">{role.name}</h3>
-                    {role.is_locked && <span className="badge badge-status-active">All permissions · locked</span>}
+                    {role.is_locked && <span className="badge badge-status-active">Platform permissions · locked</span>}
                     {!role.is_seeded && <span className="badge badge-status-draft">Custom</span>}
                 </div>
                 <div className="flex items-center gap-4 text-xs text-[var(--color-text-secondary)]">
@@ -130,6 +135,9 @@ function RoleCard({ role, permissionGroups }) {
 }
 
 function UserRow({ user, roleNames }) {
+    const { auth } = usePage().props;
+    // Segregation of duties: another administrator changes your roles.
+    const isSelf = auth?.user?.id === user.id;
     const [selected, setSelected] = useState(user.roles);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -153,6 +161,8 @@ function UserRow({ user, roleNames }) {
             {
                 preserveScroll: true,
                 onSuccess: () => setSaved(true),
+                // A refused change leaves the stored roles, so show those.
+                onError: () => setSelected(user.roles),
                 onFinish: () => setSaving(false),
             },
         );
@@ -167,12 +177,17 @@ function UserRow({ user, roleNames }) {
                     {user.position ? ` · ${user.position}` : ''}
                     {!user.is_active ? ' · inactive' : ''}
                 </div>
+                {isSelf && (
+                    <div className="mt-0.5 text-xs text-[var(--color-text-secondary)]">
+                        Your own roles are changed by another administrator.
+                    </div>
+                )}
             </td>
             <td>
                 <div className="flex flex-wrap gap-x-4 gap-y-1">
                     {roleNames.map((role) => (
                         <label key={role} className="flex items-center gap-1.5 whitespace-nowrap">
-                            <Checkbox checked={selected.includes(role)} onChange={() => toggle(role)} />
+                            <Checkbox checked={selected.includes(role)} onChange={() => toggle(role)} disabled={isSelf} />
                             <span className="text-xs text-gray-700">{role}</span>
                         </label>
                     ))}

@@ -15,12 +15,14 @@ use App\Models\RegulatoryObligation;
 use App\Models\SubmissionPack;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Notifications\SubmissionActionNotification;
 use App\Services\SubmissionPackService;
 use App\Submissions\DeficiencyAggregator;
 use App\Submissions\SubmissionPackRegistry;
 use Database\Seeders\FeatureFlagSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
@@ -519,6 +521,25 @@ class SubmissionPackTest extends TestCase
         $this->assertSame('Draft', $replacement->status);
     }
 
+    public function test_a_regulator_rejection_tells_the_preparers_in_the_tenant_but_not_who_recorded_it(): void
+    {
+        $other = Tenant::create(['name' => 'Other Bank', 'status' => 'active', 'data_residency' => 'NG']);
+        $stranger = User::factory()->create(['tenant_id' => $other->id]);
+        $stranger->assignRole('Control Officer');
+
+        $pack = $this->readyPack();
+        $this->service()->sendForReview($pack, $this->officer);
+        $this->service()->review($pack->fresh(), $this->secondOfficer, 'accept');
+        $this->service()->approve($pack->fresh(), $this->cfh);
+        $this->service()->file($pack->fresh(), $this->cfh, []);
+        Notification::fake();
+
+        $this->service()->reject($pack->fresh(), $this->cfh, 'Section C attendance figures do not reconcile.');
+
+        Notification::assertSentTo([$this->officer, $this->secondOfficer], SubmissionActionNotification::class);
+        Notification::assertNotSentTo([$this->cfh, $this->owner, $stranger], SubmissionActionNotification::class);
+    }
+
     // ── Completeness floor ───────────────────────────────────────────────
 
     public function test_a_pack_below_the_completeness_floor_cannot_be_filed(): void
@@ -644,6 +665,50 @@ class SubmissionPackTest extends TestCase
     // ── Fixtures ─────────────────────────────────────────────────────────
 
     /** A governance pack answered well enough to travel the whole chain. */
+    // ── Hand-off notifications ───────────────────────────────────────────
+
+    public function test_each_hand_off_tells_only_the_people_who_can_take_the_next_step(): void
+    {
+        $other = Tenant::create(['name' => 'Other Bank', 'status' => 'active', 'data_residency' => 'NG']);
+        $stranger = User::factory()->create(['tenant_id' => $other->id]);
+        $stranger->assignRole('Control Function Head');
+
+        $pack = $this->readyPack();
+        Notification::fake();
+
+        // Ready for review: reviewers except the sender (who is the generator).
+        $this->service()->sendForReview($pack, $this->officer);
+        Notification::assertSentTo([$this->secondOfficer, $this->cfh], SubmissionActionNotification::class);
+        Notification::assertNotSentTo([$this->officer, $this->owner, $stranger], SubmissionActionNotification::class);
+
+        // Reviewed: approvers only, not the generator or the reviewer.
+        Notification::fake();
+        $this->service()->review($pack->fresh(), $this->secondOfficer, 'accept');
+        Notification::assertSentTo($this->cfh, SubmissionActionNotification::class);
+        Notification::assertNotSentTo([$this->officer, $this->secondOfficer, $stranger], SubmissionActionNotification::class);
+
+        // Approved: filers except the approver.
+        Notification::fake();
+        $admin = User::factory()->create(['tenant_id' => $this->tenant->id]);
+        $admin->assignRole('System Administrator');
+        $this->service()->approve($pack->fresh(), $this->cfh);
+        Notification::assertSentTo($admin, SubmissionActionNotification::class);
+        Notification::assertNotSentTo([$this->cfh, $this->officer, $stranger], SubmissionActionNotification::class);
+    }
+
+    public function test_returning_a_pack_tells_the_generator_with_the_notes(): void
+    {
+        $pack = $this->readyPack();
+        $this->service()->sendForReview($pack, $this->officer);
+        Notification::fake();
+
+        $this->service()->review($pack->fresh(), $this->secondOfficer, 'return', 'Section B needs the registered address.');
+
+        Notification::assertSentTo($this->officer, SubmissionActionNotification::class,
+            fn ($n) => $n->note === 'Section B needs the registered address.');
+        Notification::assertNotSentTo([$this->secondOfficer, $this->cfh], SubmissionActionNotification::class);
+    }
+
     private function readyPack(array $options = []): SubmissionPack
     {
         config(['dashboards.submission_completeness_threshold' => 0]);

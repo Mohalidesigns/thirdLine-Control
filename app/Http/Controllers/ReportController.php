@@ -7,6 +7,7 @@ use App\Models\ControlException;
 use App\Models\ExceptionEscalation;
 use App\Models\SpotCheck;
 use App\Models\TestInstance;
+use App\Services\AuditTrailService;
 use App\Services\ExcelExportService;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
@@ -18,21 +19,37 @@ class ReportController extends Controller
     public function __construct(
         private ReportService $reportService,
         private ExcelExportService $excelExportService,
+        private AuditTrailService $audit,
     ) {}
 
-    public function spotCheck(SpotCheck $spotCheck): Response
+    /** An export carries data out of the platform, so who took what, with which filters, is recorded. */
+    private function audited(Request $request, string $report, array $filters = []): void
     {
+        $this->audit->record('report.exported', $request->user(), null, [
+            'report' => $report,
+            'filters' => array_filter($filters),
+        ]);
+    }
+
+    public function spotCheck(Request $request, SpotCheck $spotCheck): Response
+    {
+        $this->audited($request, 'spot-check.pdf', ['spot_check_id' => $spotCheck->id]);
+
         return $this->reportService->spotCheckReport($spotCheck);
     }
 
     public function exceptionRegisterPdf(Request $request): Response
     {
+        $this->audited($request, 'exceptions.pdf', $request->only(['status', 'severity']));
+
         return $this->reportService->exceptionRegister($request->only(['status', 'severity']));
     }
 
     /** CR1.8 — the Exception Manager register with scorecard, ageing and board extract. */
     public function exceptionManagerPdf(Request $request): Response
     {
+        $this->audited($request, 'exception-manager.pdf', $request->only(['status', 'severity', 'unit_id']));
+
         return $this->reportService->exceptionManagerRegister(
             $request->user()->tenant_id,
             $request->only(['status', 'severity', 'unit_id']),
@@ -41,6 +58,8 @@ class ReportController extends Controller
 
     public function exceptionManagerXlsx(Request $request): StreamedResponse
     {
+        $this->audited($request, 'exception-manager.xlsx', $request->only(['status', 'severity', 'unit_id']));
+
         $rows = ExceptionEscalation::query()
             ->with(['exception:id,reference,title', 'unit:id,name', 'respondent:id,name', 'issuer:id,name'])
             ->when($request->status, fn ($q, $s) => $s === 'open' ? $q->open() : $q->where('status', $s))
@@ -66,13 +85,17 @@ class ReportController extends Controller
         ], $rows);
     }
 
-    public function testingSummaryPdf(): Response
+    public function testingSummaryPdf(Request $request): Response
     {
+        $this->audited($request, 'testing-summary.pdf', []);
+
         return $this->reportService->testingSummary();
     }
 
     public function boardPack(Request $request): Response
     {
+        $this->audited($request, 'board-pack.pdf', ['sections' => implode(',', (array) $request->input('sections'))]);
+
         $sections = $request->validate([
             'sections' => ['required', 'array', 'min:1'],
             'sections.*' => ['in:dashboard,exceptions,effectiveness,compensating'],
@@ -83,6 +106,8 @@ class ReportController extends Controller
 
     public function exceptionsXlsx(Request $request): StreamedResponse
     {
+        $this->audited($request, 'exceptions.xlsx', $request->only(['status', 'severity']));
+
         $rows = ControlException::query()
             ->with(['control:id,control_ref', 'owner:id,name', 'unit:id,name'])
             ->when($request->status, fn ($q, $s) => $s === 'open' ? $q->open() : $q->where('status', $s))
@@ -103,8 +128,10 @@ class ReportController extends Controller
         ], $rows);
     }
 
-    public function controlsXlsx(): StreamedResponse
+    public function controlsXlsx(Request $request): StreamedResponse
     {
+        $this->audited($request, 'controls.xlsx', []);
+
         $rows = Control::query()
             ->where('is_template', false)
             ->with(['category:id,name', 'process:id,name', 'unit:id,name', 'owner:id,name'])
@@ -124,8 +151,10 @@ class ReportController extends Controller
         ], $rows);
     }
 
-    public function testInstancesXlsx(): StreamedResponse
+    public function testInstancesXlsx(Request $request): StreamedResponse
     {
+        $this->audited($request, 'test-instances.xlsx', []);
+
         $rows = TestInstance::query()
             ->with(['control:id,control_ref,title', 'tester:id,name', 'effectivenessRating'])
             ->orderByDesc('period_start')

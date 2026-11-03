@@ -14,13 +14,19 @@ class SubmissionActionNotification extends PreferenceRoutedNotification
 {
     public array $resolvedChannels = ['database', 'mail'];
 
-    public function __construct(public SubmissionPack $pack, public string $action) {}
+    public function __construct(public SubmissionPack $pack, public string $action, public ?string $note = null) {}
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
+        $mail = (new MailMessage)
             ->subject("Submission {$this->pack->pack_ref} {$this->action}")
-            ->line("{$this->pack->pack_type} for {$this->pack->period_label} ({$this->pack->pack_ref}) {$this->action}.")
+            ->line("{$this->pack->pack_type} for {$this->pack->period_label} ({$this->pack->pack_ref}) {$this->action}.");
+
+        if ($this->note !== null && $this->note !== '') {
+            $mail->line('Reviewer notes: '.str($this->note)->limit(500));
+        }
+
+        return $mail
             ->line("It is {$this->pack->completeness_score}% complete.")
             ->action('Open the pack', url("/submissions/{$this->pack->id}"));
     }
@@ -39,6 +45,7 @@ class SubmissionActionNotification extends PreferenceRoutedNotification
             'status' => $this->pack->status,
             'completeness' => $this->pack->completeness_score,
             'action' => $this->action,
+            'note' => $this->note,
         ];
     }
 }

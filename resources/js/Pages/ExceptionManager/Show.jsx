@@ -47,7 +47,7 @@ function Round({ escalation, response }) {
                 {response.root_cause && (
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
-                            Root cause {response.root_cause_category && <span className="normal-case">({response.root_cause_category})</span>}
+                            Root cause {response.root_cause_category && <span className="capitalize">({response.root_cause_category})</span>}
                         </p>
                         <RichTextViewer className="mt-0.5" value={response.root_cause_rich} fallback={response.root_cause} />
                     </div>

@@ -165,7 +165,10 @@ class EscalationService
             'Unit Head' => $escalation->unit?->head,
             default => User::withoutGlobalScopes()
                 ->where('tenant_id', $rule->tenant_id)
+                ->whereNull('deleted_at')
+                ->where('is_active', true)
                 ->role($rule->recipient_role)
+                ->orderBy('id')
                 ->first(),
         };
     }
@@ -243,7 +246,10 @@ class EscalationService
                         ? User::find($rule->recipient_user_id)
                         : User::withoutGlobalScopes()
                             ->where('tenant_id', $rule->tenant_id)
+                            ->whereNull('deleted_at')
+                            ->where('is_active', true)
                             ->role($rule->recipient_role)
+                            ->orderBy('id')
                             ->first(),
                 };
 
@@ -405,9 +411,14 @@ class EscalationService
             return User::find($rule->recipient_user_id);
         }
 
+        // withoutGlobalScopes() also drops SoftDeletes, so a deleted or
+        // suspended holder of the role is excluded explicitly.
         return User::withoutGlobalScopes()
             ->where('tenant_id', $rule->tenant_id)
+            ->whereNull('deleted_at')
+            ->where('is_active', true)
             ->role($rule->recipient_role)
+            ->orderBy('id')
             ->first() ?? $fallback;
     }
 
@@ -434,7 +445,10 @@ class EscalationService
             'Line Manager' => $exception->owner?->manager ?? $exception->unit?->head,
             default => User::withoutGlobalScopes()
                 ->where('tenant_id', $rule->tenant_id)
+                ->whereNull('deleted_at')
+                ->where('is_active', true)
                 ->role($rule->recipient_role)
+                ->orderBy('id')
                 ->first(),
         };
     }

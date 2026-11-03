@@ -6,6 +6,8 @@ use App\Models\Risk;
 use App\Models\RiskTreatment;
 use App\Models\TreatmentMilestone;
 use App\Models\User;
+use App\Notifications\RiskTreatmentNotification;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -56,6 +58,10 @@ class TreatmentService
             ]);
         }
 
+        $this->notify($this->holdersOf($treatment, $treatment->strategy === 'Accept' ? null : 'approve treatments', [$author->id]),
+            'treatment.approval.requested',
+            new RiskTreatmentNotification($treatment, RiskTreatmentNotification::PROPOSED, $author->name));
+
         return $treatment;
     }
 
@@ -100,6 +106,8 @@ class TreatmentService
             'acceptance_expiry' => $treatment->acceptance_expiry?->toDateString(),
         ]);
 
+        $this->notifyOwner($treatment, $approver, 'treatment.approved', RiskTreatmentNotification::APPROVED);
+
         return $treatment;
     }
 
@@ -125,7 +133,7 @@ class TreatmentService
         return $treatment;
     }
 
-    public function markImplemented(RiskTreatment $treatment): RiskTreatment
+    public function markImplemented(RiskTreatment $treatment, ?User $actor = null): RiskTreatment
     {
         $outstanding = $treatment->milestones()
             ->whereNotIn('status', ['Completed', 'Cancelled'])
@@ -138,6 +146,10 @@ class TreatmentService
         }
 
         $this->transition($treatment, 'Implemented', ['progress' => 100, 'last_update_at' => now()]);
+
+        $this->notify($this->holdersOf($treatment, 'verify treatments', array_filter([$actor?->id])),
+            'treatment.verification.requested',
+            new RiskTreatmentNotification($treatment, RiskTreatmentNotification::IMPLEMENTED, $actor?->name ?? 'The plan owner'));
 
         return $treatment;
     }
@@ -172,6 +184,7 @@ class TreatmentService
         ]);
 
         $treatment->auditAction('verified', null, ['by' => $verifier->id]);
+        $this->notifyOwner($treatment, $verifier, 'treatment.verified', RiskTreatmentNotification::VERIFIED);
 
         // A verified treatment usually moves the residual position, so the
         // risk is re-scored and re-checked against appetite immediately.
@@ -186,6 +199,7 @@ class TreatmentService
     {
         $this->transition($treatment, 'Cancelled', ['last_update_at' => now()]);
         $treatment->auditAction('cancelled', null, ['by' => $actor->id, 'reason' => $reason]);
+        $this->notifyOwner($treatment, $actor, 'treatment.cancelled', RiskTreatmentNotification::CANCELLED, $reason);
 
         return $treatment;
     }
@@ -267,6 +281,50 @@ class TreatmentService
             });
 
         return $count;
+    }
+
+    // ── Notifications ────────────────────────────────────────────────
+
+    /**
+     * Holders of a permission — or, with none given, the control function
+     * heads who alone accept a risk — never the plan owner, so the checker
+     * is never the maker (R2).
+     */
+    private function holdersOf(RiskTreatment $treatment, ?string $permission, array $exceptIds = [])
+    {
+        return User::withoutGlobalScopes()
+            ->where('tenant_id', $treatment->tenant_id)
+            ->when($permission,
+                fn ($q) => $q->permission($permission),
+                fn ($q) => $q->role('Control Function Head'))
+            ->whereNotIn('id', array_filter([$treatment->owner_id, ...$exceptIds]))
+            ->where('is_active', true)
+            ->get();
+    }
+
+    private function notifyOwner(RiskTreatment $treatment, User $actor, string $eventKey, string $kind, ?string $note = null): void
+    {
+        $owner = User::withoutGlobalScopes()
+            ->whereKey($treatment->owner_id)
+            ->where('id', '!=', $actor->id)
+            ->where('is_active', true)
+            ->get();
+
+        $this->notify($owner, $eventKey, new RiskTreatmentNotification($treatment, $kind, $actor->name, $note));
+    }
+
+    /** Fire-and-log — a notification hiccup never blocks the treatment workflow. */
+    private function notify(iterable $recipients, string $eventKey, RiskTreatmentNotification $notification): void
+    {
+        try {
+            app(NotificationDispatcher::class)->send($recipients, $eventKey, $notification);
+        } catch (\Throwable $e) {
+            Log::warning('Treatment notification failed', [
+                'treatment_id' => $notification->treatment->id,
+                'event' => $eventKey,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     private function transition(RiskTreatment $treatment, string $to, array $extra = []): void

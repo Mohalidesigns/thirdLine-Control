@@ -128,7 +128,7 @@ export default function ExceptionResponse({ escalation, token, submitted = false
                                     <label className="form-label">Root cause category</label>
                                     <select className="form-select" value={form.data.root_cause_category} onChange={(e) => form.setData('root_cause_category', e.target.value)}>
                                         <option value="">— Select —</option>
-                                        {ROOT_CAUSE_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                                        {ROOT_CAUSE_CATEGORIES.map((c) => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
                                     </select>
                                 </div>
                                 <div>

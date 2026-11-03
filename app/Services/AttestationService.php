@@ -104,8 +104,12 @@ class AttestationService
      */
     public function resolveSubject(CsaCampaign $campaign): ?Model
     {
-        $type = $campaign->scope_definition['attestable_type'] ?? null;
-        $id = $campaign->scope_definition['attestable_id'] ?? null;
+        $scope = $campaign->scope_definition ?? [];
+
+        // Campaigns opened on policy publication before the policy joined
+        // the attestable registry carry only a policy_id.
+        $type = $scope['attestable_type'] ?? (isset($scope['policy_id']) ? 'policy' : null);
+        $id = $scope['attestable_id'] ?? $scope['policy_id'] ?? null;
         $class = AttestationController::ATTESTABLES[$type] ?? null;
 
         return $class && $id ? $class::find($id) : null;
@@ -113,6 +117,14 @@ class AttestationService
 
     private function snapshotText(Model $attestable): string
     {
+        // A subject that composes its own attestation text (a policy's
+        // title, summary and sections) is signed exactly as composed.
+        $composed = $attestable->getAttribute('attestation_text');
+
+        if (is_string($composed) && trim($composed) !== '') {
+            return trim($composed);
+        }
+
         foreach (['attestation_text', 'body', 'content', 'description', 'objective'] as $field) {
             $value = $attestable->getAttribute($field);
 

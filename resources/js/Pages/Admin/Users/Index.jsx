@@ -20,6 +20,7 @@ import {
     MailPlus,
     Pencil,
     Plus,
+    ShieldOff,
     RotateCcw,
     Trash2,
     UserPlus,
@@ -35,6 +36,9 @@ function splitName(name = '') {
 
 function UserFormModal({ show, onClose, user, roles, units, managers }) {
     const isEdit = Boolean(user);
+    const { auth } = usePage().props;
+    // Segregation of duties: another administrator changes your roles.
+    const isSelf = isEdit && auth?.user?.id === user?.id;
     const { data, setData, post, put, processing, errors, reset, clearErrors } = useForm({
         first_name: '',
         last_name: '',
@@ -148,11 +152,16 @@ function UserFormModal({ show, onClose, user, roles, units, managers }) {
                     <div className="mt-1 grid gap-1.5 sm:grid-cols-2">
                         {roles.map((role) => (
                             <label key={role} className="flex items-center gap-2">
-                                <Checkbox checked={data.roles.includes(role)} onChange={() => toggleRole(role)} />
+                                <Checkbox checked={data.roles.includes(role)} onChange={() => toggleRole(role)} disabled={isSelf} />
                                 <span className="text-sm text-gray-700">{role}</span>
                             </label>
                         ))}
                     </div>
+                    {isSelf && (
+                        <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
+                            Your own roles are changed by another administrator.
+                        </p>
+                    )}
                     <InputError message={errors.roles} className="mt-1" />
                 </div>
 
@@ -447,6 +456,18 @@ export default function Index({ users, filters, roles, units, managers }) {
                                                     action: () => act('admin.users.reset-password', user),
                                                 })}
                                             />
+                                            {user.mfa_enabled && user.id !== auth.user.id && (
+                                                <RowAction
+                                                    icon={ShieldOff}
+                                                    label="Reset MFA"
+                                                    onClick={() => setConfirm({
+                                                        title: `Reset MFA for ${user.name}?`,
+                                                        message: 'Use this when they have lost their authenticator and recovery codes. Their MFA enrolment is cleared and they set it up again at next sign-in. They are told by email.',
+                                                        confirmLabel: 'Reset MFA',
+                                                        action: () => act('admin.users.reset-mfa', user),
+                                                    })}
+                                                />
+                                            )}
                                             {user.status === 'Suspended' ? (
                                                 <RowAction
                                                     icon={RotateCcw}

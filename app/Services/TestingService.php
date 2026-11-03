@@ -8,15 +8,17 @@ use App\Models\EffectivenessRating;
 use App\Models\RatingMatrixEntry;
 use App\Models\TestInstance;
 use App\Models\User;
+use App\Notifications\TestInstanceNotification;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class TestingService
 {
     public function __construct(
         private ExceptionService $exceptionService,
-        private ResidualRiskService $residualRiskService,
+        private RiskAssessmentService $riskAssessments,
         private FrequencyResolver $frequencies,
     ) {}
 
@@ -150,7 +152,7 @@ class TestingService
     {
         $this->assertNotLocked($instance);
 
-        return DB::transaction(function () use ($instance, $samplingData, $tester) {
+        $instance = DB::transaction(function () use ($instance, $samplingData, $tester) {
             $instance->loadMissing('checkResults.checkItem', 'testScript.checkItems', 'control');
 
             $mandatory = $instance->testScript?->checkItems->where('is_mandatory', true)->pluck('id') ?? collect();
@@ -183,6 +185,11 @@ class TestingService
 
             return $instance;
         });
+
+        $this->notify($this->reviewersFor($instance, $tester), 'testing.review.requested',
+            new TestInstanceNotification($instance, TestInstanceNotification::SUBMITTED, $tester->name));
+
+        return $instance;
     }
 
     /**
@@ -214,6 +221,9 @@ class TestingService
 
             // Publish the completed test to ThirdLine on sign-off (FR-11.2).
             app(IntegrationService::class)->publishTestResult($instance->fresh(['effectivenessRating', 'control']));
+
+            $this->notify($this->usersExcept([$instance->assigned_tester_id], $reviewer), 'testing.signed_off',
+                new TestInstanceNotification($instance, TestInstanceNotification::SIGNED_OFF, $reviewer->name));
         } else {
             $instance->update([
                 'status' => 'In Progress',
@@ -221,6 +231,9 @@ class TestingService
                 'review_notes' => $notes,
             ]);
             $instance->auditAction('returned_to_tester', null, ['notes' => $notes]);
+
+            $this->notify($this->usersExcept([$instance->assigned_tester_id], $reviewer), 'testing.returned',
+                new TestInstanceNotification($instance, TestInstanceNotification::RETURNED, $reviewer->name, $notes));
         }
 
         return $instance;
@@ -261,7 +274,7 @@ class TestingService
             $instance->tenant_id,
         );
 
-        return EffectivenessRating::updateOrCreate(
+        $rating = EffectivenessRating::updateOrCreate(
             ['test_instance_id' => $instance->id],
             [
                 'tenant_id' => $instance->tenant_id,
@@ -283,6 +296,11 @@ class TestingService
                 'approved_at' => null,
             ],
         );
+
+        $this->notify($this->controlFunctionHeads($instance, $rater), 'testing.rating.approval.requested',
+            new TestInstanceNotification($instance->setRelation('effectivenessRating', $rating), TestInstanceNotification::RATING_PENDING, $rater->name));
+
+        return $rating;
     }
 
     /**
@@ -303,9 +321,68 @@ class TestingService
             'approved_at' => now(),
         ]);
 
-        $this->residualRiskService->recomputeForControl($rating->control);
+        $this->riskAssessments->recomputeForControl($rating->control);
+
+        $instance = $rating->testInstance->setRelation('effectivenessRating', $rating);
+        $this->notify($this->usersExcept([$rating->rated_by, $rating->control?->owner_id], $approver), 'testing.rating.published',
+            new TestInstanceNotification($instance, TestInstanceNotification::RATING_PUBLISHED, $approver->name));
 
         return $rating;
+    }
+
+    /**
+     * Who reviews a submitted test: the named reviewer when there is one,
+     * otherwise everyone the policy lets review it — the control function
+     * heads and, for a desk or branch task, the head of its sub-unit.
+     * Never the tester (FR-3.8).
+     */
+    private function reviewersFor(TestInstance $instance, User $tester)
+    {
+        if ($instance->reviewer_id && $instance->reviewer_id !== $tester->id) {
+            return $this->usersExcept([$instance->reviewer_id], $tester);
+        }
+
+        $unitHeadId = $instance->control_entity_id
+            ? $instance->controlEntity?->controlUnit?->head_user_id
+            : null;
+
+        return $this->controlFunctionHeads($instance, $tester)
+            ->merge($this->usersExcept([$unitHeadId], $tester))
+            ->unique('id');
+    }
+
+    /** The control function heads who approve — never the person who acted (FR-7.6). */
+    private function controlFunctionHeads(TestInstance $instance, User $actor)
+    {
+        return User::withoutGlobalScopes()
+            ->where('tenant_id', $instance->tenant_id)
+            ->role('Control Function Head')
+            ->where('id', '!=', $actor->id)
+            ->where('is_active', true)
+            ->get();
+    }
+
+    private function usersExcept(array $ids, User $actor)
+    {
+        return User::withoutGlobalScopes()
+            ->whereIn('id', array_filter($ids))
+            ->where('id', '!=', $actor->id)
+            ->where('is_active', true)
+            ->get();
+    }
+
+    /** Fire-and-log — a notification hiccup never blocks the test workflow. */
+    private function notify(iterable $recipients, string $eventKey, TestInstanceNotification $notification): void
+    {
+        try {
+            app(NotificationDispatcher::class)->send($recipients, $eventKey, $notification);
+        } catch (\Throwable $e) {
+            Log::warning('Test workflow notification failed', [
+                'test_instance_id' => $notification->instance->id,
+                'event' => $eventKey,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     private function assertNotLocked(TestInstance $instance): void

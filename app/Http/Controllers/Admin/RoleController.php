@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\AuditTrailService;
+use App\Services\UserAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -20,13 +21,17 @@ use Spatie\Permission\PermissionRegistrar;
  * Roles & permissions administration (BRD §4). Gated on 'manage users',
  * which only the System Administrator holds.
  *
- * Two invariants this screen refuses to break:
+ * Invariants this screen refuses to break:
  *
- *   1. The System Administrator role is immutable — it always holds every
- *      permission, so an admin cannot edit themselves out of the ability
- *      to undo a mistake made here.
+ *   1. The System Administrator role is immutable — it holds every
+ *      platform permission (but none of the exception-handling rights the
+ *      seeder withholds), so an admin cannot edit themselves out of the
+ *      ability to undo a mistake made here.
  *   2. A tenant always keeps at least one active System Administrator —
  *      the last one cannot be demoted, least of all by themselves.
+ *   3. Segregation of duties (UserAccessService): nobody changes their own
+ *      roles, and no administrator gains the withheld rights through
+ *      another role.
  *
  * Every change lands in the audit trail with before and after.
  */
@@ -38,7 +43,10 @@ class RoleController extends Controller
         'Control Owner', 'Line Manager', 'Executive Viewer',
     ];
 
-    public function __construct(private AuditTrailService $audit) {}
+    public function __construct(
+        private AuditTrailService $audit,
+        private UserAccessService $access,
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -117,6 +125,8 @@ class RoleController extends Controller
             'permissions.*' => ['string', Rule::exists('permissions', 'name')],
         ]);
 
+        $this->access->assertRoleKeepsSeparation($role, $validated['permissions']);
+
         $before = $role->permissions->pluck('name')->values()->all();
         $role->syncPermissions($validated['permissions']);
         app(PermissionRegistrar::class)->forgetCachedPermissions();
@@ -125,6 +135,10 @@ class RoleController extends Controller
             ['permissions' => $before],
             ['permissions' => $validated['permissions']],
         );
+
+        if (collect($before)->sort()->values()->all() !== collect($validated['permissions'])->sort()->values()->all()) {
+            $this->access->rolePermissionsChanged($request->user(), $role, $validated['permissions']);
+        }
 
         return back()->with('success', "Permissions for '{$role->name}' updated.");
     }
@@ -163,6 +177,7 @@ class RoleController extends Controller
         ]);
 
         $before = $user->roles->pluck('name')->values()->all();
+        $this->access->assertCanAssign($request->user(), $user, $before, $validated['roles']);
 
         $losesAdmin = in_array('System Administrator', $before, true)
             && ! in_array('System Administrator', $validated['roles'], true);
@@ -179,6 +194,7 @@ class RoleController extends Controller
             ['roles' => $before],
             ['roles' => $validated['roles']],
         );
+        $this->access->rolesChanged($request->user(), $user, $before, $validated['roles']);
 
         return back()->with('success', "Roles for {$user->name} updated.");
     }

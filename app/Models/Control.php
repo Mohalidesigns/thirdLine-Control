@@ -58,6 +58,7 @@ class Control extends Model
         'library_level', 'parent_control_id', 'function_grouping', 'control_level',
         'implementation_status', 'implementation_progress', 'is_distributable',
         'is_template', 'created_by', 'approved_by', 'approved_at', 'sync_status',
+        'return_reason', 'returned_by', 'returned_at',
     ];
 
     /** Editor.js-backed fields — see HasRichText. */
@@ -70,6 +71,7 @@ class Control extends Model
         'is_distributable' => 'boolean',
         'framework_refs' => 'array',
         'approved_at' => 'datetime',
+        'returned_at' => 'datetime',
         'last_assessed_at' => 'datetime',
         'current_version' => 'integer',
         'implementation_progress' => 'integer',
@@ -184,6 +186,11 @@ class Control extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function returner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'returned_by');
     }
 
     public function versions(): HasMany

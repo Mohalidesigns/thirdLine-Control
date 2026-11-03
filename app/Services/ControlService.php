@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Models\Control;
 use App\Models\ControlVersion;
 use App\Models\User;
+use App\Notifications\ControlApprovalNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class ControlService
@@ -44,12 +46,12 @@ class ControlService
      */
     public function amend(Control $control, array $data, User $user, string $changeReason): Control
     {
-        return DB::transaction(function () use ($control, $data, $user, $changeReason) {
+        $wasActive = $control->status === 'Active';
+
+        $control = DB::transaction(function () use ($control, $data, $user, $changeReason, $wasActive) {
             $control->versions()
                 ->where('version_no', $control->current_version)
                 ->update(['effective_to' => now()->toDateString()]);
-
-            $wasActive = $control->status === 'Active';
 
             $control->update([
                 ...$data,
@@ -63,11 +65,26 @@ class ControlService
 
             return $control;
         });
+
+        // An amended active control is back in front of the checker.
+        if ($wasActive) {
+            $this->notifyApprovers($control, $user);
+        }
+
+        return $control;
     }
 
-    public function submitForApproval(Control $control): Control
+    public function submitForApproval(Control $control, ?User $by = null): Control
     {
-        $this->transition($control, 'Pending Approval');
+        $this->transition($control, 'Pending Approval', [
+            'return_reason' => null,
+            'returned_by' => null,
+            'returned_at' => null,
+        ]);
+
+        if ($by) {
+            $this->notifyApprovers($control, $by);
+        }
 
         return $control;
     }
@@ -94,15 +111,73 @@ class ControlService
         // Publish to ThirdLine on approval (FR-11.1); failures log, never block.
         app(IntegrationService::class)->publishControl($control);
 
+        $this->notify(
+            $this->makerAndOwner($control, $approver),
+            'control.approved',
+            new ControlApprovalNotification($control, ControlApprovalNotification::APPROVED, $approver->name),
+        );
+
         return $control;
     }
 
-    public function reject(Control $control, string $reason): Control
+    public function reject(Control $control, string $reason, ?User $by = null): Control
     {
-        $this->transition($control, 'Draft');
+        $this->transition($control, 'Draft', [
+            'return_reason' => $reason,
+            'returned_by' => $by?->id,
+            'returned_at' => now(),
+        ]);
         $control->auditAction('rejected', null, ['reason' => $reason]);
 
+        if ($by) {
+            $this->notify(
+                $this->makerAndOwner($control, $by),
+                'control.returned',
+                new ControlApprovalNotification($control, ControlApprovalNotification::RETURNED, $by->name, $reason),
+            );
+        }
+
         return $control;
+    }
+
+    /** Every control function head who may check it: never the maker (FR-1.8) nor the submitter. */
+    private function notifyApprovers(Control $control, User $submitter): void
+    {
+        $approvers = User::withoutGlobalScopes()
+            ->where('tenant_id', $control->tenant_id)
+            ->role('Control Function Head')
+            ->whereNotIn('id', array_filter([$control->created_by, $submitter->id]))
+            ->where('is_active', true)
+            ->get();
+
+        $this->notify(
+            $approvers,
+            'control.approval.requested',
+            new ControlApprovalNotification($control, ControlApprovalNotification::SUBMITTED, $submitter->name),
+        );
+    }
+
+    private function makerAndOwner(Control $control, User $actor)
+    {
+        return User::withoutGlobalScopes()
+            ->whereIn('id', array_filter([$control->created_by, $control->owner_id]))
+            ->where('id', '!=', $actor->id)
+            ->where('is_active', true)
+            ->get();
+    }
+
+    /** Fire-and-log — a notification hiccup never blocks the approval itself. */
+    private function notify(iterable $recipients, string $eventKey, ControlApprovalNotification $notification): void
+    {
+        try {
+            app(NotificationDispatcher::class)->send($recipients, $eventKey, $notification);
+        } catch (\Throwable $e) {
+            Log::warning('Control approval notification failed', [
+                'control_id' => $notification->control->id,
+                'event' => $eventKey,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function retire(Control $control): Control
