@@ -56,6 +56,7 @@ class TenantSeeder extends Seeder
             ['Folake Balogun', 'owner2@secondline.test', 'Control Owner', 'Branch Manager, Marina', 'Marina Branch'],
             ['Gbenga Oyelaran', 'manager@secondline.test', 'Line Manager', 'Divisional Head, Retail', 'Head Office'],
             ['Hauwa Ibrahim', 'exec@secondline.test', 'Executive Viewer', 'Executive Director, Risk', 'Head Office'],
+            ['Abubakar Ahmodu', 'aahmodu@atherislimited.com', 'Control Officer', 'Control Officer', 'Internal Control'],
         ];
 
         $created = [];
@@ -81,6 +82,9 @@ class TenantSeeder extends Seeder
         $created['owner2@secondline.test']->update(['reports_to' => $created['manager@secondline.test']->id]);
         $created['officer1@secondline.test']->update(['reports_to' => $created['cfh@secondline.test']->id]);
         $created['officer2@secondline.test']->update(['reports_to' => $created['cfh@secondline.test']->id]);
+        if (isset($created['aahmodu@atherislimited.com'])) {
+            $created['aahmodu@atherislimited.com']->update(['reports_to' => $created['cfh@secondline.test']->id]);
+        }
 
         // Unit heads.
         $units['Operations']->update(['head_user_id' => $created['owner1@secondline.test']->id]);
